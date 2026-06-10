@@ -51,6 +51,15 @@
           </div>
         </div>
 
+        <!-- Edit Button -->
+        <button 
+          @click="store.setEditingLog(log)"
+          class="p-2 rounded-xl hover:bg-violet-500/10 text-gray-500 hover:text-violet-400 active:bg-violet-500/20 transition-all duration-200 cursor-pointer"
+          title="Edit Entry"
+        >
+          <Edit3 class="w-4 h-4" />
+        </button>
+
         <!-- Delete Button -->
         <button 
           @click="handleDelete(log.id)"
@@ -65,7 +74,7 @@
 </template>
 
 <script setup>
-import { Calendar, Trash2, Plus, Cloud as CloudCheck, CloudLightning } from 'lucide-vue-next';
+import { Calendar, Trash2, Plus, Cloud as CloudCheck, CloudLightning, Edit3 } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 
 const store = useBodyGraphStore();

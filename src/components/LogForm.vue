@@ -5,7 +5,7 @@
   >
     <!-- Backdrop -->
     <div 
-      @click="store.showAddModal = false" 
+      @click="closeModal" 
       class="absolute inset-0 bg-black/60 backdrop-blur-sm"
     ></div>
 
@@ -20,10 +20,10 @@
             <path d="M12 20h9"></path>
             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
           </svg>
-          Log Body Metrics
+          {{ store.editingLog ? 'Edit Log Entry' : 'Log Body Metrics' }}
         </h2>
         <button 
-          @click="store.showAddModal = false"
+          @click="closeModal"
           class="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer"
         >
           <X class="w-5 h-5" />
@@ -83,7 +83,7 @@
         <div class="pt-4 flex gap-3">
           <button 
             type="button" 
-            @click="store.showAddModal = false"
+            @click="closeModal"
             class="flex-1 py-3 text-sm font-semibold rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-300 hover:text-white transition-all duration-200 border border-gray-700/50 cursor-pointer"
           >
             Cancel
@@ -114,15 +114,26 @@ const form = reactive({
 });
 
 const prefillForm = () => {
-  form.date = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local format
-  
-  if (store.logs.length > 0) {
-    form.mass = Number(store.logs[0].mass);
-    form.body_fat = Number(store.logs[0].body_fat);
+  if (store.editingLog) {
+    form.date = store.editingLog.date;
+    form.mass = Number(store.editingLog.mass);
+    form.body_fat = Number(store.editingLog.body_fat);
   } else {
-    form.mass = '';
-    form.body_fat = '';
+    form.date = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local format
+    
+    if (store.logs.length > 0) {
+      form.mass = Number(store.logs[0].mass);
+      form.body_fat = Number(store.logs[0].body_fat);
+    } else {
+      form.mass = '';
+      form.body_fat = '';
+    }
   }
+};
+
+const closeModal = () => {
+  store.showAddModal = false;
+  store.editingLog = null;
 };
 
 // Listen to modal opening to update initial values
@@ -134,7 +145,8 @@ watch(() => store.showAddModal, (newVal) => {
 
 const handleSubmit = async () => {
   try {
-    await store.addLog({
+    await store.saveLogEntry({
+      id: store.editingLog?.id || null,
       mass: form.mass,
       bodyFat: form.body_fat,
       date: form.date
