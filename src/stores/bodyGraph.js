@@ -12,7 +12,6 @@ import {
 function getMondayOfDate(dateStr) {
   const dateObj = new Date(dateStr);
   const day = dateObj.getDay();
-  // Adjust difference: Sunday is 0, Monday is 1... We want to find Monday.
   const diff = dateObj.getDate() - day + (day === 0 ? -6 : 1);
   const mondayObj = new Date(dateObj.setDate(diff));
   
@@ -44,13 +43,17 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     showAddModal: false,
     showAuthModal: false,
     
-    // Sub-tab configuration inside dashboard ('daily' or 'weekly')
-    dashboardMode: 'daily',
     // Index of the week in the groupedWeeks list (0 is the newest week)
-    selectedWeekIndex: 0
+    selectedWeekIndex: 0,
+    // Active log record being edited, null if creating a new one
+    editingLog: null
   }),
 
   getters: {
+    isCloudConfigured: () => {
+      return !!supabase;
+    },
+
     currentUserId: (state) => {
       return state.user?.id || 'guest';
     },
@@ -103,7 +106,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           monday: mon,
           sunday: sun,
           label,
-          logs: weekLogs, // Entries are already sorted descending by date
+          logs: weekLogs,
           avgMass,
           avgFat
         });
@@ -160,6 +163,12 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
   },
 
   actions: {
+    // Select log entry to trigger editing mode
+    setEditingLog(log) {
+      this.editingLog = log;
+      this.showAddModal = true;
+    },
+
     // Navigation actions for weeks list
     goToPreviousWeek() {
       const maxIndex = this.groupedWeeks.length - 1;
@@ -245,6 +254,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         this.session = null;
         this.activeTab = 'charts';
         this.selectedWeekIndex = 0;
+        this.editingLog = null;
         
         await this.loadLogs();
       } catch (error) {
@@ -261,9 +271,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       }
     },
 
-    async addLog({ mass, bodyFat, date }) {
-      const newLog = {
-        id: crypto.randomUUID(),
+    // Save or update a log entry
+    async saveLogEntry({ id, mass, bodyFat, date }) {
+      const log = {
+        id: id || crypto.randomUUID(),
         date,
         mass: Number(mass),
         body_fat: Number(bodyFat),
@@ -271,16 +282,13 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       };
 
       try {
-        await saveLog(newLog, this.currentUserId);
+        await saveLog(log, this.currentUserId);
         await this.loadLogs();
         this.showAddModal = false;
-        
-        // Reset view to current active week
-        this.selectedWeekIndex = 0;
-        
+        this.editingLog = null;
         this.triggerSync();
       } catch (error) {
-        console.error('Store failed to add log:', error);
+        console.error('Store failed to save log:', error);
         throw error;
       }
     },

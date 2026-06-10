@@ -13,36 +13,10 @@
     </button>
   </div>
 
-  <div v-else class="space-y-6">
-    <!-- SUB-TOGGLE: DAILY VS WEEKLY -->
-    <div class="flex gap-2 p-1 rounded-xl bg-gray-900/40 border border-gray-800/50 max-w-[280px]">
-      <button 
-        @click="store.dashboardMode = 'daily'"
-        :class="[
-          'flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer',
-          store.dashboardMode === 'daily' 
-            ? 'bg-violet-600/30 text-violet-200 border border-violet-500/20' 
-            : 'text-gray-400 hover:text-gray-200'
-        ]"
-      >
-        Week Focus (Daily)
-      </button>
-      <button 
-        @click="store.dashboardMode = 'weekly'"
-        :class="[
-          'flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer',
-          store.dashboardMode === 'weekly' 
-            ? 'bg-violet-600/30 text-violet-200 border border-violet-500/20' 
-            : 'text-gray-400 hover:text-gray-200'
-        ]"
-      >
-        All-Time (Averages)
-      </button>
-    </div>
-
-    <!-- 1. DAILY FOCUS VIEW -->
+  <div v-else class="space-y-8">
+    
+    <!-- 1. DAILY FOCUS SECTION (WEEK FOCUS) -->
     <div 
-      v-show="store.dashboardMode === 'daily'" 
       class="space-y-4"
       @touchstart="handleTouchStart"
       @touchend="handleTouchEnd"
@@ -53,14 +27,14 @@
         <button 
           @click="store.goToPreviousWeek" 
           :disabled="store.selectedWeekIndex >= store.groupedWeeks.length - 1"
-          class="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+          class="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors duration-200"
         >
           <ChevronLeft class="w-5 h-5" />
         </button>
 
         <!-- Current week display label -->
-        <div class="text-center">
-          <div class="text-xs text-violet-400 font-semibold uppercase tracking-wider">Active Week</div>
+        <div class="text-center select-none">
+          <div class="text-xs text-violet-400 font-semibold uppercase tracking-wider">Active Week Focus</div>
           <div class="text-sm font-bold text-white mt-0.5">{{ store.activeWeek.label }}</div>
         </div>
 
@@ -68,79 +42,87 @@
         <button 
           @click="store.goToNextWeek" 
           :disabled="store.selectedWeekIndex <= 0"
-          class="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+          class="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors duration-200"
         >
           <ChevronRight class="w-5 h-5" />
         </button>
       </div>
 
-      <!-- Gestures tip (mobile only) -->
-      <p class="text-center text-[10px] text-gray-500 hidden sm:block md:hidden">💡 Tip: Swipe left/right on the cards to navigate weeks</p>
+      <!-- Touch Swipe Swipe tip (mobile only) -->
+      <p class="text-center text-[10px] text-gray-500 select-none">💡 Swipe left/right on cards to navigate weeks</p>
 
       <!-- Charts grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Weight Daily Chart -->
-        <div class="glass-card p-4 sm:p-5 rounded-3xl relative">
-          <h3 class="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-violet-500"></span> Daily Weight Fluctuations (kg)
+        <div class="glass-card p-4 sm:p-5 rounded-3xl relative shadow-lg">
+          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-violet-500"></span> Daily Weight Fluctuations (kg)
           </h3>
-          <div class="relative h-[250px] w-full">
+          <div class="relative h-[230px] w-full">
             <canvas ref="weightDailyCanvas"></canvas>
           </div>
         </div>
 
         <!-- Fat Daily Chart -->
-        <div class="glass-card p-4 sm:p-5 rounded-3xl relative">
-          <h3 class="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Daily Body Fat Evolution (%)
+        <div class="glass-card p-4 sm:p-5 rounded-3xl relative shadow-lg">
+          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Daily Body Fat Evolution (%)
           </h3>
-          <div class="relative h-[250px] w-full">
+          <div class="relative h-[230px] w-full">
             <canvas ref="fatDailyCanvas"></canvas>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 2. ALL-TIME WEEKLY AVERAGES VIEW -->
-    <div v-show="store.dashboardMode === 'weekly'" class="space-y-6">
+    <!-- SEPARATOR LINE -->
+    <div class="border-t border-gray-800/60 my-2"></div>
+
+    <!-- 2. ALL-TIME LONG-TERM VIEW -->
+    <div class="space-y-6">
+      <div class="flex flex-col">
+        <h2 class="text-base font-bold text-white tracking-tight">All-Time Trends</h2>
+        <p class="text-[11px] text-gray-500 mt-0.5">Plotting computed weekly averages to filter out daily balance noise.</p>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Weight Average Chart -->
-        <div class="glass-card p-4 sm:p-5 rounded-3xl">
-          <h3 class="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-violet-500 animate-pulse"></span> Long-Term Weight Averages (kg)
+        <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
+          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span> Historical Weekly Weight Averages (kg)
           </h3>
-          <div class="relative h-[250px] w-full">
+          <div class="relative h-[230px] w-full">
             <canvas ref="weightAvgCanvas"></canvas>
           </div>
         </div>
 
         <!-- Fat Average Chart -->
-        <div class="glass-card p-4 sm:p-5 rounded-3xl">
-          <h3 class="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> Long-Term Fat Averages (%)
+        <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
+          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Historical Weekly Fat Averages (%)
           </h3>
-          <div class="relative h-[250px] w-full">
+          <div class="relative h-[230px] w-full">
             <canvas ref="fatAvgCanvas"></canvas>
           </div>
         </div>
       </div>
 
-      <!-- COPYABLE HEVY AVERAGES TABLE -->
-      <div class="glass-card p-5 rounded-3xl max-w-2xl">
-        <div class="flex items-center gap-2 mb-4">
+      <!-- HEVY SYNC UTILITY -->
+      <div class="glass-card p-5 rounded-3xl max-w-2xl shadow-xl">
+        <div class="flex items-center gap-2 mb-2">
           <Copy class="w-4.5 h-4.5 text-violet-400" />
-          <h3 class="text-sm font-semibold text-white">Hevy Sync helper (Weekly Averages)</h3>
+          <h3 class="text-sm font-bold text-white">Hevy Sync Helper</h3>
         </div>
         <p class="text-xs text-gray-400 mb-4">
-          Click copy on Sunday to copy your calculated averages and easily input them into your Hevy logs.
+          Click the copy button to copy your weekly average values to enter them directly into your Hevy logs.
         </p>
 
-        <!-- Averages Table Grid -->
+        <!-- Averages List -->
         <div class="space-y-2.5">
           <div 
             v-for="week in store.groupedWeeks" 
             :key="week.id"
-            class="flex items-center justify-between p-3 rounded-xl bg-gray-900/60 border border-gray-800/40"
+            class="flex items-center justify-between p-3 rounded-xl bg-gray-900/60 border border-gray-800/40 hover:border-gray-700/60 transition-colors duration-200"
           >
             <div>
               <div class="text-xs font-semibold text-white">{{ week.label }}</div>
@@ -160,10 +142,10 @@
               <!-- Copy trigger -->
               <button 
                 @click="copyWeeklyAverage(week)"
-                class="p-2 rounded-lg bg-gray-800 hover:bg-gray-750 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer"
-                title="Copy Averages"
+                class="p-2 rounded-lg bg-gray-800 hover:bg-gray-750 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer border border-gray-700/30"
+                title="Copy Weekly Averages"
               >
-                <Check v-if="copiedWeekId === week.id" class="w-4 h-4 text-emerald-400" />
+                <Check v-if="copiedWeekId === week.id" class="w-4 h-4 text-emerald-400 animate-pulse" />
                 <Copy v-else class="w-4 h-4" />
               </button>
             </div>
@@ -184,7 +166,7 @@ Chart.register(...registerables);
 
 const store = useBodyGraphStore();
 
-// Canvas elements reference
+// Canvas references
 const weightDailyCanvas = ref(null);
 const fatDailyCanvas = ref(null);
 const weightAvgCanvas = ref(null);
@@ -198,7 +180,7 @@ let chartF_Avg = null;
 
 const copiedWeekId = ref(null);
 
-// Copy Hevy stats
+// Copy Hevy text
 const copyWeeklyAverage = (week) => {
   const text = `Weight: ${week.avgMass.toFixed(2)}kg, Fat: ${week.avgFat.toFixed(1)}%`;
   navigator.clipboard.writeText(text).then(() => {
@@ -209,7 +191,7 @@ const copyWeeklyAverage = (week) => {
   });
 };
 
-// Touch Swipes Tracking
+// Swipe controls variables
 let touchStartX = 0;
 let touchStartY = 0;
 
@@ -225,13 +207,11 @@ const handleTouchEnd = (e) => {
   const deltaX = touchEndX - touchStartX;
   const deltaY = touchEndY - touchStartY;
 
-  // Verify swipe was horizontal and exceeded threshold
+  // Horizontal delta check
   if (Math.abs(deltaX) > 60 && Math.abs(deltaY) < 40) {
     if (deltaX > 0) {
-      // Swipe Right -> Older week
       store.goToPreviousWeek();
     } else {
-      // Swipe Left -> Newer week
       store.goToNextWeek();
     }
   }
@@ -239,30 +219,23 @@ const handleTouchEnd = (e) => {
 
 // Render Daily Week Detail Charts
 const updateDailyCharts = () => {
-  if (store.dashboardMode !== 'daily' || !store.activeWeek) return;
+  if (!store.activeWeek) return;
 
   nextTick(() => {
-    // 7 Days weekdays layout
     const daysLabel = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    
-    // Fill arrays with null
     const dailyWeights = Array(7).fill(null);
     const dailyFats = Array(7).fill(null);
 
-    // Map logs to day slots (Sunday=0 -> index 6, Monday=1 -> index 0)
     for (const log of store.activeWeek.logs) {
       const d = new Date(log.date);
-      // getDay() gives 0 for Sunday. We want Monday=0...Sunday=6
-      const dayIndex = (d.getDay() + 6) % 7;
+      const dayIndex = (d.getDay() + 6) % 7; // Monday = 0
       
-      // Store the most recent log if duplicates exist on the same day
       if (dailyWeights[dayIndex] === null) {
         dailyWeights[dayIndex] = log.mass;
         dailyFats[dayIndex] = log.body_fat;
       }
     }
 
-    // 1. Draw daily weight
     if (weightDailyCanvas.value) {
       if (chartW_Daily) chartW_Daily.destroy();
       const ctx = weightDailyCanvas.value.getContext('2d');
@@ -287,7 +260,7 @@ const updateDailyCharts = () => {
             pointBorderColor: '#8b5cf6',
             pointBorderWidth: 2,
             pointRadius: 4,
-            spanGaps: true, // Seamlessly connect points over missing days
+            spanGaps: true,
             fill: true,
             backgroundColor: fillGrad,
             tension: 0.25
@@ -307,7 +280,7 @@ const updateDailyCharts = () => {
               padding: 10,
               displayColors: false,
               callbacks: {
-                label: (context) => ` ${context.parsed.y} kg`
+                label: (context) => ` ${context.parsed.y.toFixed(2)} kg`
               }
             }
           },
@@ -325,7 +298,6 @@ const updateDailyCharts = () => {
       });
     }
 
-    // 2. Draw daily fat
     if (fatDailyCanvas.value) {
       if (chartF_Daily) chartF_Daily.destroy();
       const ctx = fatDailyCanvas.value.getContext('2d');
@@ -370,7 +342,7 @@ const updateDailyCharts = () => {
               padding: 10,
               displayColors: false,
               callbacks: {
-                label: (context) => ` ${context.parsed.y} %`
+                label: (context) => ` ${context.parsed.y.toFixed(1)} %`
               }
             }
           },
@@ -392,16 +364,14 @@ const updateDailyCharts = () => {
 
 // Render Global Weekly Average Trend Charts
 const updateWeeklyCharts = () => {
-  if (store.dashboardMode !== 'weekly' || store.groupedWeeks.length === 0) return;
+  if (store.groupedWeeks.length === 0) return;
 
   nextTick(() => {
-    // Chronological order (oldest week first, left-to-right)
     const sortedWeeks = [...store.groupedWeeks].reverse();
     const labels = sortedWeeks.map(w => w.label);
     const avgWeights = sortedWeeks.map(w => w.avgMass);
     const avgFats = sortedWeeks.map(w => w.avgFat);
 
-    // 1. Draw average weight trends
     if (weightAvgCanvas.value) {
       if (chartW_Avg) chartW_Avg.destroy();
       const ctx = weightAvgCanvas.value.getContext('2d');
@@ -464,7 +434,6 @@ const updateWeeklyCharts = () => {
       });
     }
 
-    // 2. Draw average fat trends
     if (fatAvgCanvas.value) {
       if (chartF_Avg) chartF_Avg.destroy();
       const ctx = fatAvgCanvas.value.getContext('2d');
@@ -529,21 +498,21 @@ const updateWeeklyCharts = () => {
   });
 };
 
-const triggerChartDraws = () => {
-  if (store.dashboardMode === 'daily') {
-    updateDailyCharts();
-  } else {
-    updateWeeklyCharts();
-  }
+const drawAll = () => {
+  updateDailyCharts();
+  updateWeeklyCharts();
 };
 
-// Watchers mapping to update chart rendering
-watch([() => store.logs, () => store.dashboardMode, () => store.selectedWeekIndex], () => {
-  triggerChartDraws();
+watch(() => store.logs, () => {
+  drawAll();
 }, { deep: true });
 
+watch(() => store.selectedWeekIndex, () => {
+  updateDailyCharts();
+});
+
 onMounted(() => {
-  triggerChartDraws();
+  drawAll();
 });
 
 onUnmounted(() => {

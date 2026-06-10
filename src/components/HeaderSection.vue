@@ -18,57 +18,70 @@
 
       <!-- User Info & Sync Controls -->
       <div class="flex items-center gap-3">
-        <!-- Online/Offline Badge -->
+        <!-- 1. LOCAL ONLY UNCONFIGURED STATE -->
         <div 
-          :class="[
-            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all duration-300',
-            store.isOnline 
-              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
-              : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
-          ]"
+          v-if="!store.isCloudConfigured"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border border-gray-800/80 bg-gray-900/60 text-gray-400 select-none"
+          title="Supabase is not configured. Running offline in browser memory."
         >
-          <span :class="['w-1.5 h-1.5 rounded-full', store.isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400']"></span>
-          {{ store.isOnline ? 'Online' : 'Offline' }}
+          <span class="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
+          Local Mode
         </div>
 
-        <!-- Authenticated Info -->
-        <div v-if="store.isAuthenticated" class="flex items-center gap-2">
-          <!-- User Profile Identity -->
-          <div class="hidden md:flex flex-col text-right">
-            <span class="text-xs font-semibold text-white leading-none">{{ store.userEmail }}</span>
-            <span class="text-[9px] text-violet-400 mt-0.5">Cloud Backup Active</span>
+        <!-- 2. SUPABASE ACTIVE CONNECTIVITY STATUS -->
+        <template v-else>
+          <!-- Online/Offline Badge -->
+          <div 
+            :class="[
+              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all duration-300 select-none',
+              store.isOnline 
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+            ]"
+          >
+            <span :class="['w-1.5 h-1.5 rounded-full', store.isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400']"></span>
+            {{ store.isOnline ? 'Online' : 'Offline' }}
           </div>
 
-          <!-- Manual Sync button -->
-          <button 
-            @click="store.triggerSync" 
-            :disabled="store.isSyncing || !store.isOnline"
-            class="p-2 rounded-xl glass-card text-gray-400 hover:text-white hover:bg-gray-800/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
-            title="Sync Now"
-          >
-            <RefreshCw :class="['w-4 h-4', store.isSyncing ? 'animate-spin text-violet-400' : '']" />
-          </button>
+          <!-- Authenticated Info -->
+          <div v-if="store.isAuthenticated" class="flex items-center gap-2">
+            <!-- User Profile Identity -->
+            <div class="hidden md:flex flex-col text-right">
+              <span class="text-xs font-semibold text-white leading-none">{{ store.userEmail }}</span>
+              <span class="text-[9px] text-violet-400 mt-0.5">Cloud Backup Active</span>
+            </div>
 
-          <!-- Logout button -->
-          <button 
-            @click="handleLogout"
-            class="p-2 rounded-xl hover:bg-rose-500/10 text-gray-400 hover:text-rose-400 transition-all duration-200 cursor-pointer"
-            title="Log Out"
-          >
-            <LogOut class="w-4 h-4" />
-          </button>
-        </div>
+            <!-- Manual Sync button -->
+            <button 
+              @click="store.triggerSync" 
+              :disabled="store.isSyncing || !store.isOnline"
+              class="p-2 rounded-xl glass-card text-gray-400 hover:text-white hover:bg-gray-800/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
+              title="Sync Now"
+            >
+              <RefreshCw :class="['w-4 h-4', store.isSyncing ? 'animate-spin text-violet-400' : '']" />
+            </button>
 
-        <!-- Guest Backup Prompt -->
-        <div v-else class="flex items-center">
-          <button 
-            @click="store.showAuthModal = true"
-            class="px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-all duration-200 cursor-pointer shadow-lg shadow-violet-500/10"
-          >
-            <Cloud class="w-3.5 h-3.5" />
-            Backup to Cloud
-          </button>
-        </div>
+            <!-- Logout button -->
+            <button 
+              @click="handleLogout"
+              class="p-2 rounded-xl hover:bg-rose-500/10 text-gray-400 hover:text-rose-400 transition-all duration-200 cursor-pointer"
+              title="Log Out"
+            >
+              <LogOut class="w-4 h-4" />
+            </button>
+          </div>
+
+          <!-- Guest Backup Prompt -->
+          <div v-else class="flex items-center">
+            <button 
+              @click="store.showAuthModal = true"
+              class="px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-all duration-200 cursor-pointer shadow-lg shadow-violet-500/10"
+            >
+              <Cloud class="w-3.5 h-3.5" />
+              Backup to Cloud
+            </button>
+          </div>
+        </template>
       </div>
     </div>
   </header>
