@@ -8,7 +8,7 @@
       </div>
       <div>
         <div class="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-none">
-          {{ store.stats.currentMass ? store.stats.currentMass.toFixed(1) : '--.-' }} <span class="text-sm font-normal text-gray-400">kg</span>
+          {{ store.stats.currentMass ? store.stats.currentMass.toFixed(2) : '--.--' }} <span class="text-sm font-normal text-gray-400">kg</span>
         </div>
         <div v-if="store.stats.massChange !== 0" class="flex items-center gap-1 mt-1.5 text-xs">
           <component 
@@ -16,7 +16,7 @@
             :class="[store.stats.massChange < 0 ? 'text-emerald-400' : 'text-amber-400', 'w-3 h-3']" 
           />
           <span :class="store.stats.massChange < 0 ? 'text-emerald-400' : 'text-amber-400'">
-            {{ store.stats.massChange > 0 ? '+' : '' }}{{ store.stats.massChange.toFixed(1) }} kg
+            {{ store.stats.massChange > 0 ? '+' : '' }}{{ store.stats.massChange.toFixed(2) }} kg
           </span>
           <span class="text-gray-500">last entry</span>
         </div>

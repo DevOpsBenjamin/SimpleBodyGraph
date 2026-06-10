@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 
 const DB_NAME = 'SimpleBodyGraphDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Bumping version to trigger user_id index upgrades
 const STORE_LOGS = 'logs';
 const STORE_DELETIONS = 'deletions';
 
@@ -14,12 +14,23 @@ export function openDB() {
 
     request.onupgradeneeded = (event) => {
       const db = request.result;
+      let store;
       
       // Store for active logs
       if (!db.objectStoreNames.contains(STORE_LOGS)) {
-        const store = db.createObjectStore(STORE_LOGS, { keyPath: 'id' });
+        store = db.createObjectStore(STORE_LOGS, { keyPath: 'id' });
+      } else {
+        store = request.transaction.objectStore(STORE_LOGS);
+      }
+      
+      if (!store.indexNames.contains('date')) {
         store.createIndex('date', 'date', { unique: false });
+      }
+      if (!store.indexNames.contains('synced')) {
         store.createIndex('synced', 'synced', { unique: false });
+      }
+      if (!store.indexNames.contains('user_id')) {
+        store.createIndex('user_id', 'user_id', { unique: false });
       }
       
       // Store for deleted log IDs (to sync deletions when online)
@@ -30,14 +41,14 @@ export function openDB() {
   });
 }
 
-// Database Helper Methods
-export async function getAllLogs() {
+// Database Helper Methods (Isolated by userId)
+export async function getAllLogs(userId = 'guest') {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE_LOGS, 'readonly');
     const store = transaction.objectStore(STORE_LOGS);
-    const index = store.index('date');
-    const request = index.getAll();
+    const index = store.index('user_id');
+    const request = index.getAll(userId);
 
     request.onsuccess = () => {
       // Sort logs descending by date
@@ -49,7 +60,7 @@ export async function getAllLogs() {
   });
 }
 
-export async function saveLog(log) {
+export async function saveLog(log, userId = 'guest') {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE_LOGS, 'readwrite');
@@ -59,6 +70,7 @@ export async function saveLog(log) {
     if (!log.id) {
       log.id = crypto.randomUUID();
     }
+    log.user_id = userId;
     
     const request = store.put(log);
 
@@ -67,14 +79,14 @@ export async function saveLog(log) {
   });
 }
 
-export async function deleteLog(id) {
+export async function deleteLog(id, userId = 'guest') {
   const db = await openDB();
   
   // Track deletion offline
   await new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE_DELETIONS, 'readwrite');
     const store = transaction.objectStore(STORE_DELETIONS);
-    const request = store.put({ id });
+    const request = store.put({ id, user_id: userId });
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
@@ -89,13 +101,13 @@ export async function deleteLog(id) {
   });
 }
 
-export async function getUnsyncedLogs() {
+export async function getUnsyncedLogs(userId = 'guest') {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE_LOGS, 'readonly');
     const store = transaction.objectStore(STORE_LOGS);
-    const index = store.index('synced');
-    const request = index.getAll();
+    const index = store.index('user_id');
+    const request = index.getAll(userId);
 
     request.onsuccess = () => {
       const all = request.result || [];
@@ -105,13 +117,16 @@ export async function getUnsyncedLogs() {
   });
 }
 
-export async function getPendingDeletions() {
+export async function getPendingDeletions(userId = 'guest') {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE_DELETIONS, 'readonly');
     const store = transaction.objectStore(STORE_DELETIONS);
     const request = store.getAll();
-    request.onsuccess = () => resolve(request.result || []);
+    request.onsuccess = () => {
+      const all = request.result || [];
+      resolve(all.filter(d => d.user_id === userId));
+    };
     request.onerror = () => reject(request.error);
   });
 }
@@ -127,8 +142,35 @@ export async function clearPendingDeletions(ids) {
   });
 }
 
+// Migrate local guest logs to authenticated user
+export async function migrateGuestLogsInDB(newUserId) {
+  if (!newUserId || newUserId === 'guest') return;
+  
+  const db = await openDB();
+  const guestLogs = await getAllLogs('guest');
+  if (guestLogs.length === 0) return;
+
+  const transaction = db.transaction(STORE_LOGS, 'readwrite');
+  const store = transaction.objectStore(STORE_LOGS);
+
+  for (const log of guestLogs) {
+    log.user_id = newUserId;
+    log.synced = false; // Trigger upload
+    store.put(log);
+  }
+
+  await new Promise((resolve, reject) => {
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+  });
+  console.log(`Migrated ${guestLogs.length} logs from Guest to user ${newUserId}`);
+}
+
 // Synchronization Manager
-export async function syncLogs() {
+export async function syncLogs(userId = 'guest') {
+  if (userId === 'guest') {
+    return { success: false, reason: 'guest_user_no_sync' };
+  }
   if (!navigator.onLine || !supabase) {
     return { success: false, reason: 'offline_or_no_supabase' };
   }
@@ -136,8 +178,8 @@ export async function syncLogs() {
   try {
     const db = await openDB();
 
-    // 1. Sync deletions to Supabase
-    const deletions = await getPendingDeletions();
+    // 1. Sync deletions for this user to Supabase
+    const deletions = await getPendingDeletions(userId);
     if (deletions.length > 0) {
       const deletionIds = deletions.map(d => d.id);
       const { error: delError } = await supabase
@@ -153,15 +195,15 @@ export async function syncLogs() {
       }
     }
 
-    // 2. Sync unsynced additions/updates to Supabase
-    const unsynced = await getUnsyncedLogs();
+    // 2. Sync unsynced additions/updates for this user to Supabase
+    const unsynced = await getUnsyncedLogs(userId);
     if (unsynced.length > 0) {
-      // Prepare records for Supabase (date, mass, body_fat)
       const recordsToPush = unsynced.map(log => ({
         id: log.id,
         date: log.date,
         mass: Number(log.mass),
-        body_fat: Number(log.body_fat)
+        body_fat: Number(log.body_fat),
+        user_id: userId
       }));
 
       const { error: pushError } = await supabase
@@ -183,7 +225,7 @@ export async function syncLogs() {
       }
     }
 
-    // 3. Fetch latest data from Supabase to sync down
+    // 3. Fetch latest data from Supabase for this user to sync down
     const { data: remoteLogs, error: pullError } = await supabase
       .from('logs')
       .select('*')
@@ -194,7 +236,8 @@ export async function syncLogs() {
       const store = transaction.objectStore(STORE_LOGS);
       
       const currentLocalLogs = await new Promise((resolve) => {
-        store.getAll().onsuccess = (e) => resolve(e.target.result || []);
+        const index = store.index('user_id');
+        index.getAll(userId).onsuccess = (e) => resolve(e.target.result || []);
       });
 
       const unsyncedMap = new Map(unsynced.map(l => [l.id, l]));

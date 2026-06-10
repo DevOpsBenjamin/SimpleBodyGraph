@@ -64,6 +64,9 @@
 
     <!-- Modal Form overlay -->
     <LogForm />
+
+    <!-- Auth modal overlay -->
+    <AuthModal />
   </div>
 </template>
 
@@ -78,12 +81,13 @@ import StatsOverview from './components/StatsOverview.vue';
 import ProgressCharts from './components/ProgressCharts.vue';
 import HistoryList from './components/HistoryList.vue';
 import LogForm from './components/LogForm.vue';
+import AuthModal from './components/AuthModal.vue';
 
 const store = useBodyGraphStore();
 
 onMounted(async () => {
-  // Read local database entries
-  await store.loadLogs();
+  // Initialize user session and load appropriate IndexedDB profile
+  await store.initAuth();
 
   // Attach online/offline check triggers
   window.addEventListener('online', () => {
@@ -93,8 +97,5 @@ onMounted(async () => {
   window.addEventListener('offline', () => {
     store.setOnlineStatus(false);
   });
-
-  // Attempt initial background synchronization
-  store.triggerSync();
 });
 </script>

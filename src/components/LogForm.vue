@@ -53,8 +53,8 @@
               id="log-mass"
               type="number" 
               v-model.number="form.mass"
-              placeholder="e.g. 78.5"
-              step="0.1"
+              placeholder="e.g. 78.50"
+              step="0.01"
               min="20"
               max="300"
               required
