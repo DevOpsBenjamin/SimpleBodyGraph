@@ -13,11 +13,12 @@
     </button>
   </div>
 
-  <div v-else class="space-y-8">
+  <div v-else class="space-y-6">
     
     <!-- 1. DAILY FOCUS SECTION (WEEK FOCUS) -->
     <div 
-      class="space-y-4"
+      v-show="store.activeTab === 'daily'"
+      class="space-y-4 animate-fade-in"
       @touchstart="handleTouchStart"
       @touchend="handleTouchEnd"
     >
@@ -48,17 +49,17 @@
         </button>
       </div>
 
-      <!-- Touch Swipe Swipe tip (mobile only) -->
+      <!-- Touch Swipe tip -->
       <p class="text-center text-[10px] text-gray-500 select-none">💡 Swipe left/right on cards to navigate weeks</p>
 
-      <!-- Charts grid -->
+      <!-- Daily Charts grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Weight Daily Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl relative shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-violet-500"></span> Daily Weight Fluctuations (kg)
           </h3>
-          <div class="relative h-[230px] w-full">
+          <div class="relative h-[240px] w-full">
             <canvas ref="weightDailyCanvas"></canvas>
           </div>
         </div>
@@ -68,30 +69,25 @@
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Daily Body Fat Evolution (%)
           </h3>
-          <div class="relative h-[230px] w-full">
+          <div class="relative h-[240px] w-full">
             <canvas ref="fatDailyCanvas"></canvas>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- SEPARATOR LINE -->
-    <div class="border-t border-gray-800/60 my-2"></div>
-
     <!-- 2. ALL-TIME LONG-TERM VIEW -->
-    <div class="space-y-6">
-      <div class="flex flex-col">
-        <h2 class="text-base font-bold text-white tracking-tight">All-Time Trends</h2>
-        <p class="text-[11px] text-gray-500 mt-0.5">Plotting computed weekly averages to filter out daily balance noise.</p>
-      </div>
-
+    <div 
+      v-show="store.activeTab === 'weekly'"
+      class="space-y-6"
+    >
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Weight Average Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span> Historical Weekly Weight Averages (kg)
           </h3>
-          <div class="relative h-[230px] w-full">
+          <div class="relative h-[240px] w-full">
             <canvas ref="weightAvgCanvas"></canvas>
           </div>
         </div>
@@ -101,7 +97,7 @@
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Historical Weekly Fat Averages (%)
           </h3>
-          <div class="relative h-[230px] w-full">
+          <div class="relative h-[240px] w-full">
             <canvas ref="fatAvgCanvas"></canvas>
           </div>
         </div>
@@ -499,16 +495,21 @@ const updateWeeklyCharts = () => {
 };
 
 const drawAll = () => {
-  updateDailyCharts();
-  updateWeeklyCharts();
+  if (store.activeTab === 'daily') {
+    updateDailyCharts();
+  } else if (store.activeTab === 'weekly') {
+    updateWeeklyCharts();
+  }
 };
 
-watch(() => store.logs, () => {
+watch([() => store.logs, () => store.activeTab], () => {
   drawAll();
 }, { deep: true });
 
 watch(() => store.selectedWeekIndex, () => {
-  updateDailyCharts();
+  if (store.activeTab === 'daily') {
+    updateDailyCharts();
+  }
 });
 
 onMounted(() => {

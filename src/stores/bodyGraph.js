@@ -39,7 +39,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     session: null,
     isOnline: navigator.onLine,
     isSyncing: false,
-    activeTab: 'charts',
+    activeTab: 'daily',
     showAddModal: false,
     showAuthModal: false,
     
@@ -252,7 +252,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         
         this.user = null;
         this.session = null;
-        this.activeTab = 'charts';
+        this.activeTab = 'daily';
         this.selectedWeekIndex = 0;
         this.editingLog = null;
         
