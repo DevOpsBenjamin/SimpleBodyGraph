@@ -15,17 +15,28 @@
 
       <!-- Tab navigation controller -->
       <section class="mb-6">
-        <div class="flex p-1 rounded-xl bg-gray-900/80 border border-gray-800/60 max-w-sm">
+        <div class="flex p-1 rounded-xl bg-gray-900/80 border border-gray-800/60 max-w-md">
           <button 
-            @click="store.activeTab = 'charts'"
+            @click="store.activeTab = 'daily'"
             :class="[
               'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
-              store.activeTab === 'charts' 
+              store.activeTab === 'daily' 
                 ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md' 
                 : 'text-gray-400 hover:text-gray-200'
             ]"
           >
-            Dashboard
+            Week Focus
+          </button>
+          <button 
+            @click="store.activeTab = 'weekly'"
+            :class="[
+              'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
+              store.activeTab === 'weekly' 
+                ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md' 
+                : 'text-gray-400 hover:text-gray-200'
+            ]"
+          >
+            All-Time
           </button>
           <button 
             @click="store.activeTab = 'history'"
@@ -43,8 +54,8 @@
 
       <!-- Tabs content panel -->
       <section>
-        <!-- Charts view -->
-        <ProgressCharts v-show="store.activeTab === 'charts'" />
+        <!-- Charts view (Daily active week or Global averages) -->
+        <ProgressCharts v-show="store.activeTab === 'daily' || store.activeTab === 'weekly'" />
 
         <!-- History entries list -->
         <HistoryList v-show="store.activeTab === 'history'" />
