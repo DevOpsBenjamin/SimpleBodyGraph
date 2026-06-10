@@ -31,7 +31,7 @@
         <div class="flex items-center gap-5">
           <div>
             <div class="text-xs text-gray-400">Mass</div>
-            <div class="text-sm font-bold text-white">{{ log.mass }} <span class="text-[10px] font-normal text-gray-400">kg</span></div>
+            <div class="text-sm font-bold text-white">{{ Number(log.mass).toFixed(2) }} <span class="text-[10px] font-normal text-gray-400">kg</span></div>
           </div>
           <div>
             <div class="text-xs text-gray-400">Body Fat</div>
