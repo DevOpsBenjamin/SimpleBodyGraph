@@ -131,7 +131,11 @@ const handleAnonymousSignIn = async () => {
   try {
     await store.signInAnonymously();
   } catch (error) {
-    alert('Failed to create Anonymous account: ' + error.message);
+    if (error.message && error.message.includes('disabled')) {
+      alert('Failed to create Anonymous account:\n\nAnonymous sign-ins are disabled in your Supabase project settings.\n\nTo resolve this:\n1. Open your Supabase Console.\n2. Navigate to Authentication -> Providers -> Anonymous.\n3. Turn it ON.');
+    } else {
+      alert('Failed to create Anonymous account: ' + error.message);
+    }
   } finally {
     loading.value = false;
   }
