@@ -44,7 +44,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     showAuthModal: false,
     initialized: false,
     syncError: null,
-    isGuestMode: localStorage.getItem('bodygraph_guest_mode') === 'true',
+    isGuestMode: false,
     
     // Index of the week in the groupedWeeks list (0 is the newest week)
     selectedWeekIndex: 0,
@@ -226,7 +226,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     enableGuestMode() {
-      localStorage.setItem('bodygraph_guest_mode', 'true');
       this.isGuestMode = true;
       this.loadLogs();
     },
@@ -279,7 +278,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async logout() {
-      localStorage.removeItem('bodygraph_guest_mode');
       this.isGuestMode = false;
       if (!supabase) {
         this.user = null;
