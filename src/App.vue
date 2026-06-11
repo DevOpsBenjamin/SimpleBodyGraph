@@ -99,6 +99,9 @@
 
       <!-- Auth modal overlay -->
       <AuthModal />
+
+      <!-- Settings modal overlay -->
+      <SettingsModal />
     </template>
   </div>
 </template>
@@ -116,6 +119,7 @@ import ProgressCharts from './components/ProgressCharts.vue';
 import HistoryList from './components/HistoryList.vue';
 import LogForm from './components/LogForm.vue';
 import AuthModal from './components/AuthModal.vue';
+import SettingsModal from './components/SettingsModal.vue';
 
 const store = useBodyGraphStore();
 

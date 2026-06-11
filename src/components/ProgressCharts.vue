@@ -192,6 +192,42 @@ Chart.register(...registerables);
 
 const store = useBodyGraphStore();
 
+// Custom Chart.js Plugin to draw target goal lines without forcing axis re-scale
+const goalLinePlugin = {
+  id: 'goalLine',
+  afterDraw: (chart) => {
+    const goalOpts = chart.options.plugins?.goalLine;
+    if (!goalOpts || goalOpts.value === undefined || goalOpts.value === null) return;
+    
+    const value = goalOpts.value;
+    const yScale = chart.scales.y;
+    
+    if (value >= yScale.min && value <= yScale.max) {
+      const ctx = chart.ctx;
+      const y = yScale.getPixelForValue(value);
+      const xLeft = chart.scales.x.left;
+      const xRight = chart.scales.x.right;
+      
+      ctx.save();
+      ctx.strokeStyle = goalOpts.color || '#8b5cf6';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 5]); // Dashed line
+      
+      ctx.beginPath();
+      ctx.moveTo(xLeft, y);
+      ctx.lineTo(xRight, y);
+      ctx.stroke();
+      
+      ctx.fillStyle = goalOpts.textColor || goalOpts.color || '#a78bfa';
+      ctx.font = '10px Outfit, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(`${goalOpts.label || 'Goal'}: ${value}${goalOpts.unit || ''}`, xRight - 6, y - 3);
+      ctx.restore();
+    }
+  }
+};
+
 // Canvas references
 const weightDailyCanvas = ref(null);
 const fatDailyCanvas = ref(null);
@@ -308,6 +344,13 @@ const updateDailyCharts = () => {
               callbacks: {
                 label: (context) => ` ${context.parsed.y.toFixed(2)} kg`
               }
+            },
+            goalLine: {
+              value: store.targetMass,
+              color: 'rgba(167, 139, 250, 0.4)',
+              textColor: 'rgba(167, 139, 250, 0.8)',
+              label: 'Target',
+              unit: ' kg'
             }
           },
           scales: {
@@ -320,7 +363,8 @@ const updateDailyCharts = () => {
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             }
           }
-        }
+        },
+        plugins: [goalLinePlugin]
       });
     }
 
@@ -370,6 +414,13 @@ const updateDailyCharts = () => {
               callbacks: {
                 label: (context) => ` ${context.parsed.y.toFixed(1)} %`
               }
+            },
+            goalLine: {
+              value: store.targetFat,
+              color: 'rgba(52, 211, 153, 0.4)',
+              textColor: 'rgba(52, 211, 153, 0.8)',
+              label: 'Target',
+              unit: '%'
             }
           },
           scales: {
@@ -382,7 +433,8 @@ const updateDailyCharts = () => {
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             }
           }
-        }
+        },
+        plugins: [goalLinePlugin]
       });
     }
   });
@@ -444,6 +496,13 @@ const updateWeeklyCharts = () => {
               callbacks: {
                 label: (context) => ` Avg: ${context.parsed.y.toFixed(2)} kg`
               }
+            },
+            goalLine: {
+              value: store.targetMass,
+              color: 'rgba(167, 139, 250, 0.4)',
+              textColor: 'rgba(167, 139, 250, 0.8)',
+              label: 'Target',
+              unit: ' kg'
             }
           },
           scales: {
@@ -456,7 +515,8 @@ const updateWeeklyCharts = () => {
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 10 } }
             }
           }
-        }
+        },
+        plugins: [goalLinePlugin]
       });
     }
 
@@ -506,6 +566,13 @@ const updateWeeklyCharts = () => {
               callbacks: {
                 label: (context) => ` Avg: ${context.parsed.y.toFixed(1)} %`
               }
+            },
+            goalLine: {
+              value: store.targetFat,
+              color: 'rgba(52, 211, 153, 0.4)',
+              textColor: 'rgba(52, 211, 153, 0.8)',
+              label: 'Target',
+              unit: '%'
             }
           },
           scales: {
@@ -518,7 +585,8 @@ const updateWeeklyCharts = () => {
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 10 } }
             }
           }
-        }
+        },
+        plugins: [goalLinePlugin]
       });
     }
   });
@@ -532,7 +600,7 @@ const drawAll = () => {
   }
 };
 
-watch([() => store.logs, () => store.activeTab], () => {
+watch([() => store.logs, () => store.activeTab, () => store.targetMass, () => store.targetFat], () => {
   drawAll();
 }, { deep: true });
 
