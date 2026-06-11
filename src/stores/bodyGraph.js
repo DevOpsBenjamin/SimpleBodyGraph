@@ -231,14 +231,32 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       this.loadLogs();
     },
 
-    async signInAnonymously() {
+    async signInWithEmail(email, password) {
       if (!supabase) return;
       try {
-        const { data, error } = await supabase.auth.signInAnonymously();
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
         if (error) throw error;
         return data;
       } catch (error) {
-        console.error('Anonymous sign in failed:', error);
+        console.error('Email sign in failed:', error);
+        throw error;
+      }
+    },
+
+    async signUpWithEmail(email, password) {
+      if (!supabase) return;
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password
+        });
+        if (error) throw error;
+        return data;
+      } catch (error) {
+        console.error('Email sign up failed:', error);
         throw error;
       }
     },
