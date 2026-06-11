@@ -42,6 +42,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     activeTab: 'daily',
     showAddModal: false,
     showAuthModal: false,
+    initialized: false,
     
     // Index of the week in the groupedWeeks list (0 is the newest week)
     selectedWeekIndex: 0,
@@ -50,6 +51,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
   }),
 
   getters: {
+    showDashboard: (state) => {
+      return !!state.user || localStorage.getItem('bodygraph_guest_mode') === 'true';
+    },
+
     isCloudConfigured: () => {
       return !!supabase;
     },
@@ -187,6 +192,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     async initAuth() {
       if (!supabase) {
         await this.loadLogs();
+        this.initialized = true;
         return;
       }
 
@@ -212,7 +218,14 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       } catch (error) {
         console.error('Auth initialization failed:', error);
         await this.loadLogs();
+      } finally {
+        this.initialized = true;
       }
+    },
+
+    enableGuestMode() {
+      localStorage.setItem('bodygraph_guest_mode', 'true');
+      this.loadLogs();
     },
 
     async signInAnonymously() {
@@ -245,7 +258,16 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async logout() {
-      if (!supabase) return;
+      localStorage.removeItem('bodygraph_guest_mode');
+      if (!supabase) {
+        this.user = null;
+        this.session = null;
+        this.activeTab = 'daily';
+        this.selectedWeekIndex = 0;
+        this.editingLog = null;
+        await this.loadLogs();
+        return;
+      }
       try {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;

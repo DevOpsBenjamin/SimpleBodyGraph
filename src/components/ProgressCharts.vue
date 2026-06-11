@@ -52,6 +52,36 @@
       <!-- Touch Swipe tip -->
       <p class="text-center text-[10px] text-gray-500 select-none">💡 Swipe left/right on cards to navigate weeks</p>
 
+      <!-- HEVY SYNC HELPER FOR ACTIVE WEEK -->
+      <div 
+        v-if="store.activeWeek" 
+        class="glass-card p-4 rounded-3xl max-w-sm mx-auto shadow-lg flex items-center justify-between border border-gray-800/40 hover:border-gray-700/60 transition-all duration-300"
+      >
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-xl bg-violet-600/10 border border-violet-500/15">
+            <Copy class="w-4 h-4 text-violet-400" />
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-white uppercase tracking-wider">Hevy Helper</h4>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-xs text-gray-400">Avg W: <strong class="text-white">{{ store.activeWeek.avgMass.toFixed(2) }} kg</strong></span>
+              <span class="text-xs text-gray-600">|</span>
+              <span class="text-xs text-gray-400">Avg F: <strong class="text-white">{{ store.activeWeek.avgFat.toFixed(1) }}%</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <button 
+          @click="copyWeeklyAverage(store.activeWeek)"
+          class="p-2 px-3 rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer border border-gray-700/30 flex items-center gap-1.5 text-xs font-medium"
+          title="Copy Weekly Averages"
+        >
+          <Check v-if="copiedWeekId === store.activeWeek.id" class="w-4 h-4 text-emerald-400 animate-bounce" />
+          <Copy v-else class="w-4 h-4 text-violet-400" />
+          <span>{{ copiedWeekId === store.activeWeek.id ? 'Copied!' : 'Copy' }}</span>
+        </button>
+      </div>
+
       <!-- Daily Charts grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Weight Daily Chart -->
