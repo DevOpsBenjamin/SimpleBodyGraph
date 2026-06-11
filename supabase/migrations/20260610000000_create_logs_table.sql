@@ -31,3 +31,6 @@ WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Allow users to delete their own logs" 
 ON public.logs FOR DELETE 
 USING (auth.uid() = user_id);
+
+-- Grant minimal table privileges to authenticated users (RLS policies will strictly isolate rows)
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.logs TO authenticated;
