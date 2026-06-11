@@ -43,6 +43,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     showAddModal: false,
     showAuthModal: false,
     initialized: false,
+    syncError: null,
     
     // Index of the week in the groupedWeeks list (0 is the newest week)
     selectedWeekIndex: 0,
@@ -338,10 +339,16 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       if (this.currentUserId === 'guest' || !this.isOnline) return;
 
       this.isSyncing = true;
+      this.syncError = null;
       try {
-        await syncLogs(this.currentUserId);
+        const result = await syncLogs(this.currentUserId);
+        if (result && !result.success) {
+          this.syncError = result.error || 'Unknown sync error';
+          console.warn('Store background sync failed:', this.syncError);
+        }
         await this.loadLogs();
       } catch (err) {
+        this.syncError = err.message || err;
         console.warn('Store background sync failed:', err);
       } finally {
         this.isSyncing = false;
