@@ -42,9 +42,12 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     activeTab: 'daily',
     showAddModal: false,
     showAuthModal: false,
+    showSettingsModal: false,
     initialized: false,
     syncError: null,
     isGuestMode: false,
+    targetMass: null,
+    targetFat: null,
     
     // Index of the week in the groupedWeeks list (0 is the newest week)
     selectedWeekIndex: 0,
@@ -192,6 +195,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
     // Initialize Auth Session & listeners
     async initAuth() {
+      // Load local goals first (guest / fallback)
+      this.targetMass = localStorage.getItem('bodygraph_target_mass') ? Number(localStorage.getItem('bodygraph_target_mass')) : null;
+      this.targetFat = localStorage.getItem('bodygraph_target_fat') ? Number(localStorage.getItem('bodygraph_target_fat')) : null;
+
       if (!supabase) {
         await this.loadLogs();
         this.initialized = true;
@@ -203,6 +210,11 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         this.session = data.session;
         this.user = data.session?.user || null;
         
+        if (this.user) {
+          this.targetMass = this.user.user_metadata?.target_mass || null;
+          this.targetFat = this.user.user_metadata?.target_fat || null;
+        }
+        
         await this.loadLogs();
 
         supabase.auth.onAuthStateChange(async (event, session) => {
@@ -210,7 +222,13 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           this.user = session?.user || null;
           
           if (session?.user) {
+            this.targetMass = session.user.user_metadata?.target_mass || null;
+            this.targetFat = session.user.user_metadata?.target_fat || null;
             await this.migrateGuestLogs(session.user.id);
+          } else {
+            // Revert to local goals
+            this.targetMass = localStorage.getItem('bodygraph_target_mass') ? Number(localStorage.getItem('bodygraph_target_mass')) : null;
+            this.targetFat = localStorage.getItem('bodygraph_target_fat') ? Number(localStorage.getItem('bodygraph_target_fat')) : null;
           }
           
           await this.loadLogs();
@@ -228,6 +246,38 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     enableGuestMode() {
       this.isGuestMode = true;
       this.loadLogs();
+    },
+
+    async updateGoals(mass, fat) {
+      this.targetMass = mass ? Number(mass) : null;
+      this.targetFat = fat ? Number(fat) : null;
+
+      if (this.user && supabase) {
+        try {
+          const { data, error } = await supabase.auth.updateUser({
+            data: {
+              target_mass: this.targetMass,
+              target_fat: this.targetFat
+            }
+          });
+          if (error) throw error;
+          this.user = data.user;
+        } catch (error) {
+          console.error('Failed to update goals in supabase:', error);
+          throw error;
+        }
+      } else {
+        if (this.targetMass !== null) {
+          localStorage.setItem('bodygraph_target_mass', this.targetMass);
+        } else {
+          localStorage.removeItem('bodygraph_target_mass');
+        }
+        if (this.targetFat !== null) {
+          localStorage.setItem('bodygraph_target_fat', this.targetFat);
+        } else {
+          localStorage.removeItem('bodygraph_target_fat');
+        }
+      }
     },
 
     async signInWithEmail(email, password) {
@@ -279,6 +329,8 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
     async logout() {
       this.isGuestMode = false;
+      this.targetMass = localStorage.getItem('bodygraph_target_mass') ? Number(localStorage.getItem('bodygraph_target_mass')) : null;
+      this.targetFat = localStorage.getItem('bodygraph_target_fat') ? Number(localStorage.getItem('bodygraph_target_fat')) : null;
       if (!supabase) {
         this.user = null;
         this.session = null;

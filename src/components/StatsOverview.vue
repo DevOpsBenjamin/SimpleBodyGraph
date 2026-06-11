@@ -22,6 +22,28 @@
         </div>
         <div v-else class="text-[11px] text-gray-500 mt-1.5">No changes logged</div>
       </div>
+      <!-- Goal target info -->
+      <div v-if="store.targetMass !== null" class="flex items-center justify-between mt-2 pt-2 border-t border-violet-500/10 text-[10px] text-violet-300/60 font-medium font-sans">
+        <span>Target: {{ store.targetMass.toFixed(2) }} kg</span>
+        <span v-if="store.stats.currentMass">
+          <span v-if="store.stats.currentMass > store.targetMass">
+            {{ (store.stats.currentMass - store.targetMass).toFixed(2) }} kg to lose
+          </span>
+          <span v-else-if="store.stats.currentMass < store.targetMass">
+            {{ (store.targetMass - store.stats.currentMass).toFixed(2) }} kg to gain
+          </span>
+          <span v-else class="text-emerald-400 font-bold">
+            🎉 Goal met!
+          </span>
+        </span>
+      </div>
+      <button 
+        v-else 
+        @click="store.showSettingsModal = true"
+        class="mt-2 pt-2 border-t border-dashed border-violet-500/10 text-[10px] text-violet-400/80 hover:text-violet-300 font-medium cursor-pointer w-full text-left transition-colors duration-150 font-sans"
+      >
+        + Set target weight
+      </button>
     </div>
 
     <!-- Body Fat Card -->
@@ -46,6 +68,28 @@
         </div>
         <div v-else class="text-[11px] text-gray-500 mt-1.5">No changes logged</div>
       </div>
+      <!-- Goal target info -->
+      <div v-if="store.targetFat !== null" class="flex items-center justify-between mt-2 pt-2 border-t border-emerald-500/10 text-[10px] text-emerald-300/60 font-medium font-sans">
+        <span>Target: {{ store.targetFat.toFixed(1) }}%</span>
+        <span v-if="store.stats.currentFat">
+          <span v-if="store.stats.currentFat > store.targetFat">
+            {{ (store.stats.currentFat - store.targetFat).toFixed(1) }}% to lose
+          </span>
+          <span v-else-if="store.stats.currentFat < store.targetFat">
+            {{ (store.targetFat - store.stats.currentFat).toFixed(1) }}% to gain
+          </span>
+          <span v-else class="text-emerald-400 font-bold">
+            🎉 Goal met!
+          </span>
+        </span>
+      </div>
+      <button 
+        v-else 
+        @click="store.showSettingsModal = true"
+        class="mt-2 pt-2 border-t border-dashed border-emerald-500/10 text-[10px] text-emerald-400/80 hover:text-emerald-300 font-medium cursor-pointer w-full text-left transition-colors duration-150 font-sans"
+      >
+        + Set target fat %
+      </button>
     </div>
 
     <!-- Log Count Card -->

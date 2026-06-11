@@ -93,13 +93,22 @@
             </button>
           </div>
         </template>
+
+        <!-- Settings button (Goal Configuration) -->
+        <button 
+          @click="store.showSettingsModal = true"
+          class="p-2 rounded-xl glass-card text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all duration-200 cursor-pointer"
+          title="Settings & Goals"
+        >
+          <Settings class="w-4 h-4" />
+        </button>
       </div>
     </div>
   </header>
 </template>
 
 <script setup>
-import { RefreshCw, LogOut, Cloud, AlertTriangle } from 'lucide-vue-next';
+import { RefreshCw, LogOut, Cloud, AlertTriangle, Settings } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 
 const store = useBodyGraphStore();
