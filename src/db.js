@@ -192,6 +192,7 @@ export async function syncLogs(userId = 'guest') {
         console.log('Synced deletions successfully:', deletionIds);
       } else {
         console.error('Error syncing deletions to remote:', delError);
+        throw delError;
       }
     }
 
@@ -218,10 +219,15 @@ export async function syncLogs(userId = 'guest') {
           log.synced = true;
           store.put(log);
         }
-        await new Promise((resolve) => { transaction.oncomplete = resolve; });
+        await new Promise((resolve, reject) => {
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = () => reject(transaction.error);
+          transaction.onabort = () => reject(new Error('Transaction aborted'));
+        });
         console.log('Pushed unsynced logs successfully:', unsynced);
       } else {
         console.error('Error pushing unsynced logs to remote:', pushError);
+        throw pushError;
       }
     }
 
@@ -260,10 +266,15 @@ export async function syncLogs(userId = 'guest') {
         }
       }
 
-      await new Promise((resolve) => { transaction.oncomplete = resolve; });
+      await new Promise((resolve, reject) => {
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+        transaction.onabort = () => reject(new Error('Transaction aborted'));
+      });
       console.log('Pulled remote logs successfully.');
     } else if (pullError) {
       console.error('Error pulling remote logs:', pullError);
+      throw pullError;
     }
 
     return { success: true };

@@ -51,6 +51,17 @@
               <span class="text-[9px] text-violet-400 mt-0.5">Cloud Backup Active</span>
             </div>
 
+            <!-- Sync Error Badge -->
+            <button 
+              v-if="store.syncError"
+              @click="showSyncErrorDetails"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 text-xs font-semibold cursor-pointer transition-all duration-200"
+              :title="'Sync Error: ' + (store.syncError.message || store.syncError)"
+            >
+              <AlertTriangle class="w-3.5 h-3.5 text-rose-400 animate-pulse" />
+              <span class="hidden sm:inline">Sync Error</span>
+            </button>
+
             <!-- Manual Sync button -->
             <button 
               @click="store.triggerSync" 
@@ -88,10 +99,19 @@
 </template>
 
 <script setup>
-import { RefreshCw, LogOut, Cloud } from 'lucide-vue-next';
+import { RefreshCw, LogOut, Cloud, AlertTriangle } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 
 const store = useBodyGraphStore();
+
+const showSyncErrorDetails = () => {
+  if (store.syncError) {
+    const errorDetails = typeof store.syncError === 'object'
+      ? JSON.stringify(store.syncError, null, 2)
+      : store.syncError;
+    alert(`Supabase Sync Error:\n\n${errorDetails}\n\nHint: Verify that your database tables exist and your Supabase credentials/policies are correctly configured.`);
+  }
+};
 
 const handleLogout = async () => {
   if (confirm('Are you sure you want to log out? Your cloud data will remain saved, and you will return to Guest profile.')) {
