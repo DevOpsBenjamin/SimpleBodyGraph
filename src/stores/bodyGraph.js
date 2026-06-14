@@ -32,7 +32,7 @@ function getSundayOfMonday(mondayStr) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-// Helper to calculate estimated values for sick logs using linear interpolation from surrounding healthy logs
+// Helper to calculate estimated values for sick logs using linear interpolation or linear extrapolation
 function getEstimatedLogValues(log, allLogs) {
   if (!log.is_sick) {
     return {
@@ -79,12 +79,61 @@ function getEstimatedLogValues(log, allLogs) {
       mass: Number(prevHealthy.mass) + f * (Number(nextHealthy.mass) - Number(prevHealthy.mass)),
       body_fat: Number(prevHealthy.body_fat) + f * (Number(nextHealthy.body_fat) - Number(prevHealthy.body_fat))
     };
-  } else if (prevHealthy) {
-    return { mass: Number(prevHealthy.mass), body_fat: Number(prevHealthy.body_fat) };
-  } else if (nextHealthy) {
-    return { mass: Number(nextHealthy.mass), body_fat: Number(nextHealthy.body_fat) };
   } else {
-    return { mass: Number(log.mass), body_fat: Number(log.body_fat) };
+    // Determine the direction and retrieve up to 5 neighboring healthy logs
+    const direction = prevHealthy ? 'prev' : (nextHealthy ? 'next' : null);
+    if (!direction) {
+      return { mass: Number(log.mass), body_fat: Number(log.body_fat) };
+    }
+
+    const targetTime = new Date(log.date).getTime();
+    const logsToUse = direction === 'prev'
+      ? healthyLogs.filter(h => h.date < log.date).slice(-5)
+      : healthyLogs.filter(h => h.date > log.date).slice(0, 5);
+
+    const n = logsToUse.length;
+    if (n === 0) {
+      return { mass: Number(log.mass), body_fat: Number(log.body_fat) };
+    }
+    if (n === 1) {
+      return { mass: Number(logsToUse[0].mass), body_fat: Number(logsToUse[0].body_fat) };
+    }
+
+    const regress = (valGetter) => {
+      let sumX = 0;
+      let sumY = 0;
+      let sumXY = 0;
+      let sumXX = 0;
+
+      for (const h of logsToUse) {
+        const x = new Date(h.date).getTime();
+        const y = valGetter(h);
+        sumX += x;
+        sumY += y;
+        sumXY += x * y;
+        sumXX += x * x;
+      }
+
+      const denom = n * sumXX - sumX * sumX;
+      if (denom === 0) {
+        return sumY / n;
+      }
+
+      const slope = (n * sumXY - sumX * sumY) / denom;
+      const intercept = (sumY - slope * sumX) / n;
+      const extrapolated = intercept + slope * targetTime;
+
+      // Safety clamp: Extrapolated values should not drift more than 10% from the nearest log's value.
+      const nearestLog = direction === 'prev' ? logsToUse[logsToUse.length - 1] : logsToUse[0];
+      const nearestVal = valGetter(nearestLog);
+      const maxDev = nearestVal * 0.1;
+      return Math.max(nearestVal - maxDev, Math.min(nearestVal + maxDev, extrapolated));
+    };
+
+    return {
+      mass: Number(regress(h => Number(h.mass)).toFixed(2)),
+      body_fat: Number(regress(h => Number(h.body_fat)).toFixed(2))
+    };
   }
 }
 
@@ -229,6 +278,8 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           currentFat: null,
           massChange: 0,
           fatChange: 0,
+          massChangeEstimated: 0,
+          fatChangeEstimated: 0,
           unsyncedCount: 0,
           currentIsSick: false,
           currentEstimatedMass: null,
@@ -246,6 +297,8 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         currentFat: Number(currentEntry.body_fat),
         massChange: prevEntry ? Number(currentEntry.mass) - Number(prevEntry.mass) : 0,
         fatChange: prevEntry ? Number(currentEntry.body_fat) - Number(prevEntry.body_fat) : 0,
+        massChangeEstimated: prevEntry ? Number(currentEntry.estimated_mass) - Number(prevEntry.estimated_mass) : 0,
+        fatChangeEstimated: prevEntry ? Number(currentEntry.estimated_body_fat) - Number(prevEntry.estimated_body_fat) : 0,
         unsyncedCount,
         currentIsSick: !!currentEntry.is_sick,
         currentEstimatedMass: Number(currentEntry.estimated_mass),

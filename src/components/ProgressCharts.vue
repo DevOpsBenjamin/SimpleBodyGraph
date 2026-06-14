@@ -238,6 +238,39 @@ const goalLinePlugin = {
   }
 };
 
+// Custom Chart.js Plugin to draw vertical dashed line segments connecting the estimated curve point to the floating raw outlier point
+const sickLinkLinePlugin = {
+  id: 'sickLinkLine',
+  afterDatasetsDraw: (chart) => {
+    const ds0 = chart.data.datasets[0];
+    const ds1 = chart.data.datasets[1];
+    if (!ds0 || !ds1 || ds1.label !== 'Raw Outlier') return;
+
+    const meta0 = chart.getDatasetMeta(0);
+    const meta1 = chart.getDatasetMeta(1);
+    const ctx = chart.ctx;
+
+    ctx.save();
+    ctx.strokeStyle = '#d97706'; // darker amber for line segment
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([3, 3]);
+
+    for (let i = 0; i < ds1.data.length; i++) {
+      if (ds1.data[i] !== null && ds1.data[i] !== undefined) {
+        const pt0 = meta0.data[i];
+        const pt1 = meta1.data[i];
+        if (pt0 && pt1 && pt0.x !== undefined && pt0.y !== undefined && pt1.y !== undefined) {
+          ctx.beginPath();
+          ctx.moveTo(pt0.x, pt0.y);
+          ctx.lineTo(pt0.x, pt1.y);
+          ctx.stroke();
+        }
+      }
+    }
+    ctx.restore();
+  }
+};
+
 // Canvas references
 const weightDailyCanvas = ref(null);
 const fatDailyCanvas = ref(null);
