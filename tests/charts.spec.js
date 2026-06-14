@@ -56,9 +56,9 @@ test('Seed user data and take screenshot', async ({ page }) => {
   await expect(page.locator('text=Avg W: 106.26 kg')).toBeVisible();
   await expect(page.locator('text=Avg F: 34.4%')).toBeVisible();
 
-  // Assert Trend Estimates in the top cards are correct (moving average of up to 5 preceding healthy logs)
-  await expect(page.locator('text=Trend Estimate: 106.73 kg')).toBeVisible();
-  await expect(page.locator('text=Trend Estimate: 34.7%')).toBeVisible();
+  // Assert Trend Estimates in the top cards are correct (linear extrapolation trend projection)
+  await expect(page.locator('text=Trend Estimate: 105.49 kg')).toBeVisible();
+  await expect(page.locator('text=Trend Estimate: 33.9%')).toBeVisible();
 
   // Let it render for 1 second
   await page.waitForTimeout(1000);
