@@ -80,9 +80,27 @@ function getEstimatedLogValues(log, allLogs) {
       body_fat: Number(prevHealthy.body_fat) + f * (Number(nextHealthy.body_fat) - Number(prevHealthy.body_fat))
     };
   } else if (prevHealthy) {
-    return { mass: Number(prevHealthy.mass), body_fat: Number(prevHealthy.body_fat) };
+    // If only preceding healthy logs exist (sick log at the end of history),
+    // average up to 5 of the closest preceding healthy logs.
+    const precedingHealthy = healthyLogs.filter(h => h.date < log.date).slice(-5);
+    const count = precedingHealthy.length;
+    const massSum = precedingHealthy.reduce((sum, h) => sum + Number(h.mass), 0);
+    const fatSum = precedingHealthy.reduce((sum, h) => sum + Number(h.body_fat), 0);
+    return {
+      mass: Number((massSum / count).toFixed(2)),
+      body_fat: Number((fatSum / count).toFixed(2))
+    };
   } else if (nextHealthy) {
-    return { mass: Number(nextHealthy.mass), body_fat: Number(nextHealthy.body_fat) };
+    // If only succeeding healthy logs exist (sick log at the start of history),
+    // average up to 5 of the closest succeeding healthy logs.
+    const succeedingHealthy = healthyLogs.filter(h => h.date > log.date).slice(0, 5);
+    const count = succeedingHealthy.length;
+    const massSum = succeedingHealthy.reduce((sum, h) => sum + Number(h.mass), 0);
+    const fatSum = succeedingHealthy.reduce((sum, h) => sum + Number(h.body_fat), 0);
+    return {
+      mass: Number((massSum / count).toFixed(2)),
+      body_fat: Number((fatSum / count).toFixed(2))
+    };
   } else {
     return { mass: Number(log.mass), body_fat: Number(log.body_fat) };
   }
