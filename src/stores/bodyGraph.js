@@ -214,15 +214,9 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       const weeks = this.groupedWeeks;
       if (weeks.length === 0) return null;
 
-      // Bound checking
-      if (this.selectedWeekIndex < 0) {
-        this.selectedWeekIndex = 0;
-      }
-      if (this.selectedWeekIndex >= weeks.length) {
-        this.selectedWeekIndex = weeks.length - 1;
-      }
-
-      return weeks[this.selectedWeekIndex];
+      // Bound checking without side effects
+      const safeIndex = Math.max(0, Math.min(this.selectedWeekIndex, weeks.length - 1));
+      return weeks[safeIndex];
     },
 
     stats() {
@@ -448,6 +442,12 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     async loadLogs() {
       try {
         this.logs = await getAllLogs(this.currentUserId);
+        
+        // Cleanly clamp selectedWeekIndex after loading logs to keep bounds valid
+        const maxIndex = this.groupedWeeks.length - 1;
+        if (this.selectedWeekIndex > maxIndex) {
+          this.selectedWeekIndex = Math.max(0, maxIndex);
+        }
       } catch (error) {
         console.error('Store failed to load logs:', error);
       }
