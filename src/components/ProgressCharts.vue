@@ -62,7 +62,12 @@
             <Copy class="w-4 h-4 text-violet-400" />
           </div>
           <div>
-            <h4 class="text-xs font-bold text-white uppercase tracking-wider">Hevy Helper</h4>
+            <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+              <span>Hevy Helper</span>
+              <span v-if="store.activeWeek.hasSickLogs" class="text-[9px] text-amber-400 normal-case flex items-center gap-0.5 font-normal" title="Weighted average (sick outlier weighted 0.25)">
+                <Thermometer class="w-3.5 h-3.5" /> Weighted
+              </span>
+            </h4>
             <div class="flex items-center gap-2 mt-1">
               <span class="text-xs text-gray-400">Avg W: <strong class="text-white">{{ store.activeWeek.avgMass.toFixed(2) }} kg</strong></span>
               <span class="text-xs text-gray-600">|</span>
@@ -151,7 +156,12 @@
             class="flex items-center justify-between p-3 rounded-xl bg-gray-900/60 border border-gray-800/40 hover:border-gray-700/60 transition-colors duration-200"
           >
             <div>
-              <div class="text-xs font-semibold text-white">{{ week.label }}</div>
+              <div class="text-xs font-semibold text-white flex items-center gap-1.5">
+                <span>{{ week.label }}</span>
+                <span v-if="week.hasSickLogs" class="text-[9px] text-amber-400 flex items-center gap-0.5 font-medium" title="Weighted average (sick outlier weighted 0.25)">
+                  <Thermometer class="w-3 h-3" /> Weighted
+                </span>
+              </div>
               <div class="text-[10px] text-gray-500 mt-0.5">Based on {{ week.logs.length }} records</div>
             </div>
             
@@ -184,7 +194,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
-import { Scale, Plus, ChevronLeft, ChevronRight, Copy, Check } from 'lucide-vue-next';
+import { Scale, Plus, ChevronLeft, ChevronRight, Copy, Check, Thermometer } from 'lucide-vue-next';
 import { Chart, registerables } from 'chart.js';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 
@@ -285,16 +295,32 @@ const updateDailyCharts = () => {
 
   nextTick(() => {
     const daysLabel = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    
+    // Dataset 0: Trend values (estimated if sick, raw if healthy)
     const dailyWeights = Array(7).fill(null);
     const dailyFats = Array(7).fill(null);
+    
+    // Dataset 1: Raw outliers (raw if sick, null if healthy)
+    const dailyWeightsRawOnly = Array(7).fill(null);
+    const dailyFatsRawOnly = Array(7).fill(null);
+    
+    // Sick status flag arrays
+    const dailyWeightsIsSick = Array(7).fill(false);
+    const dailyFatsIsSick = Array(7).fill(false);
 
     for (const log of store.activeWeek.logs) {
       const d = new Date(log.date);
       const dayIndex = (d.getDay() + 6) % 7; // Monday = 0
       
       if (dailyWeights[dayIndex] === null) {
-        dailyWeights[dayIndex] = log.mass;
-        dailyFats[dayIndex] = log.body_fat;
+        dailyWeights[dayIndex] = log.is_sick ? log.estimated_mass : log.mass;
+        dailyFats[dayIndex] = log.is_sick ? log.estimated_body_fat : log.body_fat;
+        
+        dailyWeightsRawOnly[dayIndex] = log.is_sick ? log.mass : null;
+        dailyFatsRawOnly[dayIndex] = log.is_sick ? log.body_fat : null;
+        
+        dailyWeightsIsSick[dayIndex] = !!log.is_sick;
+        dailyFatsIsSick[dayIndex] = !!log.is_sick;
       }
     }
 
@@ -314,19 +340,35 @@ const updateDailyCharts = () => {
         type: 'line',
         data: {
           labels: daysLabel,
-          datasets: [{
-            data: dailyWeights,
-            borderColor: strokeGrad,
-            borderWidth: 3,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#8b5cf6',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            spanGaps: true,
-            fill: true,
-            backgroundColor: fillGrad,
-            tension: 0.25
-          }]
+          datasets: [
+            {
+              label: 'Trend Weight',
+              data: dailyWeights,
+              borderColor: strokeGrad,
+              borderWidth: 3,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: dailyWeightsIsSick.map(sick => sick ? '#f59e0b' : '#8b5cf6'),
+              pointBorderWidth: dailyWeightsIsSick.map(sick => sick ? 2.5 : 2),
+              pointRadius: dailyWeightsIsSick.map(sick => sick ? 5 : 4),
+              pointHoverRadius: dailyWeightsIsSick.map(sick => sick ? 7 : 6),
+              pointStyle: 'circle',
+              spanGaps: true,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.25
+            },
+            {
+              label: 'Raw Outlier',
+              data: dailyWeightsRawOnly,
+              showLine: false,
+              pointBackgroundColor: '#f59e0b',
+              pointBorderColor: '#d97706',
+              pointBorderWidth: 2,
+              pointRadius: 6,
+              pointHoverRadius: 8,
+              pointStyle: 'rectRot'
+            }
+          ]
         },
         options: {
           responsive: true,
@@ -340,9 +382,29 @@ const updateDailyCharts = () => {
               borderColor: 'rgba(139, 92, 246, 0.3)',
               borderWidth: 1,
               padding: 10,
-              displayColors: false,
+              displayColors: true,
+              mode: 'index',
+              intersect: false,
               callbacks: {
-                label: (context) => ` ${context.parsed.y.toFixed(2)} kg`
+                label: (context) => {
+                  const dsLabel = context.dataset.label;
+                  const val = context.parsed.y;
+                  if (val === null || val === undefined) return '';
+
+                  if (dsLabel === 'Trend Weight') {
+                    const isSick = dailyWeightsIsSick[context.dataIndex];
+                    if (isSick) {
+                      return ` Trend Estimate: ${val.toFixed(2)} kg`;
+                    }
+                    return ` Weight: ${val.toFixed(2)} kg`;
+                  } else if (dsLabel === 'Raw Outlier') {
+                    return ` Actual Outlier: ${val.toFixed(2)} kg (Sick Day)`;
+                  }
+                  return ` ${val.toFixed(2)} kg`;
+                }
+              },
+              filter: (tooltipItem) => {
+                return tooltipItem.raw !== null && tooltipItem.raw !== undefined;
               }
             },
             goalLine: {
@@ -364,7 +426,7 @@ const updateDailyCharts = () => {
             }
           }
         },
-        plugins: [goalLinePlugin]
+        plugins: [goalLinePlugin, sickLinkLinePlugin]
       });
     }
 
@@ -384,19 +446,35 @@ const updateDailyCharts = () => {
         type: 'line',
         data: {
           labels: daysLabel,
-          datasets: [{
-            data: dailyFats,
-            borderColor: strokeGrad,
-            borderWidth: 3,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#10b981',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            spanGaps: true,
-            fill: true,
-            backgroundColor: fillGrad,
-            tension: 0.25
-          }]
+          datasets: [
+            {
+              label: 'Trend Fat',
+              data: dailyFats,
+              borderColor: strokeGrad,
+              borderWidth: 3,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: dailyFatsIsSick.map(sick => sick ? '#f59e0b' : '#10b981'),
+              pointBorderWidth: dailyFatsIsSick.map(sick => sick ? 2.5 : 2),
+              pointRadius: dailyFatsIsSick.map(sick => sick ? 5 : 4),
+              pointHoverRadius: dailyFatsIsSick.map(sick => sick ? 7 : 6),
+              pointStyle: 'circle',
+              spanGaps: true,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.25
+            },
+            {
+              label: 'Raw Outlier',
+              data: dailyFatsRawOnly,
+              showLine: false,
+              pointBackgroundColor: '#f59e0b',
+              pointBorderColor: '#d97706',
+              pointBorderWidth: 2,
+              pointRadius: 6,
+              pointHoverRadius: 8,
+              pointStyle: 'rectRot'
+            }
+          ]
         },
         options: {
           responsive: true,
@@ -410,9 +488,29 @@ const updateDailyCharts = () => {
               borderColor: 'rgba(16, 185, 129, 0.3)',
               borderWidth: 1,
               padding: 10,
-              displayColors: false,
+              displayColors: true,
+              mode: 'index',
+              intersect: false,
               callbacks: {
-                label: (context) => ` ${context.parsed.y.toFixed(1)} %`
+                label: (context) => {
+                  const dsLabel = context.dataset.label;
+                  const val = context.parsed.y;
+                  if (val === null || val === undefined) return '';
+
+                  if (dsLabel === 'Trend Fat') {
+                    const isSick = dailyFatsIsSick[context.dataIndex];
+                    if (isSick) {
+                      return ` Trend Estimate: ${val.toFixed(1)} %`;
+                    }
+                    return ` Body Fat: ${val.toFixed(1)} %`;
+                  } else if (dsLabel === 'Raw Outlier') {
+                    return ` Actual Outlier: ${val.toFixed(1)} % (Sick Day)`;
+                  }
+                  return ` ${val.toFixed(1)} %`;
+                }
+              },
+              filter: (tooltipItem) => {
+                return tooltipItem.raw !== null && tooltipItem.raw !== undefined;
               }
             },
             goalLine: {
@@ -434,7 +532,7 @@ const updateDailyCharts = () => {
             }
           }
         },
-        plugins: [goalLinePlugin]
+        plugins: [goalLinePlugin, sickLinkLinePlugin]
       });
     }
   });
@@ -494,7 +592,14 @@ const updateWeeklyCharts = () => {
               padding: 10,
               displayColors: false,
               callbacks: {
-                label: (context) => ` Avg: ${context.parsed.y.toFixed(2)} kg`
+                label: (context) => {
+                  const week = sortedWeeks[context.dataIndex];
+                  const val = context.parsed.y;
+                  if (week && week.hasSickLogs) {
+                    return ` Avg: ${val.toFixed(2)} kg (Weighted - includes sick outlier)`;
+                  }
+                  return ` Avg: ${val.toFixed(2)} kg`;
+                }
               }
             },
             goalLine: {
@@ -564,7 +669,14 @@ const updateWeeklyCharts = () => {
               padding: 10,
               displayColors: false,
               callbacks: {
-                label: (context) => ` Avg: ${context.parsed.y.toFixed(1)} %`
+                label: (context) => {
+                  const week = sortedWeeks[context.dataIndex];
+                  const val = context.parsed.y;
+                  if (week && week.hasSickLogs) {
+                    return ` Avg: ${val.toFixed(1)} % (Weighted - includes sick outlier)`;
+                  }
+                  return ` Avg: ${val.toFixed(1)} %`;
+                }
               }
             },
             goalLine: {

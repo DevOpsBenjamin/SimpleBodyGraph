@@ -204,6 +204,7 @@ export async function syncLogs(userId = 'guest') {
         date: log.date,
         mass: Number(log.mass),
         body_fat: Number(log.body_fat),
+        is_sick: !!log.is_sick,
         user_id: userId
       }));
 

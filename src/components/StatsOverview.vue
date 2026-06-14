@@ -10,6 +10,13 @@
         <div class="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-none">
           {{ store.stats.currentMass ? store.stats.currentMass.toFixed(2) : '--.--' }} <span class="text-sm font-normal text-gray-400">kg</span>
         </div>
+        <!-- Sick / Outlier Badge & Estimate -->
+        <div v-if="store.stats.currentIsSick" class="flex flex-col gap-1 mt-1.5 mb-1.5">
+          <div class="inline-flex items-center gap-1 self-start px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-400 font-semibold uppercase tracking-wider">
+            <Thermometer class="w-3 h-3" /> Sick Outlier
+          </div>
+          <span class="text-[10px] text-gray-400">Trend Estimate: <strong class="text-white">{{ store.stats.currentEstimatedMass ? store.stats.currentEstimatedMass.toFixed(2) : '--.--' }} kg</strong></span>
+        </div>
         <div v-if="store.stats.massChange !== 0" class="flex items-center gap-1 mt-1.5 text-xs">
           <component 
             :is="store.stats.massChange < 0 ? TrendingDown : TrendingUp" 
@@ -55,6 +62,13 @@
       <div>
         <div class="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-none">
           {{ store.stats.currentFat ? store.stats.currentFat.toFixed(1) : '--.-' }} <span class="text-sm font-normal text-gray-400">%</span>
+        </div>
+        <!-- Sick / Outlier Badge & Estimate -->
+        <div v-if="store.stats.currentIsSick" class="flex flex-col gap-1 mt-1.5 mb-1.5">
+          <div class="inline-flex items-center gap-1 self-start px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-400 font-semibold uppercase tracking-wider">
+            <Thermometer class="w-3 h-3" /> Sick Outlier
+          </div>
+          <span class="text-[10px] text-gray-400">Trend Estimate: <strong class="text-white">{{ store.stats.currentEstimatedFat ? store.stats.currentEstimatedFat.toFixed(1) : '--.-' }}%</strong></span>
         </div>
         <div v-if="store.stats.fatChange !== 0" class="flex items-center gap-1 mt-1.5 text-xs">
           <component 
@@ -117,7 +131,7 @@
 </template>
 
 <script setup>
-import { Scale, Percent, Activity, TrendingUp, TrendingDown } from 'lucide-vue-next';
+import { Scale, Percent, Activity, TrendingUp, TrendingDown, Thermometer } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 
 const store = useBodyGraphStore();
