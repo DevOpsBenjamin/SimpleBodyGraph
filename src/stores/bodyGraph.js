@@ -32,6 +32,62 @@ function getSundayOfMonday(mondayStr) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+// Helper to calculate estimated values for sick logs using linear interpolation from surrounding healthy logs
+function getEstimatedLogValues(log, allLogs) {
+  if (!log.is_sick) {
+    return {
+      mass: Number(log.mass),
+      body_fat: Number(log.body_fat)
+    };
+  }
+
+  // Filter and sort healthy logs ascending by date
+  const healthyLogs = allLogs
+    .filter(l => !l.is_sick)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  if (healthyLogs.length === 0) {
+    return {
+      mass: Number(log.mass),
+      body_fat: Number(log.body_fat)
+    };
+  }
+
+  // Find closest older (date < log.date) and newer (date > log.date) healthy logs relative to sick log's date
+  let prevHealthy = null;
+  let nextHealthy = null;
+
+  for (const hLog of healthyLogs) {
+    if (hLog.date < log.date) {
+      prevHealthy = hLog;
+    } else if (hLog.date > log.date && !nextHealthy) {
+      nextHealthy = hLog;
+    }
+  }
+
+  if (prevHealthy && nextHealthy) {
+    const tPrev = new Date(prevHealthy.date).getTime();
+    const tNext = new Date(nextHealthy.date).getTime();
+    const tCurrent = new Date(log.date).getTime();
+
+    if (tNext === tPrev) {
+      return { mass: Number(prevHealthy.mass), body_fat: Number(prevHealthy.body_fat) };
+    }
+
+    const f = (tCurrent - tPrev) / (tNext - tPrev);
+    return {
+      mass: Number(prevHealthy.mass) + f * (Number(nextHealthy.mass) - Number(prevHealthy.mass)),
+      body_fat: Number(prevHealthy.body_fat) + f * (Number(nextHealthy.body_fat) - Number(prevHealthy.body_fat))
+    };
+  } else if (prevHealthy) {
+    return { mass: Number(prevHealthy.mass), body_fat: Number(prevHealthy.body_fat) };
+  } else if (nextHealthy) {
+    return { mass: Number(nextHealthy.mass), body_fat: Number(nextHealthy.body_fat) };
+  } else {
+    return { mass: Number(log.mass), body_fat: Number(log.body_fat) };
+  }
+}
+
 export const useBodyGraphStore = defineStore('bodyGraph', {
   state: () => ({
     logs: [],
@@ -82,13 +138,25 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       return 'Guest Profile';
     },
 
+    logsWithEstimates: (state) => {
+      return state.logs.map(log => {
+        const estimates = getEstimatedLogValues(log, state.logs);
+        return {
+          ...log,
+          estimated_mass: estimates.mass,
+          estimated_body_fat: estimates.body_fat
+        };
+      });
+    },
+
     // Groups logs into weeks (Monday to Sunday) and computes stats
-    groupedWeeks: (state) => {
-      if (state.logs.length === 0) return [];
+    groupedWeeks() {
+      const logsToUse = this.logsWithEstimates;
+      if (logsToUse.length === 0) return [];
 
       const groups = {};
 
-      for (const log of state.logs) {
+      for (const log of logsToUse) {
         const mon = getMondayOfDate(log.date);
         if (!groups[mon]) {
           groups[mon] = [];
@@ -100,11 +168,24 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       for (const [mon, weekLogs] of Object.entries(groups)) {
         const sun = getSundayOfMonday(mon);
         
-        // Averages
-        const sumMass = weekLogs.reduce((sum, l) => sum + Number(l.mass), 0);
-        const sumFat = weekLogs.reduce((sum, l) => sum + Number(l.body_fat), 0);
-        const avgMass = sumMass / weekLogs.length;
-        const avgFat = sumFat / weekLogs.length;
+        // Weighted Averages
+        let totalWeight = 0;
+        let weightedMassSum = 0;
+        let weightedFatSum = 0;
+        let hasSickLogs = false;
+
+        for (const l of weekLogs) {
+          const w = l.is_sick ? 0.25 : 1.0;
+          totalWeight += w;
+          weightedMassSum += Number(l.mass) * w;
+          weightedFatSum += Number(l.body_fat) * w;
+          if (l.is_sick) {
+            hasSickLogs = true;
+          }
+        }
+
+        const avgMass = totalWeight > 0 ? weightedMassSum / totalWeight : 0;
+        const avgFat = totalWeight > 0 ? weightedFatSum / totalWeight : 0;
 
         // Label format: "Jun 8 - Jun 14"
         const monDate = new Date(mon);
@@ -118,7 +199,8 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           label,
           logs: weekLogs,
           avgMass,
-          avgFat
+          avgFat,
+          hasSickLogs
         });
       }
 
@@ -128,23 +210,23 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     // Gets currently selected active week
-    activeWeek: (state) => {
-      const weeks = state.groupedWeeks;
+    activeWeek() {
+      const weeks = this.groupedWeeks;
       if (weeks.length === 0) return null;
 
       // Bound checking
-      if (state.selectedWeekIndex < 0) {
-        state.selectedWeekIndex = 0;
+      if (this.selectedWeekIndex < 0) {
+        this.selectedWeekIndex = 0;
       }
-      if (state.selectedWeekIndex >= weeks.length) {
-        state.selectedWeekIndex = weeks.length - 1;
+      if (this.selectedWeekIndex >= weeks.length) {
+        this.selectedWeekIndex = weeks.length - 1;
       }
 
-      return weeks[state.selectedWeekIndex];
+      return weeks[this.selectedWeekIndex];
     },
 
-    stats: (state) => {
-      const currentLogs = state.logs;
+    stats() {
+      const currentLogs = this.logsWithEstimates;
       const count = currentLogs.length;
 
       if (count === 0) {
@@ -153,7 +235,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           currentFat: null,
           massChange: 0,
           fatChange: 0,
-          unsyncedCount: 0
+          unsyncedCount: 0,
+          currentIsSick: false,
+          currentEstimatedMass: null,
+          currentEstimatedFat: null
         };
       }
 
@@ -167,7 +252,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         currentFat: Number(currentEntry.body_fat),
         massChange: prevEntry ? Number(currentEntry.mass) - Number(prevEntry.mass) : 0,
         fatChange: prevEntry ? Number(currentEntry.body_fat) - Number(prevEntry.body_fat) : 0,
-        unsyncedCount
+        unsyncedCount,
+        currentIsSick: !!currentEntry.is_sick,
+        currentEstimatedMass: Number(currentEntry.estimated_mass),
+        currentEstimatedFat: Number(currentEntry.estimated_body_fat)
       };
     }
   },
@@ -366,12 +454,13 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     // Save or update a log entry
-    async saveLogEntry({ id, mass, bodyFat, date }) {
+    async saveLogEntry({ id, mass, bodyFat, date, isSick }) {
       const log = {
         id: id || crypto.randomUUID(),
         date,
         mass: Number(mass),
         body_fat: Number(bodyFat),
+        is_sick: !!isSick,
         synced: false
       };
 

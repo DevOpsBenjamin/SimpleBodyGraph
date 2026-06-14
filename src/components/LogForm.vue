@@ -79,6 +79,20 @@
           </div>
         </div>
 
+        <!-- Sick / Outlier Flag -->
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-950/40 border border-gray-800/60 hover:border-gray-700 transition-colors duration-200">
+          <input 
+            id="log-sick"
+            type="checkbox" 
+            v-model="form.is_sick"
+            class="w-5 h-5 rounded border-gray-700 bg-gray-950 text-violet-600 focus:ring-violet-500 cursor-pointer"
+          />
+          <label for="log-sick" class="flex items-center gap-2 text-xs font-semibold text-gray-300 uppercase tracking-wider cursor-pointer select-none">
+            <Thermometer class="w-4.5 h-4.5 text-amber-500 animate-pulse" />
+            Outlier / Sick Day
+          </label>
+        </div>
+
         <!-- Submit Button -->
         <div class="pt-4 flex gap-3">
           <button 
@@ -102,7 +116,7 @@
 
 <script setup>
 import { reactive, watch } from 'vue';
-import { X } from 'lucide-vue-next';
+import { X, Thermometer } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 
 const store = useBodyGraphStore();
@@ -110,7 +124,8 @@ const store = useBodyGraphStore();
 const form = reactive({
   date: '',
   mass: '',
-  body_fat: ''
+  body_fat: '',
+  is_sick: false
 });
 
 const prefillForm = () => {
@@ -118,8 +133,10 @@ const prefillForm = () => {
     form.date = store.editingLog.date;
     form.mass = Number(store.editingLog.mass);
     form.body_fat = Number(store.editingLog.body_fat);
+    form.is_sick = !!store.editingLog.is_sick;
   } else {
     form.date = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local format
+    form.is_sick = false;
     
     if (store.logs.length > 0) {
       form.mass = Number(store.logs[0].mass);
@@ -149,7 +166,8 @@ const handleSubmit = async () => {
       id: store.editingLog?.id || null,
       mass: form.mass,
       bodyFat: form.body_fat,
-      date: form.date
+      date: form.date,
+      isSick: form.is_sick
     });
   } catch (error) {
     alert('Failed to save log entry: ' + error.message);

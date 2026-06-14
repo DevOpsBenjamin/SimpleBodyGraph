@@ -15,7 +15,7 @@
 
   <div v-else class="space-y-3 max-w-2xl">
     <div 
-      v-for="log in store.logs" 
+      v-for="log in store.logsWithEstimates" 
       :key="log.id"
       class="glass-card hover:bg-gray-900/30 p-4 rounded-2xl flex items-center justify-between transition-all duration-300"
     >
@@ -28,14 +28,24 @@
         </div>
         
         <!-- Metrics Info -->
-        <div class="flex items-center gap-5">
+        <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
           <div>
             <div class="text-xs text-gray-400">Mass</div>
-            <div class="text-sm font-bold text-white">{{ Number(log.mass).toFixed(2) }} <span class="text-[10px] font-normal text-gray-400">kg</span></div>
+            <div class="text-sm font-bold text-white flex items-baseline gap-1">
+              <span>{{ Number(log.mass).toFixed(2) }} <span class="text-[10px] font-normal text-gray-400">kg</span></span>
+              <span v-if="log.is_sick" class="text-[10px] font-medium text-gray-500 font-sans" :title="`Trend estimate is ${Number(log.estimated_mass).toFixed(2)} kg`">(est. {{ Number(log.estimated_mass).toFixed(2) }})</span>
+            </div>
           </div>
           <div>
             <div class="text-xs text-gray-400">Body Fat</div>
-            <div class="text-sm font-bold text-white">{{ log.body_fat }} <span class="text-[10px] font-normal text-gray-400">%</span></div>
+            <div class="text-sm font-bold text-white flex items-baseline gap-1">
+              <span>{{ Number(log.body_fat).toFixed(1) }} <span class="text-[10px] font-normal text-gray-400">%</span></span>
+              <span v-if="log.is_sick" class="text-[10px] font-medium text-gray-500 font-sans" :title="`Trend estimate is ${Number(log.estimated_body_fat).toFixed(1)}%`">(est. {{ Number(log.estimated_body_fat).toFixed(1) }}%)</span>
+            </div>
+          </div>
+          <!-- Sick day indicator -->
+          <div v-if="log.is_sick" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-[9px] text-amber-400 font-semibold uppercase tracking-wider h-fit">
+            <Thermometer class="w-2.5 h-2.5" /> Sick Outlier
           </div>
         </div>
       </div>
@@ -74,7 +84,7 @@
 </template>
 
 <script setup>
-import { Calendar, Trash2, Plus, Cloud as CloudCheck, CloudLightning, Edit3 } from 'lucide-vue-next';
+import { Calendar, Trash2, Plus, Cloud as CloudCheck, CloudLightning, Edit3, Thermometer } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 
 const store = useBodyGraphStore();
