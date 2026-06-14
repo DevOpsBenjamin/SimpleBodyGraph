@@ -60,6 +60,10 @@ test('Seed user data and take screenshot', async ({ page }) => {
   await expect(page.locator('text=Trend Estimate: 105.49 kg')).toBeVisible();
   await expect(page.locator('text=Trend Estimate: 33.9%')).toBeVisible();
 
+  // Assert Trend changes are displayed
+  await expect(page.locator('text=Trend: -0.31 kg')).toBeVisible();
+  await expect(page.locator('text=Trend: -0.2%')).toBeVisible();
+
   // Let it render for 1 second
   await page.waitForTimeout(1000);
 

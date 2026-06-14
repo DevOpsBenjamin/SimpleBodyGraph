@@ -16,6 +16,15 @@
             <Thermometer class="w-3 h-3" /> Sick Outlier
           </div>
           <span class="text-[10px] text-gray-400">Trend Estimate: <strong class="text-white">{{ store.stats.currentEstimatedMass ? store.stats.currentEstimatedMass.toFixed(2) : '--.--' }} kg</strong></span>
+          <div v-if="store.stats.massChangeEstimated !== 0" class="flex items-center gap-1 text-[10px]">
+            <component 
+              :is="store.stats.massChangeEstimated < 0 ? TrendingDown : TrendingUp" 
+              :class="[store.stats.massChangeEstimated < 0 ? 'text-emerald-400' : 'text-amber-400', 'w-3 h-3']" 
+            />
+            <span :class="[store.stats.massChangeEstimated < 0 ? 'text-emerald-400' : 'text-amber-400', 'font-medium']">
+              Trend: {{ store.stats.massChangeEstimated > 0 ? '+' : '' }}{{ store.stats.massChangeEstimated.toFixed(2) }} kg
+            </span>
+          </div>
         </div>
         <div v-if="store.stats.massChange !== 0" class="flex items-center gap-1 mt-1.5 text-xs">
           <component 
@@ -69,6 +78,15 @@
             <Thermometer class="w-3 h-3" /> Sick Outlier
           </div>
           <span class="text-[10px] text-gray-400">Trend Estimate: <strong class="text-white">{{ store.stats.currentEstimatedFat ? store.stats.currentEstimatedFat.toFixed(1) : '--.-' }}%</strong></span>
+          <div v-if="store.stats.fatChangeEstimated !== 0" class="flex items-center gap-1 text-[10px]">
+            <component 
+              :is="store.stats.fatChangeEstimated < 0 ? TrendingDown : TrendingUp" 
+              :class="[store.stats.fatChangeEstimated < 0 ? 'text-emerald-400' : 'text-amber-400', 'w-3 h-3']" 
+            />
+            <span :class="[store.stats.fatChangeEstimated < 0 ? 'text-emerald-400' : 'text-amber-400', 'font-medium']">
+              Trend: {{ store.stats.fatChangeEstimated > 0 ? '+' : '' }}{{ store.stats.fatChangeEstimated.toFixed(1) }}%
+            </span>
+          </div>
         </div>
         <div v-if="store.stats.fatChange !== 0" class="flex items-center gap-1 mt-1.5 text-xs">
           <component 
