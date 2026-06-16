@@ -43,6 +43,24 @@
               0 0 24px 0 rgba(16, 185, 129, 0.06);
 }
 
+.glass-card-blue {
+  background: rgba(17, 24, 39, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), 
+              0 0 24px 0 rgba(59, 130, 246, 0.06);
+}
+
+.glass-card-amber {
+  background: rgba(17, 24, 39, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), 
+              0 0 24px 0 rgba(245, 158, 11, 0.06);
+}
+
 .glass-input {
   background: rgba(17, 24, 39, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.08);

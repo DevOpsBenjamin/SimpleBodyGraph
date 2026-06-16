@@ -58,11 +58,21 @@ test('Seed user data and take screenshot', async ({ page }) => {
 
   // Assert Trend Estimates in the top cards are correct (linear extrapolation trend projection)
   await expect(page.locator('text=Trend Estimate: 105.49 kg')).toBeVisible();
+  await expect(page.locator('text=Trend Estimate: 69.70 kg')).toBeVisible();
   await expect(page.locator('text=Trend Estimate: 33.9%')).toBeVisible();
+  await expect(page.locator('text=Trend Estimate: 35.79 kg')).toBeVisible();
 
   // Assert Trend changes are displayed
   await expect(page.locator('text=Trend: -0.31 kg')).toBeVisible();
+  await expect(page.locator('text=Trend: -0.02 kg')).toBeVisible();
   await expect(page.locator('text=Trend: -0.2%')).toBeVisible();
+  await expect(page.locator('text=Trend: -0.29 kg')).toBeVisible();
+
+  // Assert raw/outlier measurements are displayed on the top cards
+  await expect(page.locator('text=107.40 kg').first()).toBeVisible(); // Total Mass card
+  await expect(page.locator('text=70.24 kg').first()).toBeVisible(); // Lean Mass card
+  await expect(page.locator('text=34.6 %').first()).toBeVisible(); // Body Fat card
+  await expect(page.locator('text=37.16 kg').first()).toBeVisible(); // Fat Mass card
 
   // Let it render for 1 second
   await page.waitForTimeout(1000);

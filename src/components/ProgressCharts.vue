@@ -99,6 +99,16 @@
           </div>
         </div>
 
+        <!-- Lean Mass Daily Chart -->
+        <div class="glass-card p-4 sm:p-5 rounded-3xl relative shadow-lg">
+          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span> Daily Lean Mass Fluctuations (kg)
+          </h3>
+          <div class="relative h-[240px] w-full">
+            <canvas ref="leanDailyCanvas"></canvas>
+          </div>
+        </div>
+
         <!-- Fat Daily Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl relative shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
@@ -106,6 +116,16 @@
           </h3>
           <div class="relative h-[240px] w-full">
             <canvas ref="fatDailyCanvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Fat Mass Daily Chart -->
+        <div class="glass-card p-4 sm:p-5 rounded-3xl relative shadow-lg">
+          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Daily Fat Mass Evolution (kg)
+          </h3>
+          <div class="relative h-[240px] w-full">
+            <canvas ref="fatMassDailyCanvas"></canvas>
           </div>
         </div>
       </div>
@@ -127,6 +147,16 @@
           </div>
         </div>
 
+        <!-- Lean Mass Average Chart -->
+        <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
+          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Historical Weekly Lean Mass Averages (kg)
+          </h3>
+          <div class="relative h-[240px] w-full">
+            <canvas ref="leanAvgCanvas"></canvas>
+          </div>
+        </div>
+
         <!-- Fat Average Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
@@ -134,6 +164,16 @@
           </h3>
           <div class="relative h-[240px] w-full">
             <canvas ref="fatAvgCanvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Fat Mass Average Chart -->
+        <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
+          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Historical Weekly Fat Mass Averages (kg)
+          </h3>
+          <div class="relative h-[240px] w-full">
+            <canvas ref="fatMassAvgCanvas"></canvas>
           </div>
         </div>
       </div>
@@ -273,15 +313,23 @@ const sickLinkLinePlugin = {
 
 // Canvas references
 const weightDailyCanvas = ref(null);
+const leanDailyCanvas = ref(null);
 const fatDailyCanvas = ref(null);
+const fatMassDailyCanvas = ref(null);
 const weightAvgCanvas = ref(null);
+const leanAvgCanvas = ref(null);
 const fatAvgCanvas = ref(null);
+const fatMassAvgCanvas = ref(null);
 
 // Chart references
 let chartW_Daily = null;
+let chartL_Daily = null;
 let chartF_Daily = null;
+let chartFM_Daily = null;
 let chartW_Avg = null;
+let chartL_Avg = null;
 let chartF_Avg = null;
+let chartFM_Avg = null;
 
 const copiedWeekId = ref(null);
 
@@ -331,15 +379,21 @@ const updateDailyCharts = () => {
     
     // Dataset 0: Trend values (estimated if sick, raw if healthy)
     const dailyWeights = Array(7).fill(null);
+    const dailyLeans = Array(7).fill(null);
     const dailyFats = Array(7).fill(null);
+    const dailyFatMasses = Array(7).fill(null);
     
     // Dataset 1: Raw outliers (raw if sick, null if healthy)
     const dailyWeightsRawOnly = Array(7).fill(null);
+    const dailyLeansRawOnly = Array(7).fill(null);
     const dailyFatsRawOnly = Array(7).fill(null);
+    const dailyFatMassesRawOnly = Array(7).fill(null);
     
     // Sick status flag arrays
     const dailyWeightsIsSick = Array(7).fill(false);
+    const dailyLeansIsSick = Array(7).fill(false);
     const dailyFatsIsSick = Array(7).fill(false);
+    const dailyFatMassesIsSick = Array(7).fill(false);
 
     for (const log of store.activeWeek.logs) {
       const d = new Date(log.date);
@@ -347,16 +401,23 @@ const updateDailyCharts = () => {
       
       if (dailyWeights[dayIndex] === null) {
         dailyWeights[dayIndex] = log.is_sick ? log.estimated_mass : log.mass;
+        dailyLeans[dayIndex] = log.is_sick ? log.estimated_lean_mass : log.lean_mass;
         dailyFats[dayIndex] = log.is_sick ? log.estimated_body_fat : log.body_fat;
+        dailyFatMasses[dayIndex] = log.is_sick ? log.estimated_fat_mass : log.fat_mass;
         
         dailyWeightsRawOnly[dayIndex] = log.is_sick ? log.mass : null;
+        dailyLeansRawOnly[dayIndex] = log.is_sick ? log.lean_mass : null;
         dailyFatsRawOnly[dayIndex] = log.is_sick ? log.body_fat : null;
+        dailyFatMassesRawOnly[dayIndex] = log.is_sick ? log.fat_mass : null;
         
         dailyWeightsIsSick[dayIndex] = !!log.is_sick;
+        dailyLeansIsSick[dayIndex] = !!log.is_sick;
         dailyFatsIsSick[dayIndex] = !!log.is_sick;
+        dailyFatMassesIsSick[dayIndex] = !!log.is_sick;
       }
     }
 
+    // 1. Total Weight Daily Chart
     if (weightDailyCanvas.value) {
       if (chartW_Daily) chartW_Daily.destroy();
       const ctx = weightDailyCanvas.value.getContext('2d');
@@ -463,6 +524,114 @@ const updateDailyCharts = () => {
       });
     }
 
+    // 2. Lean Mass Daily Chart
+    if (leanDailyCanvas.value) {
+      if (chartL_Daily) chartL_Daily.destroy();
+      const ctx = leanDailyCanvas.value.getContext('2d');
+      
+      const strokeGrad = ctx.createLinearGradient(0, 0, 0, 300);
+      strokeGrad.addColorStop(0, '#60a5fa');
+      strokeGrad.addColorStop(1, '#3b82f6');
+      
+      const fillGrad = ctx.createLinearGradient(0, 0, 0, 250);
+      fillGrad.addColorStop(0, 'rgba(59, 130, 246, 0.2)');
+      fillGrad.addColorStop(1, 'rgba(59, 130, 246, 0)');
+
+      chartL_Daily = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: daysLabel,
+          datasets: [
+            {
+              label: 'Trend Lean',
+              data: dailyLeans,
+              borderColor: strokeGrad,
+              borderWidth: 3,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: dailyLeansIsSick.map(sick => sick ? '#f59e0b' : '#3b82f6'),
+              pointBorderWidth: dailyLeansIsSick.map(sick => sick ? 2.5 : 2),
+              pointRadius: dailyLeansIsSick.map(sick => sick ? 5 : 4),
+              pointHoverRadius: dailyLeansIsSick.map(sick => sick ? 7 : 6),
+              pointStyle: 'circle',
+              spanGaps: true,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.25
+            },
+            {
+              label: 'Raw Outlier',
+              data: dailyLeansRawOnly,
+              showLine: false,
+              pointBackgroundColor: '#f59e0b',
+              pointBorderColor: '#d97706',
+              pointBorderWidth: 2,
+              pointRadius: 6,
+              pointHoverRadius: 8,
+              pointStyle: 'rectRot'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(17, 24, 39, 0.95)',
+              titleColor: '#9ca3af',
+              bodyColor: '#ffffff',
+              borderColor: 'rgba(59, 130, 246, 0.3)',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: true,
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                label: (context) => {
+                  const dsLabel = context.dataset.label;
+                  const val = context.parsed.y;
+                  if (val === null || val === undefined) return '';
+
+                  if (dsLabel === 'Trend Lean') {
+                    const isSick = dailyLeansIsSick[context.dataIndex];
+                    if (isSick) {
+                      return ` Trend Estimate: ${val.toFixed(2)} kg`;
+                    }
+                    return ` Lean Mass: ${val.toFixed(2)} kg`;
+                  } else if (dsLabel === 'Raw Outlier') {
+                    return ` Actual Outlier: ${val.toFixed(2)} kg (Sick Day)`;
+                  }
+                  return ` ${val.toFixed(2)} kg`;
+                }
+              },
+              filter: (tooltipItem) => {
+                return tooltipItem.raw !== null && tooltipItem.raw !== undefined;
+              }
+            },
+            goalLine: {
+              value: store.targetLeanMass,
+              color: 'rgba(96, 165, 250, 0.4)',
+              textColor: 'rgba(96, 165, 250, 0.8)',
+              label: 'Target',
+              unit: ' kg'
+            }
+          },
+          scales: {
+            y: {
+              grid: { color: 'rgba(75, 85, 99, 0.08)' },
+              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
+            }
+          }
+        },
+        plugins: [goalLinePlugin, sickLinkLinePlugin]
+      });
+    }
+
+    // 3. Body Fat (%) Daily Chart
     if (fatDailyCanvas.value) {
       if (chartF_Daily) chartF_Daily.destroy();
       const ctx = fatDailyCanvas.value.getContext('2d');
@@ -568,6 +737,113 @@ const updateDailyCharts = () => {
         plugins: [goalLinePlugin, sickLinkLinePlugin]
       });
     }
+
+    // 4. Fat Mass (kg) Daily Chart
+    if (fatMassDailyCanvas.value) {
+      if (chartFM_Daily) chartFM_Daily.destroy();
+      const ctx = fatMassDailyCanvas.value.getContext('2d');
+      
+      const strokeGrad = ctx.createLinearGradient(0, 0, 0, 300);
+      strokeGrad.addColorStop(0, '#fbbf24');
+      strokeGrad.addColorStop(1, '#f59e0b');
+      
+      const fillGrad = ctx.createLinearGradient(0, 0, 0, 250);
+      fillGrad.addColorStop(0, 'rgba(245, 158, 11, 0.2)');
+      fillGrad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+
+      chartFM_Daily = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: daysLabel,
+          datasets: [
+            {
+              label: 'Trend Fat Mass',
+              data: dailyFatMasses,
+              borderColor: strokeGrad,
+              borderWidth: 3,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: dailyFatMassesIsSick.map(sick => sick ? '#f59e0b' : '#f59e0b'),
+              pointBorderWidth: dailyFatMassesIsSick.map(sick => sick ? 2.5 : 2),
+              pointRadius: dailyFatMassesIsSick.map(sick => sick ? 5 : 4),
+              pointHoverRadius: dailyFatMassesIsSick.map(sick => sick ? 7 : 6),
+              pointStyle: 'circle',
+              spanGaps: true,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.25
+            },
+            {
+              label: 'Raw Outlier',
+              data: dailyFatMassesRawOnly,
+              showLine: false,
+              pointBackgroundColor: '#f59e0b',
+              pointBorderColor: '#d97706',
+              pointBorderWidth: 2,
+              pointRadius: 6,
+              pointHoverRadius: 8,
+              pointStyle: 'rectRot'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(17, 24, 39, 0.95)',
+              titleColor: '#9ca3af',
+              bodyColor: '#ffffff',
+              borderColor: 'rgba(245, 158, 11, 0.3)',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: true,
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                label: (context) => {
+                  const dsLabel = context.dataset.label;
+                  const val = context.parsed.y;
+                  if (val === null || val === undefined) return '';
+
+                  if (dsLabel === 'Trend Fat Mass') {
+                    const isSick = dailyFatMassesIsSick[context.dataIndex];
+                    if (isSick) {
+                      return ` Trend Estimate: ${val.toFixed(2)} kg`;
+                    }
+                    return ` Fat Mass: ${val.toFixed(2)} kg`;
+                  } else if (dsLabel === 'Raw Outlier') {
+                    return ` Actual Outlier: ${val.toFixed(2)} kg (Sick Day)`;
+                  }
+                  return ` ${val.toFixed(2)} kg`;
+                }
+              },
+              filter: (tooltipItem) => {
+                return tooltipItem.raw !== null && tooltipItem.raw !== undefined;
+              }
+            },
+            goalLine: {
+              value: store.targetFatMass,
+              color: 'rgba(245, 158, 11, 0.4)',
+              textColor: 'rgba(245, 158, 11, 0.8)',
+              label: 'Target',
+              unit: ' kg'
+            }
+          },
+          scales: {
+            y: {
+              grid: { color: 'rgba(75, 85, 99, 0.08)' },
+              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
+            }
+          }
+        },
+        plugins: [goalLinePlugin, sickLinkLinePlugin]
+      });
+    }
   });
 };
 
@@ -579,8 +855,11 @@ const updateWeeklyCharts = () => {
     const sortedWeeks = [...store.groupedWeeks].reverse();
     const labels = sortedWeeks.map(w => w.label);
     const avgWeights = sortedWeeks.map(w => w.avgMass);
+    const avgLeans = sortedWeeks.map(w => w.avgLeanMass);
     const avgFats = sortedWeeks.map(w => w.avgFat);
+    const avgFatMasses = sortedWeeks.map(w => w.avgFatMass);
 
+    // 1. Weekly Average Weight
     if (weightAvgCanvas.value) {
       if (chartW_Avg) chartW_Avg.destroy();
       const ctx = weightAvgCanvas.value.getContext('2d');
@@ -658,6 +937,85 @@ const updateWeeklyCharts = () => {
       });
     }
 
+    // 2. Weekly Average Lean Mass
+    if (leanAvgCanvas.value) {
+      if (chartL_Avg) chartL_Avg.destroy();
+      const ctx = leanAvgCanvas.value.getContext('2d');
+      
+      const strokeGrad = ctx.createLinearGradient(0, 0, 0, 300);
+      strokeGrad.addColorStop(0, '#60a5fa');
+      strokeGrad.addColorStop(1, '#2563eb');
+      
+      const fillGrad = ctx.createLinearGradient(0, 0, 0, 250);
+      fillGrad.addColorStop(0, 'rgba(59, 130, 246, 0.2)');
+      fillGrad.addColorStop(1, 'rgba(59, 130, 246, 0)');
+
+      chartL_Avg = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            data: avgLeans,
+            borderColor: strokeGrad,
+            borderWidth: 3,
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: '#3b82f6',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            fill: true,
+            backgroundColor: fillGrad,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(17, 24, 39, 0.95)',
+              titleColor: '#9ca3af',
+              bodyColor: '#ffffff',
+              borderColor: 'rgba(59, 130, 246, 0.3)',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: false,
+              callbacks: {
+                label: (context) => {
+                  const week = sortedWeeks[context.dataIndex];
+                  const val = context.parsed.y;
+                  if (week && week.hasSickLogs) {
+                    return ` Avg: ${val.toFixed(2)} kg (Weighted - includes sick outlier)`;
+                  }
+                  return ` Avg: ${val.toFixed(2)} kg`;
+                }
+              }
+            },
+            goalLine: {
+              value: store.targetLeanMass,
+              color: 'rgba(96, 165, 250, 0.4)',
+              textColor: 'rgba(96, 165, 250, 0.8)',
+              label: 'Target',
+              unit: ' kg'
+            }
+          },
+          scales: {
+            y: {
+              grid: { color: 'rgba(75, 85, 99, 0.08)' },
+              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 10 } }
+            }
+          }
+        },
+        plugins: [goalLinePlugin]
+      });
+    }
+
+    // 3. Weekly Average Body Fat (%)
     if (fatAvgCanvas.value) {
       if (chartF_Avg) chartF_Avg.destroy();
       const ctx = fatAvgCanvas.value.getContext('2d');
@@ -734,6 +1092,84 @@ const updateWeeklyCharts = () => {
         plugins: [goalLinePlugin]
       });
     }
+
+    // 4. Weekly Average Fat Mass (kg)
+    if (fatMassAvgCanvas.value) {
+      if (chartFM_Avg) chartFM_Avg.destroy();
+      const ctx = fatMassAvgCanvas.value.getContext('2d');
+      
+      const strokeGrad = ctx.createLinearGradient(0, 0, 0, 300);
+      strokeGrad.addColorStop(0, '#fbbf24');
+      strokeGrad.addColorStop(1, '#d97706');
+      
+      const fillGrad = ctx.createLinearGradient(0, 0, 0, 250);
+      fillGrad.addColorStop(0, 'rgba(245, 158, 11, 0.2)');
+      fillGrad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+
+      chartFM_Avg = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            data: avgFatMasses,
+            borderColor: strokeGrad,
+            borderWidth: 3,
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: '#f59e0b',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            fill: true,
+            backgroundColor: fillGrad,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(17, 24, 39, 0.95)',
+              titleColor: '#9ca3af',
+              bodyColor: '#ffffff',
+              borderColor: 'rgba(245, 158, 11, 0.3)',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: false,
+              callbacks: {
+                label: (context) => {
+                  const week = sortedWeeks[context.dataIndex];
+                  const val = context.parsed.y;
+                  if (week && week.hasSickLogs) {
+                    return ` Avg: ${val.toFixed(2)} kg (Weighted - includes sick outlier)`;
+                  }
+                  return ` Avg: ${val.toFixed(2)} kg`;
+                }
+              }
+            },
+            goalLine: {
+              value: store.targetFatMass,
+              color: 'rgba(245, 158, 11, 0.4)',
+              textColor: 'rgba(245, 158, 11, 0.8)',
+              label: 'Target',
+              unit: ' kg'
+            }
+          },
+          scales: {
+            y: {
+              grid: { color: 'rgba(75, 85, 99, 0.08)' },
+              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 10 } }
+            }
+          }
+        },
+        plugins: [goalLinePlugin]
+      });
+    }
   });
 };
 
@@ -761,8 +1197,12 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (chartW_Daily) chartW_Daily.destroy();
+  if (chartL_Daily) chartL_Daily.destroy();
   if (chartF_Daily) chartF_Daily.destroy();
+  if (chartFM_Daily) chartFM_Daily.destroy();
   if (chartW_Avg) chartW_Avg.destroy();
+  if (chartL_Avg) chartL_Avg.destroy();
   if (chartF_Avg) chartF_Avg.destroy();
+  if (chartFM_Avg) chartFM_Avg.destroy();
 });
 </script>
