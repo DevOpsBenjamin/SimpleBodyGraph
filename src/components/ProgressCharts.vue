@@ -55,10 +55,10 @@
       <!-- HEVY SYNC HELPER FOR ACTIVE WEEK -->
       <div 
         v-if="store.activeWeek" 
-        class="glass-card p-4 rounded-3xl max-w-sm mx-auto shadow-lg flex items-center justify-between border border-gray-800/40 hover:border-gray-700/60 transition-all duration-300"
+        class="glass-card p-4 rounded-3xl max-w-md mx-auto shadow-lg flex items-center justify-between border border-gray-800/40 hover:border-gray-700/60 transition-all duration-300"
       >
         <div class="flex items-center gap-3">
-          <div class="p-2 rounded-xl bg-violet-600/10 border border-violet-500/15">
+          <div class="p-2 rounded-xl bg-violet-600/10 border border-violet-500/15 flex-shrink-0">
             <Copy class="w-4 h-4 text-violet-400" />
           </div>
           <div>
@@ -68,17 +68,21 @@
                 <Thermometer class="w-3.5 h-3.5" /> Weighted
               </span>
             </h4>
-            <div class="flex items-center gap-2 mt-1">
-              <span class="text-xs text-gray-400">Avg W: <strong class="text-white">{{ store.activeWeek.avgMass.toFixed(2) }} kg</strong></span>
-              <span class="text-xs text-gray-600">|</span>
-              <span class="text-xs text-gray-400">Avg F: <strong class="text-white">{{ store.activeWeek.avgFat.toFixed(1) }}%</strong></span>
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1.5 text-[11px] text-gray-400">
+              <span class="flex items-center gap-0.5">W: <strong class="text-white">{{ store.activeWeek.avgMass.toFixed(2) }} kg</strong></span>
+              <span class="text-gray-700">|</span>
+              <span class="flex items-center gap-0.5">Lean: <strong class="text-blue-400">{{ store.activeWeek.avgLeanMass.toFixed(2) }} kg</strong></span>
+              <span class="text-gray-700">|</span>
+              <span class="flex items-center gap-0.5">Fat: <strong class="text-emerald-400">{{ store.activeWeek.avgFat.toFixed(1) }}%</strong></span>
+              <span class="text-gray-700">|</span>
+              <span class="flex items-center gap-0.5">Fat kg: <strong class="text-amber-400">{{ store.activeWeek.avgFatMass.toFixed(2) }} kg</strong></span>
             </div>
           </div>
         </div>
 
         <button 
           @click="copyWeeklyAverage(store.activeWeek)"
-          class="p-2 px-3 rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer border border-gray-700/30 flex items-center gap-1.5 text-xs font-medium"
+          class="p-2 px-3 rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer border border-gray-700/30 flex-shrink-0 flex items-center gap-1.5 text-xs font-medium"
           title="Copy Weekly Averages"
         >
           <Check v-if="copiedWeekId === store.activeWeek.id" class="w-4 h-4 text-emerald-400 animate-bounce" />
@@ -205,20 +209,28 @@
               <div class="text-[10px] text-gray-500 mt-0.5">Based on {{ week.logs.length }} records</div>
             </div>
             
-            <div class="flex items-center gap-6">
+            <div class="flex items-center gap-5 sm:gap-6 flex-wrap sm:flex-nowrap">
               <div class="text-right">
                 <span class="text-[10px] text-gray-400 block leading-none">Avg Weight</span>
                 <span class="text-sm font-bold text-white mt-0.5 block">{{ week.avgMass.toFixed(2) }} kg</span>
               </div>
               <div class="text-right">
-                <span class="text-[10px] text-gray-400 block leading-none">Avg Fat</span>
-                <span class="text-sm font-bold text-white mt-0.5 block">{{ week.avgFat.toFixed(1) }}%</span>
+                <span class="text-[10px] text-blue-400 block leading-none">Avg Lean</span>
+                <span class="text-sm font-bold text-blue-400 mt-0.5 block">{{ week.avgLeanMass.toFixed(2) }} kg</span>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-emerald-400 block leading-none">Avg Fat %</span>
+                <span class="text-sm font-bold text-emerald-400 mt-0.5 block">{{ week.avgFat.toFixed(1) }}%</span>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-amber-400 block leading-none">Avg Fat kg</span>
+                <span class="text-sm font-bold text-amber-400 mt-0.5 block">{{ week.avgFatMass.toFixed(2) }} kg</span>
               </div>
 
               <!-- Copy trigger -->
               <button 
                 @click="copyWeeklyAverage(week)"
-                class="p-2 rounded-lg bg-gray-800 hover:bg-gray-750 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer border border-gray-700/30"
+                class="p-2 rounded-lg bg-gray-800 hover:bg-gray-750 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer border border-gray-700/30 flex-shrink-0"
                 title="Copy Weekly Averages"
               >
                 <Check v-if="copiedWeekId === week.id" class="w-4 h-4 text-emerald-400 animate-pulse" />
