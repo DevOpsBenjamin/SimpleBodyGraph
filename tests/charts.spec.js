@@ -53,8 +53,10 @@ test('Seed user data and take screenshot', async ({ page }) => {
   await expect(page.locator('.glass-card >> text=Hevy Helper')).toBeVisible();
 
   // Assert Hevy Helper shows correct weighted averages
-  await expect(page.locator('text=Avg W: 106.26 kg')).toBeVisible();
-  await expect(page.locator('text=Avg F: 34.4%')).toBeVisible();
+  await expect(page.locator('text=W: 106.26 kg')).toBeVisible();
+  await expect(page.locator('text=Lean: 69.69 kg')).toBeVisible();
+  await expect(page.locator('text=Fat: 34.4%')).toBeVisible();
+  await expect(page.locator('text=Fat kg: 36.57 kg')).toBeVisible();
 
   // Assert Trend Estimates in the top cards are correct (linear extrapolation trend projection)
   await expect(page.locator('text=Trend Estimate: 105.49 kg')).toBeVisible();
