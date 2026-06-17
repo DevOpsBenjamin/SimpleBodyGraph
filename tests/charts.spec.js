@@ -28,12 +28,19 @@ test('Seed user data and take screenshot', async ({ page }) => {
         const store = transaction.objectStore(STORE_LOGS);
         store.clear();
         const testLogs = [
-          { id: '1', date: '2026-06-14', mass: 107.40, body_fat: 34.6, is_sick: true, synced: true, user_id: 'guest' },
-          { id: '2', date: '2026-06-12', mass: 105.80, body_fat: 34.1, is_sick: false, synced: true, user_id: 'guest' },
-          { id: '3', date: '2026-06-10', mass: 106.35, body_fat: 34.3, is_sick: false, synced: true, user_id: 'guest' },
-          { id: '4', date: '2026-06-08', mass: 106.35, body_fat: 34.8, is_sick: false, synced: true, user_id: 'guest' },
-          { id: '5', date: '2026-06-05', mass: 107.65, body_fat: 35.1, is_sick: false, synced: true, user_id: 'guest' },
-          { id: '6', date: '2026-06-02', mass: 107.50, body_fat: 35.2, is_sick: false, synced: true, user_id: 'guest' }
+          { id: '1', date: '2026-06-17', mass: 105.35, body_fat: 34.2, is_sick: false, synced: true, user_id: 'guest' },
+          { id: '2', date: '2026-06-16', mass: 105.78, body_fat: 34.3, is_sick: false, synced: true, user_id: 'guest' },
+          { id: '3', date: '2026-06-15', mass: 106.20, body_fat: 34.4, is_sick: false, synced: true, user_id: 'guest' },
+          { id: '4', date: '2026-06-14', mass: 107.40, body_fat: 34.6, is_sick: true, synced: true, user_id: 'guest' },
+          { id: '5', date: '2026-06-13', mass: 106.60, body_fat: 34.3, is_sick: false, synced: true, user_id: 'guest' },
+          { id: '6', date: '2026-06-12', mass: 105.80, body_fat: 34.1, is_sick: false, synced: true, user_id: 'guest' },
+          { id: '7', date: '2026-06-11', mass: 106.08, body_fat: 34.2, is_sick: false, synced: true, user_id: 'guest' },
+          { id: '8', date: '2026-06-10', mass: 106.35, body_fat: 34.3, is_sick: false, synced: true, user_id: 'guest' },
+          { id: '9', date: '2026-06-09', mass: 106.35, body_fat: 34.6, is_sick: false, synced: true, user_id: 'guest' },
+          { id: '10', date: '2026-06-08', mass: 106.35, body_fat: 34.8, is_sick: false, synced: true, user_id: 'guest' },
+          { id: '11', date: '2026-06-07', mass: 106.80, body_fat: 34.9, is_sick: false, synced: true, user_id: 'guest' },
+          { id: '12', date: '2026-06-06', mass: 107.25, body_fat: 35.0, is_sick: false, synced: true, user_id: 'guest' },
+          { id: '13', date: '2026-06-05', mass: 107.65, body_fat: 35.1, is_sick: false, synced: true, user_id: 'guest' }
         ];
         testLogs.forEach(log => store.put(log));
         transaction.oncomplete = () => {
@@ -52,29 +59,20 @@ test('Seed user data and take screenshot', async ({ page }) => {
   // Wait for the active week logs helper or charts to load
   await expect(page.locator('.glass-card >> text=Hevy Helper')).toBeVisible();
 
-  // Assert Hevy Helper shows correct weighted averages
-  await expect(page.locator('text=W: 106.26 kg')).toBeVisible();
-  await expect(page.locator('text=Lean: 69.69 kg')).toBeVisible();
-  await expect(page.locator('text=Fat: 34.4%')).toBeVisible();
-  await expect(page.locator('text=Fat kg: 36.57 kg')).toBeVisible();
+  // Assert Hevy Helper shows correct medians (from the active week of Jun 15 - Jun 21)
+  await expect(page.locator('text=W: 105.78 kg')).toBeVisible();
+  await expect(page.locator('text=Lean: 69.50 kg')).toBeVisible();
+  await expect(page.locator('text=Fat: 34.3%')).toBeVisible();
+  await expect(page.locator('text=Fat kg: 36.28 kg')).toBeVisible();
 
-  // Assert Trend Estimates in the top cards are correct (linear extrapolation trend projection)
-  await expect(page.locator('text=Trend Estimate: 105.49 kg')).toBeVisible();
-  await expect(page.locator('text=Trend Estimate: 69.70 kg')).toBeVisible();
-  await expect(page.locator('text=Trend Estimate: 33.9%')).toBeVisible();
-  await expect(page.locator('text=Trend Estimate: 35.79 kg')).toBeVisible();
+  // Assert raw measurements of latest day (Jun 17) are displayed on the top cards
+  await expect(page.locator('text=105.35 kg').first()).toBeVisible(); // Total Mass card
+  await expect(page.locator('text=69.32 kg').first()).toBeVisible(); // Lean Mass card
+  await expect(page.locator('text=34.2 %').first()).toBeVisible(); // Body Fat card
+  await expect(page.locator('text=36.03 kg').first()).toBeVisible(); // Fat Mass card
 
-  // Assert Trend changes are displayed
-  await expect(page.locator('text=Trend: -0.31 kg')).toBeVisible();
-  await expect(page.locator('text=Trend: -0.02 kg')).toBeVisible();
-  await expect(page.locator('text=Trend: -0.2%')).toBeVisible();
-  await expect(page.locator('text=Trend: -0.29 kg')).toBeVisible();
-
-  // Assert raw/outlier measurements are displayed on the top cards
-  await expect(page.locator('text=107.40 kg').first()).toBeVisible(); // Total Mass card
-  await expect(page.locator('text=70.24 kg').first()).toBeVisible(); // Lean Mass card
-  await expect(page.locator('text=34.6 %').first()).toBeVisible(); // Body Fat card
-  await expect(page.locator('text=37.16 kg').first()).toBeVisible(); // Fat Mass card
+  // Click "All-Time" tab to display long-term weekly trends
+  await page.getByRole('button', { name: 'All-Time' }).click();
 
   // Let it render for 1 second
   await page.waitForTimeout(1000);

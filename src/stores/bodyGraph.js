@@ -32,109 +32,15 @@ function getSundayOfMonday(mondayStr) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-// Helper to calculate estimated values for sick logs using linear interpolation or linear extrapolation
-function getEstimatedLogValues(log, allLogs) {
-  if (!log.is_sick) {
-    return {
-      mass: Number(log.mass),
-      body_fat: Number(log.body_fat)
-    };
-  }
-
-  // Filter and sort healthy logs ascending by date
-  const healthyLogs = allLogs
-    .filter(l => !l.is_sick)
-    .sort((a, b) => a.date.localeCompare(b.date));
-
-  if (healthyLogs.length === 0) {
-    return {
-      mass: Number(log.mass),
-      body_fat: Number(log.body_fat)
-    };
-  }
-
-  // Find closest older (date < log.date) and newer (date > log.date) healthy logs relative to sick log's date
-  let prevHealthy = null;
-  let nextHealthy = null;
-
-  for (const hLog of healthyLogs) {
-    if (hLog.date < log.date) {
-      prevHealthy = hLog;
-    } else if (hLog.date > log.date && !nextHealthy) {
-      nextHealthy = hLog;
-    }
-  }
-
-  if (prevHealthy && nextHealthy) {
-    const tPrev = new Date(prevHealthy.date).getTime();
-    const tNext = new Date(nextHealthy.date).getTime();
-    const tCurrent = new Date(log.date).getTime();
-
-    if (tNext === tPrev) {
-      return { mass: Number(prevHealthy.mass), body_fat: Number(prevHealthy.body_fat) };
-    }
-
-    const f = (tCurrent - tPrev) / (tNext - tPrev);
-    return {
-      mass: Number(prevHealthy.mass) + f * (Number(nextHealthy.mass) - Number(prevHealthy.mass)),
-      body_fat: Number(prevHealthy.body_fat) + f * (Number(nextHealthy.body_fat) - Number(prevHealthy.body_fat))
-    };
-  } else {
-    // Determine the direction and retrieve up to 5 neighboring healthy logs
-    const direction = prevHealthy ? 'prev' : (nextHealthy ? 'next' : null);
-    if (!direction) {
-      return { mass: Number(log.mass), body_fat: Number(log.body_fat) };
-    }
-
-    const targetTime = new Date(log.date).getTime();
-    const logsToUse = direction === 'prev'
-      ? healthyLogs.filter(h => h.date < log.date).slice(-5)
-      : healthyLogs.filter(h => h.date > log.date).slice(0, 5);
-
-    const n = logsToUse.length;
-    if (n === 0) {
-      return { mass: Number(log.mass), body_fat: Number(log.body_fat) };
-    }
-    if (n === 1) {
-      return { mass: Number(logsToUse[0].mass), body_fat: Number(logsToUse[0].body_fat) };
-    }
-
-    const regress = (valGetter) => {
-      let sumX = 0;
-      let sumY = 0;
-      let sumXY = 0;
-      let sumXX = 0;
-
-      for (const h of logsToUse) {
-        const x = new Date(h.date).getTime();
-        const y = valGetter(h);
-        sumX += x;
-        sumY += y;
-        sumXY += x * y;
-        sumXX += x * x;
-      }
-
-      const denom = n * sumXX - sumX * sumX;
-      if (denom === 0) {
-        return sumY / n;
-      }
-
-      const slope = (n * sumXY - sumX * sumY) / denom;
-      const intercept = (sumY - slope * sumX) / n;
-      const extrapolated = intercept + slope * targetTime;
-
-      // Safety clamp: Extrapolated values should not drift more than 10% from the nearest log's value.
-      const nearestLog = direction === 'prev' ? logsToUse[logsToUse.length - 1] : logsToUse[0];
-      const nearestVal = valGetter(nearestLog);
-      const maxDev = nearestVal * 0.1;
-      return Math.max(nearestVal - maxDev, Math.min(nearestVal + maxDev, extrapolated));
-    };
-
-    return {
-      mass: Number(regress(h => Number(h.mass)).toFixed(2)),
-      body_fat: Number(regress(h => Number(h.body_fat)).toFixed(2))
-    };
-  }
+// Helper to calculate median of a numeric array
+function calculateMedian(arr) {
+  if (!arr || arr.length === 0) return 0;
+  const sorted = [...arr].filter(v => v !== null && v !== undefined && !isNaN(v)).sort((a, b) => a - b);
+  if (sorted.length === 0) return 0;
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0 
+    ? sorted[mid] 
+    : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
 export const useBodyGraphStore = defineStore('bodyGraph', {
@@ -189,25 +95,15 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
     logsWithEstimates: (state) => {
       return state.logs.map(log => {
-        const estimates = getEstimatedLogValues(log, state.logs);
         const mass = Number(log.mass);
         const body_fat = Number(log.body_fat);
         const fat_mass = mass * (body_fat / 100);
         const lean_mass = mass - fat_mass;
 
-        const estimated_mass = estimates.mass;
-        const estimated_body_fat = estimates.body_fat;
-        const estimated_fat_mass = estimated_mass * (estimated_body_fat / 100);
-        const estimated_lean_mass = estimated_mass - estimated_fat_mass;
-
         return {
           ...log,
           fat_mass,
-          lean_mass,
-          estimated_mass,
-          estimated_body_fat,
-          estimated_fat_mass,
-          estimated_lean_mass
+          lean_mass
         };
       });
     },
@@ -231,30 +127,15 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       for (const [mon, weekLogs] of Object.entries(groups)) {
         const sun = getSundayOfMonday(mon);
         
-        // Weighted Averages
-        let totalWeight = 0;
-        let weightedMassSum = 0;
-        let weightedFatSum = 0;
-        let weightedFatMassSum = 0;
-        let weightedLeanMassSum = 0;
-        let hasSickLogs = false;
+        const masses = weekLogs.map(l => Number(l.mass));
+        const fats = weekLogs.map(l => Number(l.body_fat));
 
-        for (const l of weekLogs) {
-          const w = l.is_sick ? 0.25 : 1.0;
-          totalWeight += w;
-          weightedMassSum += Number(l.mass) * w;
-          weightedFatSum += Number(l.body_fat) * w;
-          weightedFatMassSum += Number(l.fat_mass) * w;
-          weightedLeanMassSum += Number(l.lean_mass) * w;
-          if (l.is_sick) {
-            hasSickLogs = true;
-          }
-        }
+        const medianMass = calculateMedian(masses);
+        const medianFat = calculateMedian(fats);
+        const medianFatMass = medianMass * (medianFat / 100);
+        const medianLeanMass = medianMass - medianFatMass;
 
-        const avgMass = totalWeight > 0 ? weightedMassSum / totalWeight : 0;
-        const avgFat = totalWeight > 0 ? weightedFatSum / totalWeight : 0;
-        const avgFatMass = totalWeight > 0 ? weightedFatMassSum / totalWeight : 0;
-        const avgLeanMass = totalWeight > 0 ? weightedLeanMassSum / totalWeight : 0;
+        const hasSickLogs = weekLogs.some(l => l.is_sick);
 
         // Label format: "Jun 8 - Jun 14"
         const monDate = new Date(mon);
@@ -267,10 +148,15 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           sunday: sun,
           label,
           logs: weekLogs,
-          avgMass,
-          avgFat,
-          avgFatMass,
-          avgLeanMass,
+          medianMass,
+          medianFat,
+          medianFatMass,
+          medianLeanMass,
+          // Expose as avg* for compatibility
+          avgMass: medianMass,
+          avgFat: medianFat,
+          avgFatMass: medianFatMass,
+          avgLeanMass: medianLeanMass,
           hasSickLogs
         });
       }
@@ -316,16 +202,8 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           fatChange: 0,
           fatMassChange: 0,
           leanMassChange: 0,
-          massChangeEstimated: 0,
-          fatChangeEstimated: 0,
-          fatMassChangeEstimated: 0,
-          leanMassChangeEstimated: 0,
           unsyncedCount: 0,
-          currentIsSick: false,
-          currentEstimatedMass: null,
-          currentEstimatedFat: null,
-          currentEstimatedFatMass: null,
-          currentEstimatedLeanMass: null
+          currentIsSick: false
         };
       }
 
@@ -343,16 +221,8 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         fatChange: prevEntry ? Number(currentEntry.body_fat) - Number(prevEntry.body_fat) : 0,
         fatMassChange: prevEntry ? Number(currentEntry.fat_mass) - Number(prevEntry.fat_mass) : 0,
         leanMassChange: prevEntry ? Number(currentEntry.lean_mass) - Number(prevEntry.lean_mass) : 0,
-        massChangeEstimated: prevEntry ? Number(currentEntry.estimated_mass) - Number(prevEntry.estimated_mass) : 0,
-        fatChangeEstimated: prevEntry ? Number(currentEntry.estimated_body_fat) - Number(prevEntry.estimated_body_fat) : 0,
-        fatMassChangeEstimated: prevEntry ? Number(currentEntry.estimated_fat_mass) - Number(prevEntry.estimated_fat_mass) : 0,
-        leanMassChangeEstimated: prevEntry ? Number(currentEntry.estimated_lean_mass) - Number(prevEntry.estimated_lean_mass) : 0,
         unsyncedCount,
-        currentIsSick: !!currentEntry.is_sick,
-        currentEstimatedMass: Number(currentEntry.estimated_mass),
-        currentEstimatedFat: Number(currentEntry.estimated_body_fat),
-        currentEstimatedFatMass: Number(currentEntry.estimated_fat_mass),
-        currentEstimatedLeanMass: Number(currentEntry.estimated_lean_mass)
+        currentIsSick: !!currentEntry.is_sick
       };
     }
   },

@@ -64,18 +64,15 @@
           <div>
             <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
               <span>Hevy Helper</span>
-              <span v-if="store.activeWeek.hasSickLogs" class="text-[9px] text-amber-400 normal-case flex items-center gap-0.5 font-normal" title="Weighted average (sick outlier weighted 0.25)">
-                <Thermometer class="w-3.5 h-3.5" /> Weighted
-              </span>
             </h4>
             <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1.5 text-[11px] text-gray-400">
-              <span class="flex items-center gap-0.5">W: <strong class="text-white">{{ store.activeWeek.avgMass.toFixed(2) }} kg</strong></span>
+              <span class="flex items-center gap-0.5">W: <strong class="text-white">{{ store.activeWeek.medianMass.toFixed(2) }} kg</strong></span>
               <span class="text-gray-700">|</span>
-              <span class="flex items-center gap-0.5">Lean: <strong class="text-blue-400">{{ store.activeWeek.avgLeanMass.toFixed(2) }} kg</strong></span>
+              <span class="flex items-center gap-0.5">Lean: <strong class="text-blue-400">{{ store.activeWeek.medianLeanMass.toFixed(2) }} kg</strong></span>
               <span class="text-gray-700">|</span>
-              <span class="flex items-center gap-0.5">Fat: <strong class="text-emerald-400">{{ store.activeWeek.avgFat.toFixed(1) }}%</strong></span>
+              <span class="flex items-center gap-0.5">Fat: <strong class="text-emerald-400">{{ store.activeWeek.medianFat.toFixed(1) }}%</strong></span>
               <span class="text-gray-700">|</span>
-              <span class="flex items-center gap-0.5">Fat kg: <strong class="text-amber-400">{{ store.activeWeek.avgFatMass.toFixed(2) }} kg</strong></span>
+              <span class="flex items-center gap-0.5">Fat kg: <strong class="text-amber-400">{{ store.activeWeek.medianFatMass.toFixed(2) }} kg</strong></span>
             </div>
           </div>
         </div>
@@ -83,7 +80,7 @@
         <button 
           @click="copyWeeklyAverage(store.activeWeek)"
           class="p-2 px-3 rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer border border-gray-700/30 flex-shrink-0 flex items-center gap-1.5 text-xs font-medium"
-          title="Copy Weekly Averages"
+          title="Copy Weekly Medians"
         >
           <Check v-if="copiedWeekId === store.activeWeek.id" class="w-4 h-4 text-emerald-400 animate-bounce" />
           <Copy v-else class="w-4 h-4 text-violet-400" />
@@ -144,7 +141,7 @@
         <!-- Weight Average Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span> Historical Weekly Weight Averages (kg)
+            <span class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span> Historical Weekly Weight Medians (kg)
           </h3>
           <div class="relative h-[240px] w-full">
             <canvas ref="weightAvgCanvas"></canvas>
@@ -154,7 +151,7 @@
         <!-- Lean Mass Average Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Historical Weekly Lean Mass Averages (kg)
+            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Historical Weekly Lean Mass Medians (kg)
           </h3>
           <div class="relative h-[240px] w-full">
             <canvas ref="leanAvgCanvas"></canvas>
@@ -164,7 +161,7 @@
         <!-- Fat Average Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Historical Weekly Fat Averages (%)
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Historical Weekly Fat Medians (%)
           </h3>
           <div class="relative h-[240px] w-full">
             <canvas ref="fatAvgCanvas"></canvas>
@@ -174,7 +171,7 @@
         <!-- Fat Mass Average Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Historical Weekly Fat Mass Averages (kg)
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Historical Weekly Fat Mass Medians (kg)
           </h3>
           <div class="relative h-[240px] w-full">
             <canvas ref="fatMassAvgCanvas"></canvas>
@@ -189,7 +186,7 @@
           <h3 class="text-sm font-bold text-white">Hevy Sync Helper</h3>
         </div>
         <p class="text-xs text-gray-400 mb-4">
-          Click the copy button to copy your weekly average values to enter them directly into your Hevy logs.
+          Click the copy button to copy your weekly median values to enter them directly into your Hevy logs.
         </p>
 
         <!-- Averages List -->
@@ -202,29 +199,26 @@
             <div>
               <div class="text-xs font-semibold text-white flex items-center gap-1.5">
                 <span>{{ week.label }}</span>
-                <span v-if="week.hasSickLogs" class="text-[9px] text-amber-400 flex items-center gap-0.5 font-medium" title="Weighted average (sick outlier weighted 0.25)">
-                  <Thermometer class="w-3 h-3" /> Weighted
-                </span>
               </div>
               <div class="text-[10px] text-gray-500 mt-0.5">Based on {{ week.logs.length }} records</div>
             </div>
             
             <div class="flex items-center gap-5 sm:gap-6 flex-wrap sm:flex-nowrap">
               <div class="text-right">
-                <span class="text-[10px] text-gray-400 block leading-none">Avg Weight</span>
-                <span class="text-sm font-bold text-white mt-0.5 block">{{ week.avgMass.toFixed(2) }} kg</span>
+                <span class="text-[10px] text-gray-400 block leading-none">Med Weight</span>
+                <span class="text-sm font-bold text-white mt-0.5 block">{{ week.medianMass.toFixed(2) }} kg</span>
               </div>
               <div class="text-right">
-                <span class="text-[10px] text-blue-400 block leading-none">Avg Lean</span>
-                <span class="text-sm font-bold text-blue-400 mt-0.5 block">{{ week.avgLeanMass.toFixed(2) }} kg</span>
+                <span class="text-[10px] text-blue-400 block leading-none">Med Lean</span>
+                <span class="text-sm font-bold text-blue-400 mt-0.5 block">{{ week.medianLeanMass.toFixed(2) }} kg</span>
               </div>
               <div class="text-right">
-                <span class="text-[10px] text-emerald-400 block leading-none">Avg Fat %</span>
-                <span class="text-sm font-bold text-emerald-400 mt-0.5 block">{{ week.avgFat.toFixed(1) }}%</span>
+                <span class="text-[10px] text-emerald-400 block leading-none">Med Fat %</span>
+                <span class="text-sm font-bold text-emerald-400 mt-0.5 block">{{ week.medianFat.toFixed(1) }}%</span>
               </div>
               <div class="text-right">
-                <span class="text-[10px] text-amber-400 block leading-none">Avg Fat kg</span>
-                <span class="text-sm font-bold text-amber-400 mt-0.5 block">{{ week.avgFatMass.toFixed(2) }} kg</span>
+                <span class="text-[10px] text-amber-400 block leading-none">Med Fat kg</span>
+                <span class="text-sm font-bold text-amber-400 mt-0.5 block">{{ week.medianFatMass.toFixed(2) }} kg</span>
               </div>
 
               <!-- Copy trigger -->
@@ -290,13 +284,16 @@ const goalLinePlugin = {
   }
 };
 
-// Custom Chart.js Plugin to draw vertical dashed line segments connecting the estimated curve point to the floating raw outlier point
+// Custom Chart.js Plugin to draw vertical dashed line segments connecting the rolling median trend line to raw outlier sick day points
 const sickLinkLinePlugin = {
   id: 'sickLinkLine',
   afterDatasetsDraw: (chart) => {
     const ds0 = chart.data.datasets[0];
     const ds1 = chart.data.datasets[1];
-    if (!ds0 || !ds1 || ds1.label !== 'Raw Outlier') return;
+    if (!ds0 || !ds1) return;
+
+    const isSickArray = chart.options.plugins?.sickLinkLine?.isSick;
+    if (!isSickArray) return;
 
     const meta0 = chart.getDatasetMeta(0);
     const meta1 = chart.getDatasetMeta(1);
@@ -308,7 +305,7 @@ const sickLinkLinePlugin = {
     ctx.setLineDash([3, 3]);
 
     for (let i = 0; i < ds1.data.length; i++) {
-      if (ds1.data[i] !== null && ds1.data[i] !== undefined) {
+      if (isSickArray[i] && ds1.data[i] !== null && ds1.data[i] !== undefined) {
         const pt0 = meta0.data[i];
         const pt1 = meta1.data[i];
         if (pt0 && pt1 && pt0.x !== undefined && pt0.y !== undefined && pt1.y !== undefined) {
@@ -347,7 +344,7 @@ const copiedWeekId = ref(null);
 
 // Copy Hevy text
 const copyWeeklyAverage = (week) => {
-  const text = `Weight: ${week.avgMass.toFixed(2)}kg, Fat: ${week.avgFat.toFixed(1)}%`;
+  const text = `Weight: ${week.medianMass.toFixed(2)}kg, Fat: ${week.medianFat.toFixed(1)}%`;
   navigator.clipboard.writeText(text).then(() => {
     copiedWeekId.value = week.id;
     setTimeout(() => {
@@ -355,7 +352,6 @@ const copyWeeklyAverage = (week) => {
     }, 2000);
   });
 };
-
 // Swipe controls variables
 let touchStartX = 0;
 let touchStartY = 0;
@@ -387,46 +383,88 @@ const updateDailyCharts = () => {
   if (!store.activeWeek) return;
 
   nextTick(() => {
+    const startOfWeek = new Date(store.activeWeek.monday + 'T00:00:00');
     const daysLabel = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     
-    // Dataset 0: Trend values (estimated if sick, raw if healthy)
+    // Dataset 0: Rolling median values
     const dailyWeights = Array(7).fill(null);
     const dailyLeans = Array(7).fill(null);
     const dailyFats = Array(7).fill(null);
     const dailyFatMasses = Array(7).fill(null);
     
-    // Dataset 1: Raw outliers (raw if sick, null if healthy)
-    const dailyWeightsRawOnly = Array(7).fill(null);
-    const dailyLeansRawOnly = Array(7).fill(null);
-    const dailyFatsRawOnly = Array(7).fill(null);
-    const dailyFatMassesRawOnly = Array(7).fill(null);
-    
-    // Sick status flag arrays
-    const dailyWeightsIsSick = Array(7).fill(false);
-    const dailyLeansIsSick = Array(7).fill(false);
-    const dailyFatsIsSick = Array(7).fill(false);
-    const dailyFatMassesIsSick = Array(7).fill(false);
+    // Dataset 1: Raw weights for days they exist
+    const dailyWeightsRaw = Array(7).fill(null);
+    const dailyLeansRaw = Array(7).fill(null);
+    const dailyFatsRaw = Array(7).fill(null);
+    const dailyFatMassesRaw = Array(7).fill(null);
+    const dailyIsSick = Array(7).fill(false);
 
+    // Sick status flag arrays (kept for backwards compatibility/internal logic)
+    const dailyWeightsIsSick = dailyIsSick;
+    const dailyLeansIsSick = dailyIsSick;
+    const dailyFatsIsSick = dailyIsSick;
+    const dailyFatMassesIsSick = dailyIsSick;
+
+    const dailyWeightsRawOnly = dailyWeightsRaw;
+    const dailyLeansRawOnly = dailyLeansRaw;
+    const dailyFatsRawOnly = dailyFatsRaw;
+    const dailyFatMassesRawOnly = dailyFatMassesRaw;
+
+    const localMedian = (arr) => {
+      if (!arr || arr.length === 0) return null;
+      const sorted = [...arr].filter(v => v !== null && v !== undefined && !isNaN(v)).sort((a, b) => a - b);
+      if (sorted.length === 0) return null;
+      const mid = Math.floor(sorted.length / 2);
+      return sorted.length % 2 !== 0 
+        ? sorted[mid] 
+        : (sorted[mid - 1] + sorted[mid]) / 2;
+    };
+
+    const formatYMD = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dt = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${dt}`;
+    };
+
+    // Calculate rolling 7-day median for each of the 7 days of the active week
+    for (let i = 0; i < 7; i++) {
+      const dEnd = new Date(startOfWeek);
+      dEnd.setDate(dEnd.getDate() + i);
+      
+      const dStart = new Date(dEnd);
+      dStart.setDate(dStart.getDate() - 6);
+
+      const startDateStr = formatYMD(dStart);
+      const endDateStr = formatYMD(dEnd);
+
+      const windowLogs = store.logs.filter(log => log.date >= startDateStr && log.date <= endDateStr);
+      if (windowLogs.length > 0) {
+        const masses = windowLogs.map(l => Number(l.mass));
+        const fats = windowLogs.map(l => Number(l.body_fat));
+        
+        const medM = localMedian(masses);
+        const medF = localMedian(fats);
+        const medFM = medM !== null && medF !== null ? medM * (medF / 100) : null;
+        const medL = medM !== null && medFM !== null ? medM - medFM : null;
+
+        dailyWeights[i] = medM;
+        dailyLeans[i] = medL;
+        dailyFats[i] = medF;
+        dailyFatMasses[i] = medFM;
+      }
+    }
+
+    // Populate raw logs
     for (const log of store.activeWeek.logs) {
-      const d = new Date(log.date);
+      const d = new Date(log.date + 'T00:00:00');
       const dayIndex = (d.getDay() + 6) % 7; // Monday = 0
       
-      if (dailyWeights[dayIndex] === null) {
-        dailyWeights[dayIndex] = log.is_sick ? log.estimated_mass : log.mass;
-        dailyLeans[dayIndex] = log.is_sick ? log.estimated_lean_mass : log.lean_mass;
-        dailyFats[dayIndex] = log.is_sick ? log.estimated_body_fat : log.body_fat;
-        dailyFatMasses[dayIndex] = log.is_sick ? log.estimated_fat_mass : log.fat_mass;
-        
-        dailyWeightsRawOnly[dayIndex] = log.is_sick ? log.mass : null;
-        dailyLeansRawOnly[dayIndex] = log.is_sick ? log.lean_mass : null;
-        dailyFatsRawOnly[dayIndex] = log.is_sick ? log.body_fat : null;
-        dailyFatMassesRawOnly[dayIndex] = log.is_sick ? log.fat_mass : null;
-        
-        dailyWeightsIsSick[dayIndex] = !!log.is_sick;
-        dailyLeansIsSick[dayIndex] = !!log.is_sick;
-        dailyFatsIsSick[dayIndex] = !!log.is_sick;
-        dailyFatMassesIsSick[dayIndex] = !!log.is_sick;
-      }
+      dailyWeightsRaw[dayIndex] = Number(log.mass);
+      dailyLeansRaw[dayIndex] = Number(log.lean_mass);
+      dailyFatsRaw[dayIndex] = Number(log.body_fat);
+      dailyFatMassesRaw[dayIndex] = Number(log.fat_mass);
+      dailyIsSick[dayIndex] = !!log.is_sick;
     }
 
     // 1. Total Weight Daily Chart
@@ -448,31 +486,27 @@ const updateDailyCharts = () => {
           labels: daysLabel,
           datasets: [
             {
-              label: 'Trend Weight',
+              label: '7-Day Rolling Median',
               data: dailyWeights,
               borderColor: strokeGrad,
               borderWidth: 3,
-              pointBackgroundColor: '#ffffff',
-              pointBorderColor: dailyWeightsIsSick.map(sick => sick ? '#f59e0b' : '#8b5cf6'),
-              pointBorderWidth: dailyWeightsIsSick.map(sick => sick ? 2.5 : 2),
-              pointRadius: dailyWeightsIsSick.map(sick => sick ? 5 : 4),
-              pointHoverRadius: dailyWeightsIsSick.map(sick => sick ? 7 : 6),
-              pointStyle: 'circle',
+              pointRadius: 0,
+              pointHoverRadius: 0,
               spanGaps: true,
               fill: true,
               backgroundColor: fillGrad,
               tension: 0.25
             },
             {
-              label: 'Raw Outlier',
+              label: 'Raw Weight',
               data: dailyWeightsRawOnly,
               showLine: false,
-              pointBackgroundColor: '#f59e0b',
-              pointBorderColor: '#d97706',
-              pointBorderWidth: 2,
-              pointRadius: 6,
-              pointHoverRadius: 8,
-              pointStyle: 'rectRot'
+              pointStyle: dailyIsSick.map(sick => sick ? 'rectRot' : 'circle'),
+              pointRadius: dailyIsSick.map(sick => sick ? 6 : 5),
+              pointHoverRadius: dailyIsSick.map(sick => sick ? 8 : 7),
+              pointBackgroundColor: dailyIsSick.map(sick => sick ? '#f59e0b' : '#ffffff'),
+              pointBorderColor: dailyIsSick.map(sick => sick ? '#d97706' : '#8b5cf6'),
+              pointBorderWidth: 2
             }
           ]
         },
@@ -497,16 +531,15 @@ const updateDailyCharts = () => {
                   const val = context.parsed.y;
                   if (val === null || val === undefined) return '';
 
-                  if (dsLabel === 'Trend Weight') {
-                    const isSick = dailyWeightsIsSick[context.dataIndex];
+                  if (dsLabel === '7-Day Rolling Median') {
+                    return ` 7-Day Median: ${val.toFixed(2)} kg`;
+                  } else {
+                    const isSick = dailyIsSick[context.dataIndex];
                     if (isSick) {
-                      return ` Trend Estimate: ${val.toFixed(2)} kg`;
+                      return ` Actual Weight: ${val.toFixed(2)} kg (Sick Day)`;
                     }
                     return ` Weight: ${val.toFixed(2)} kg`;
-                  } else if (dsLabel === 'Raw Outlier') {
-                    return ` Actual Outlier: ${val.toFixed(2)} kg (Sick Day)`;
                   }
-                  return ` ${val.toFixed(2)} kg`;
                 }
               },
               filter: (tooltipItem) => {
@@ -519,6 +552,9 @@ const updateDailyCharts = () => {
               textColor: 'rgba(167, 139, 250, 0.8)',
               label: 'Target',
               unit: ' kg'
+            },
+            sickLinkLine: {
+              isSick: dailyIsSick
             }
           },
           scales: {
@@ -555,31 +591,27 @@ const updateDailyCharts = () => {
           labels: daysLabel,
           datasets: [
             {
-              label: 'Trend Lean',
+              label: '7-Day Rolling Median',
               data: dailyLeans,
               borderColor: strokeGrad,
               borderWidth: 3,
-              pointBackgroundColor: '#ffffff',
-              pointBorderColor: dailyLeansIsSick.map(sick => sick ? '#f59e0b' : '#3b82f6'),
-              pointBorderWidth: dailyLeansIsSick.map(sick => sick ? 2.5 : 2),
-              pointRadius: dailyLeansIsSick.map(sick => sick ? 5 : 4),
-              pointHoverRadius: dailyLeansIsSick.map(sick => sick ? 7 : 6),
-              pointStyle: 'circle',
+              pointRadius: 0,
+              pointHoverRadius: 0,
               spanGaps: true,
               fill: true,
               backgroundColor: fillGrad,
               tension: 0.25
             },
             {
-              label: 'Raw Outlier',
+              label: 'Raw Lean',
               data: dailyLeansRawOnly,
               showLine: false,
-              pointBackgroundColor: '#f59e0b',
-              pointBorderColor: '#d97706',
-              pointBorderWidth: 2,
-              pointRadius: 6,
-              pointHoverRadius: 8,
-              pointStyle: 'rectRot'
+              pointStyle: dailyIsSick.map(sick => sick ? 'rectRot' : 'circle'),
+              pointRadius: dailyIsSick.map(sick => sick ? 6 : 5),
+              pointHoverRadius: dailyIsSick.map(sick => sick ? 8 : 7),
+              pointBackgroundColor: dailyIsSick.map(sick => sick ? '#f59e0b' : '#ffffff'),
+              pointBorderColor: dailyIsSick.map(sick => sick ? '#d97706' : '#3b82f6'),
+              pointBorderWidth: 2
             }
           ]
         },
@@ -604,16 +636,15 @@ const updateDailyCharts = () => {
                   const val = context.parsed.y;
                   if (val === null || val === undefined) return '';
 
-                  if (dsLabel === 'Trend Lean') {
-                    const isSick = dailyLeansIsSick[context.dataIndex];
+                  if (dsLabel === '7-Day Rolling Median') {
+                    return ` 7-Day Median: ${val.toFixed(2)} kg`;
+                  } else {
+                    const isSick = dailyIsSick[context.dataIndex];
                     if (isSick) {
-                      return ` Trend Estimate: ${val.toFixed(2)} kg`;
+                      return ` Actual Lean: ${val.toFixed(2)} kg (Sick Day)`;
                     }
                     return ` Lean Mass: ${val.toFixed(2)} kg`;
-                  } else if (dsLabel === 'Raw Outlier') {
-                    return ` Actual Outlier: ${val.toFixed(2)} kg (Sick Day)`;
                   }
-                  return ` ${val.toFixed(2)} kg`;
                 }
               },
               filter: (tooltipItem) => {
@@ -626,6 +657,9 @@ const updateDailyCharts = () => {
               textColor: 'rgba(96, 165, 250, 0.8)',
               label: 'Target',
               unit: ' kg'
+            },
+            sickLinkLine: {
+              isSick: dailyIsSick
             }
           },
           scales: {
@@ -655,38 +689,34 @@ const updateDailyCharts = () => {
       const fillGrad = ctx.createLinearGradient(0, 0, 0, 250);
       fillGrad.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
       fillGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
-
+ 
       chartF_Daily = new Chart(ctx, {
         type: 'line',
         data: {
           labels: daysLabel,
           datasets: [
             {
-              label: 'Trend Fat',
+              label: '7-Day Rolling Median',
               data: dailyFats,
               borderColor: strokeGrad,
               borderWidth: 3,
-              pointBackgroundColor: '#ffffff',
-              pointBorderColor: dailyFatsIsSick.map(sick => sick ? '#f59e0b' : '#10b981'),
-              pointBorderWidth: dailyFatsIsSick.map(sick => sick ? 2.5 : 2),
-              pointRadius: dailyFatsIsSick.map(sick => sick ? 5 : 4),
-              pointHoverRadius: dailyFatsIsSick.map(sick => sick ? 7 : 6),
-              pointStyle: 'circle',
+              pointRadius: 0,
+              pointHoverRadius: 0,
               spanGaps: true,
               fill: true,
               backgroundColor: fillGrad,
               tension: 0.25
             },
             {
-              label: 'Raw Outlier',
+              label: 'Raw Fat',
               data: dailyFatsRawOnly,
               showLine: false,
-              pointBackgroundColor: '#f59e0b',
-              pointBorderColor: '#d97706',
-              pointBorderWidth: 2,
-              pointRadius: 6,
-              pointHoverRadius: 8,
-              pointStyle: 'rectRot'
+              pointStyle: dailyIsSick.map(sick => sick ? 'rectRot' : 'circle'),
+              pointRadius: dailyIsSick.map(sick => sick ? 6 : 5),
+              pointHoverRadius: dailyIsSick.map(sick => sick ? 8 : 7),
+              pointBackgroundColor: dailyIsSick.map(sick => sick ? '#f59e0b' : '#ffffff'),
+              pointBorderColor: dailyIsSick.map(sick => sick ? '#d97706' : '#10b981'),
+              pointBorderWidth: 2
             }
           ]
         },
@@ -710,17 +740,16 @@ const updateDailyCharts = () => {
                   const dsLabel = context.dataset.label;
                   const val = context.parsed.y;
                   if (val === null || val === undefined) return '';
-
-                  if (dsLabel === 'Trend Fat') {
-                    const isSick = dailyFatsIsSick[context.dataIndex];
+ 
+                  if (dsLabel === '7-Day Rolling Median') {
+                    return ` 7-Day Median: ${val.toFixed(1)}%`;
+                  } else {
+                    const isSick = dailyIsSick[context.dataIndex];
                     if (isSick) {
-                      return ` Trend Estimate: ${val.toFixed(1)} %`;
+                      return ` Actual Fat: ${val.toFixed(1)}% (Sick Day)`;
                     }
-                    return ` Body Fat: ${val.toFixed(1)} %`;
-                  } else if (dsLabel === 'Raw Outlier') {
-                    return ` Actual Outlier: ${val.toFixed(1)} % (Sick Day)`;
+                    return ` Body Fat: ${val.toFixed(1)}%`;
                   }
-                  return ` ${val.toFixed(1)} %`;
                 }
               },
               filter: (tooltipItem) => {
@@ -733,6 +762,9 @@ const updateDailyCharts = () => {
               textColor: 'rgba(52, 211, 153, 0.8)',
               label: 'Target',
               unit: '%'
+            },
+            sickLinkLine: {
+              isSick: dailyIsSick
             }
           },
           scales: {
@@ -769,31 +801,27 @@ const updateDailyCharts = () => {
           labels: daysLabel,
           datasets: [
             {
-              label: 'Trend Fat Mass',
+              label: '7-Day Rolling Median',
               data: dailyFatMasses,
               borderColor: strokeGrad,
               borderWidth: 3,
-              pointBackgroundColor: '#ffffff',
-              pointBorderColor: dailyFatMassesIsSick.map(sick => sick ? '#f59e0b' : '#f59e0b'),
-              pointBorderWidth: dailyFatMassesIsSick.map(sick => sick ? 2.5 : 2),
-              pointRadius: dailyFatMassesIsSick.map(sick => sick ? 5 : 4),
-              pointHoverRadius: dailyFatMassesIsSick.map(sick => sick ? 7 : 6),
-              pointStyle: 'circle',
+              pointRadius: 0,
+              pointHoverRadius: 0,
               spanGaps: true,
               fill: true,
               backgroundColor: fillGrad,
               tension: 0.25
             },
             {
-              label: 'Raw Outlier',
+              label: 'Raw Fat Mass',
               data: dailyFatMassesRawOnly,
               showLine: false,
-              pointBackgroundColor: '#f59e0b',
-              pointBorderColor: '#d97706',
-              pointBorderWidth: 2,
-              pointRadius: 6,
-              pointHoverRadius: 8,
-              pointStyle: 'rectRot'
+              pointStyle: dailyIsSick.map(sick => sick ? 'rectRot' : 'circle'),
+              pointRadius: dailyIsSick.map(sick => sick ? 6 : 5),
+              pointHoverRadius: dailyIsSick.map(sick => sick ? 8 : 7),
+              pointBackgroundColor: dailyIsSick.map(sick => sick ? '#f59e0b' : '#ffffff'),
+              pointBorderColor: dailyIsSick.map(sick => sick ? '#d97706' : '#f59e0b'),
+              pointBorderWidth: 2
             }
           ]
         },
@@ -818,16 +846,15 @@ const updateDailyCharts = () => {
                   const val = context.parsed.y;
                   if (val === null || val === undefined) return '';
 
-                  if (dsLabel === 'Trend Fat Mass') {
-                    const isSick = dailyFatMassesIsSick[context.dataIndex];
+                  if (dsLabel === '7-Day Rolling Median') {
+                    return ` 7-Day Median: ${val.toFixed(2)} kg`;
+                  } else {
+                    const isSick = dailyIsSick[context.dataIndex];
                     if (isSick) {
-                      return ` Trend Estimate: ${val.toFixed(2)} kg`;
+                      return ` Actual Fat Mass: ${val.toFixed(2)} kg (Sick Day)`;
                     }
                     return ` Fat Mass: ${val.toFixed(2)} kg`;
-                  } else if (dsLabel === 'Raw Outlier') {
-                    return ` Actual Outlier: ${val.toFixed(2)} kg (Sick Day)`;
                   }
-                  return ` ${val.toFixed(2)} kg`;
                 }
               },
               filter: (tooltipItem) => {
@@ -840,6 +867,9 @@ const updateDailyCharts = () => {
               textColor: 'rgba(245, 158, 11, 0.8)',
               label: 'Target',
               unit: ' kg'
+            },
+            sickLinkLine: {
+              isSick: dailyIsSick
             }
           },
           scales: {
@@ -859,19 +889,19 @@ const updateDailyCharts = () => {
   });
 };
 
-// Render Global Weekly Average Trend Charts
+// Render Global Weekly Median Trend Charts
 const updateWeeklyCharts = () => {
   if (store.groupedWeeks.length === 0) return;
 
   nextTick(() => {
     const sortedWeeks = [...store.groupedWeeks].reverse();
     const labels = sortedWeeks.map(w => w.label);
-    const avgWeights = sortedWeeks.map(w => w.avgMass);
-    const avgLeans = sortedWeeks.map(w => w.avgLeanMass);
-    const avgFats = sortedWeeks.map(w => w.avgFat);
-    const avgFatMasses = sortedWeeks.map(w => w.avgFatMass);
+    const medianWeights = sortedWeeks.map(w => w.medianMass);
+    const medianLeans = sortedWeeks.map(w => w.medianLeanMass);
+    const medianFats = sortedWeeks.map(w => w.medianFat);
+    const medianFatMasses = sortedWeeks.map(w => w.medianFatMass);
 
-    // 1. Weekly Average Weight
+    // 1. Weekly Median Weight
     if (weightAvgCanvas.value) {
       if (chartW_Avg) chartW_Avg.destroy();
       const ctx = weightAvgCanvas.value.getContext('2d');
@@ -889,7 +919,7 @@ const updateWeeklyCharts = () => {
         data: {
           labels,
           datasets: [{
-            data: avgWeights,
+            data: medianWeights,
             borderColor: strokeGrad,
             borderWidth: 3,
             pointBackgroundColor: '#ffffff',
@@ -917,12 +947,8 @@ const updateWeeklyCharts = () => {
               displayColors: false,
               callbacks: {
                 label: (context) => {
-                  const week = sortedWeeks[context.dataIndex];
                   const val = context.parsed.y;
-                  if (week && week.hasSickLogs) {
-                    return ` Avg: ${val.toFixed(2)} kg (Weighted - includes sick outlier)`;
-                  }
-                  return ` Avg: ${val.toFixed(2)} kg`;
+                  return ` Median: ${val.toFixed(2)} kg`;
                 }
               }
             },
@@ -949,7 +975,7 @@ const updateWeeklyCharts = () => {
       });
     }
 
-    // 2. Weekly Average Lean Mass
+    // 2. Weekly Median Lean Mass
     if (leanAvgCanvas.value) {
       if (chartL_Avg) chartL_Avg.destroy();
       const ctx = leanAvgCanvas.value.getContext('2d');
@@ -967,7 +993,7 @@ const updateWeeklyCharts = () => {
         data: {
           labels,
           datasets: [{
-            data: avgLeans,
+            data: medianLeans,
             borderColor: strokeGrad,
             borderWidth: 3,
             pointBackgroundColor: '#ffffff',
@@ -995,12 +1021,8 @@ const updateWeeklyCharts = () => {
               displayColors: false,
               callbacks: {
                 label: (context) => {
-                  const week = sortedWeeks[context.dataIndex];
                   const val = context.parsed.y;
-                  if (week && week.hasSickLogs) {
-                    return ` Avg: ${val.toFixed(2)} kg (Weighted - includes sick outlier)`;
-                  }
-                  return ` Avg: ${val.toFixed(2)} kg`;
+                  return ` Median: ${val.toFixed(2)} kg`;
                 }
               }
             },
@@ -1027,7 +1049,7 @@ const updateWeeklyCharts = () => {
       });
     }
 
-    // 3. Weekly Average Body Fat (%)
+    // 3. Weekly Median Body Fat (%)
     if (fatAvgCanvas.value) {
       if (chartF_Avg) chartF_Avg.destroy();
       const ctx = fatAvgCanvas.value.getContext('2d');
@@ -1045,7 +1067,7 @@ const updateWeeklyCharts = () => {
         data: {
           labels,
           datasets: [{
-            data: avgFats,
+            data: medianFats,
             borderColor: strokeGrad,
             borderWidth: 3,
             pointBackgroundColor: '#ffffff',
@@ -1073,12 +1095,8 @@ const updateWeeklyCharts = () => {
               displayColors: false,
               callbacks: {
                 label: (context) => {
-                  const week = sortedWeeks[context.dataIndex];
                   const val = context.parsed.y;
-                  if (week && week.hasSickLogs) {
-                    return ` Avg: ${val.toFixed(1)} % (Weighted - includes sick outlier)`;
-                  }
-                  return ` Avg: ${val.toFixed(1)} %`;
+                  return ` Median: ${val.toFixed(1)}%`;
                 }
               }
             },
@@ -1105,7 +1123,7 @@ const updateWeeklyCharts = () => {
       });
     }
 
-    // 4. Weekly Average Fat Mass (kg)
+    // 4. Weekly Median Fat Mass (kg)
     if (fatMassAvgCanvas.value) {
       if (chartFM_Avg) chartFM_Avg.destroy();
       const ctx = fatMassAvgCanvas.value.getContext('2d');
@@ -1123,7 +1141,7 @@ const updateWeeklyCharts = () => {
         data: {
           labels,
           datasets: [{
-            data: avgFatMasses,
+            data: medianFatMasses,
             borderColor: strokeGrad,
             borderWidth: 3,
             pointBackgroundColor: '#ffffff',
@@ -1151,12 +1169,8 @@ const updateWeeklyCharts = () => {
               displayColors: false,
               callbacks: {
                 label: (context) => {
-                  const week = sortedWeeks[context.dataIndex];
                   const val = context.parsed.y;
-                  if (week && week.hasSickLogs) {
-                    return ` Avg: ${val.toFixed(2)} kg (Weighted - includes sick outlier)`;
-                  }
-                  return ` Avg: ${val.toFixed(2)} kg`;
+                  return ` Median: ${val.toFixed(2)} kg`;
                 }
               }
             },
