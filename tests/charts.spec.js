@@ -70,7 +70,6 @@ test('Seed user data and take screenshot', async ({ page }) => {
   await expect(page.locator('text=69.32 kg').first()).toBeVisible(); // Lean Mass card
   await expect(page.locator('text=34.2 %').first()).toBeVisible(); // Body Fat card
   await expect(page.locator('text=36.03 kg').first()).toBeVisible(); // Fat Mass card
-
   // Click "All-Time" tab to display long-term weekly trends
   await page.getByRole('button', { name: 'All-Time' }).click();
 
