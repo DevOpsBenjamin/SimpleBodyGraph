@@ -18,6 +18,21 @@
 
       <!-- User Info & Sync Controls -->
       <div class="flex items-center gap-3">
+        <!-- Logs Database Count Badge -->
+        <div 
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-gray-900/60 border border-gray-800/80 text-gray-300 select-none"
+          title="Total recorded entries in database"
+        >
+          <Database class="w-3.5 h-3.5 text-violet-400" />
+          <span>{{ store.logs.length }} logs</span>
+          <!-- Pending Sync warning dot -->
+          <span 
+            v-if="store.stats.unsyncedCount > 0"
+            class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" 
+            title="Logs pending sync"
+          ></span>
+        </div>
+
         <!-- 1. LOCAL ONLY UNCONFIGURED STATE -->
         <div 
           v-if="!store.isCloudConfigured"
@@ -108,7 +123,7 @@
 </template>
 
 <script setup>
-import { RefreshCw, LogOut, Cloud, AlertTriangle, Settings } from 'lucide-vue-next';
+import { RefreshCw, LogOut, Cloud, AlertTriangle, Settings, Database } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 
 const store = useBodyGraphStore();
