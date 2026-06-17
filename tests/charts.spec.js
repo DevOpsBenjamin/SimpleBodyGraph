@@ -73,6 +73,9 @@ test('Seed user data and take screenshot', async ({ page }) => {
   // Click "All-Time" tab to display long-term weekly trends
   await page.getByRole('button', { name: 'All-Time' }).click();
 
+  // Click "All-Time" tab to display long-term weekly trends
+  await page.getByRole('button', { name: 'All-Time' }).click();
+
   // Let it render for 1 second
   await page.waitForTimeout(1000);
 
