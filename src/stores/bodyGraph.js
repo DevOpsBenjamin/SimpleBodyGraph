@@ -43,6 +43,34 @@ function calculateMedian(arr) {
     : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
+// Helper to get logs falling into a specific date range [refDate - days + 1, refDate]
+function getRollingLogsForDate(logs, refDateStr, days = 7) {
+  const refDate = new Date(refDateStr);
+  const startDate = new Date(refDate);
+  startDate.setDate(startDate.getDate() - (days - 1));
+  
+  const startStr = startDate.toISOString().split('T')[0];
+  const endStr = refDate.toISOString().split('T')[0];
+  
+  return logs.filter(log => log.date >= startStr && log.date <= endStr);
+}
+
+// Helper to calculate rolling median for a given reference date and field
+function getRollingMedianForDate(logs, refDateStr, field, days = 7) {
+  const windowLogs = getRollingLogsForDate(logs, refDateStr, days);
+  if (windowLogs.length === 0) return null;
+  const values = windowLogs.map(l => Number(l[field]));
+  return calculateMedian(values);
+}
+
+// Helper to get previous window end date (refDate offset by offsetDays)
+function getPreviousWindowEndDate(refDateStr, offsetDays = 7) {
+  const refDate = new Date(refDateStr);
+  const prevDate = new Date(refDate);
+  prevDate.setDate(prevDate.getDate() - offsetDays);
+  return prevDate.toISOString().split('T')[0];
+}
+
 export const useBodyGraphStore = defineStore('bodyGraph', {
   state: () => ({
     logs: [],
@@ -204,6 +232,12 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           fatChange: 0,
           fatMassChange: 0,
           leanMassChange: 0,
+          rollingMedianMass: null,
+          rollingMedianFat: null,
+          rollingMedianLeanMass: null,
+          rollingMedianMassChange: 0,
+          rollingMedianFatChange: 0,
+          rollingMedianLeanMassChange: 0,
           unsyncedCount: 0
         };
       }
@@ -212,6 +246,30 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       const prevEntry = currentLogs[1] || null;
 
       const unsyncedCount = currentLogs.filter(log => !log.synced).length;
+
+      // Calculate rolling medians
+      const latestDateStr = currentEntry.date;
+      const prevWindowEndDateStr = getPreviousWindowEndDate(latestDateStr, 7);
+
+      const rollingMedianMass = getRollingMedianForDate(currentLogs, latestDateStr, 'mass', 7);
+      const rollingMedianFat = getRollingMedianForDate(currentLogs, latestDateStr, 'body_fat', 7);
+      const rollingMedianLeanMass = getRollingMedianForDate(currentLogs, latestDateStr, 'lean_mass', 7);
+
+      const prevRollingMedianMass = getRollingMedianForDate(currentLogs, prevWindowEndDateStr, 'mass', 7);
+      const prevRollingMedianFat = getRollingMedianForDate(currentLogs, prevWindowEndDateStr, 'body_fat', 7);
+      const prevRollingMedianLeanMass = getRollingMedianForDate(currentLogs, prevWindowEndDateStr, 'lean_mass', 7);
+
+      const rollingMedianMassChange = (rollingMedianMass !== null && prevRollingMedianMass !== null)
+        ? rollingMedianMass - prevRollingMedianMass
+        : 0;
+
+      const rollingMedianFatChange = (rollingMedianFat !== null && prevRollingMedianFat !== null)
+        ? rollingMedianFat - prevRollingMedianFat
+        : 0;
+
+      const rollingMedianLeanMassChange = (rollingMedianLeanMass !== null && prevRollingMedianLeanMass !== null)
+        ? rollingMedianLeanMass - prevRollingMedianLeanMass
+        : 0;
 
       return {
         currentMass: Number(currentEntry.mass),
@@ -222,6 +280,12 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         fatChange: prevEntry ? Number(currentEntry.body_fat) - Number(prevEntry.body_fat) : 0,
         fatMassChange: prevEntry ? Number(currentEntry.fat_mass) - Number(prevEntry.fat_mass) : 0,
         leanMassChange: prevEntry ? Number(currentEntry.lean_mass) - Number(prevEntry.lean_mass) : 0,
+        rollingMedianMass,
+        rollingMedianFat,
+        rollingMedianLeanMass,
+        rollingMedianMassChange,
+        rollingMedianFatChange,
+        rollingMedianLeanMassChange,
         unsyncedCount
       };
     }
