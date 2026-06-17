@@ -28,19 +28,19 @@ test('Seed user data and take screenshot', async ({ page }) => {
         const store = transaction.objectStore(STORE_LOGS);
         store.clear();
         const testLogs = [
-          { id: '1', date: '2026-06-17', mass: 105.35, body_fat: 34.2, is_sick: false, synced: true, user_id: 'guest' },
-          { id: '2', date: '2026-06-16', mass: 105.78, body_fat: 34.3, is_sick: false, synced: true, user_id: 'guest' },
-          { id: '3', date: '2026-06-15', mass: 106.20, body_fat: 34.4, is_sick: false, synced: true, user_id: 'guest' },
-          { id: '4', date: '2026-06-14', mass: 107.40, body_fat: 34.6, is_sick: true, synced: true, user_id: 'guest' },
-          { id: '5', date: '2026-06-13', mass: 106.60, body_fat: 34.3, is_sick: false, synced: true, user_id: 'guest' },
-          { id: '6', date: '2026-06-12', mass: 105.80, body_fat: 34.1, is_sick: false, synced: true, user_id: 'guest' },
-          { id: '7', date: '2026-06-11', mass: 106.08, body_fat: 34.2, is_sick: false, synced: true, user_id: 'guest' },
-          { id: '8', date: '2026-06-10', mass: 106.35, body_fat: 34.3, is_sick: false, synced: true, user_id: 'guest' },
-          { id: '9', date: '2026-06-09', mass: 106.35, body_fat: 34.6, is_sick: false, synced: true, user_id: 'guest' },
-          { id: '10', date: '2026-06-08', mass: 106.35, body_fat: 34.8, is_sick: false, synced: true, user_id: 'guest' },
-          { id: '11', date: '2026-06-07', mass: 106.80, body_fat: 34.9, is_sick: false, synced: true, user_id: 'guest' },
-          { id: '12', date: '2026-06-06', mass: 107.25, body_fat: 35.0, is_sick: false, synced: true, user_id: 'guest' },
-          { id: '13', date: '2026-06-05', mass: 107.65, body_fat: 35.1, is_sick: false, synced: true, user_id: 'guest' }
+          { id: '1', date: '2026-06-17', mass: 105.35, body_fat: 34.2, synced: true, user_id: 'guest' },
+          { id: '2', date: '2026-06-16', mass: 105.78, body_fat: 34.3, synced: true, user_id: 'guest' },
+          { id: '3', date: '2026-06-15', mass: 106.20, body_fat: 34.4, synced: true, user_id: 'guest' },
+          { id: '4', date: '2026-06-14', mass: 107.40, body_fat: 34.6, synced: true, user_id: 'guest' },
+          { id: '5', date: '2026-06-13', mass: 106.60, body_fat: 34.3, synced: true, user_id: 'guest' },
+          { id: '6', date: '2026-06-12', mass: 105.80, body_fat: 34.1, synced: true, user_id: 'guest' },
+          { id: '7', date: '2026-06-11', mass: 106.08, body_fat: 34.2, synced: true, user_id: 'guest' },
+          { id: '8', date: '2026-06-10', mass: 106.35, body_fat: 34.3, synced: true, user_id: 'guest' },
+          { id: '9', date: '2026-06-09', mass: 106.35, body_fat: 34.6, synced: true, user_id: 'guest' },
+          { id: '10', date: '2026-06-08', mass: 106.35, body_fat: 34.8, synced: true, user_id: 'guest' },
+          { id: '11', date: '2026-06-07', mass: 106.80, body_fat: 34.9, synced: true, user_id: 'guest' },
+          { id: '12', date: '2026-06-06', mass: 107.25, body_fat: 35.0, synced: true, user_id: 'guest' },
+          { id: '13', date: '2026-06-05', mass: 107.65, body_fat: 35.1, synced: true, user_id: 'guest' }
         ];
         testLogs.forEach(log => store.put(log));
         transaction.oncomplete = () => {
@@ -70,6 +70,8 @@ test('Seed user data and take screenshot', async ({ page }) => {
   await expect(page.locator('text=69.32 kg').first()).toBeVisible(); // Lean Mass card
   await expect(page.locator('text=34.2 %').first()).toBeVisible(); // Body Fat card
   await expect(page.locator('text=36.03 kg').first()).toBeVisible(); // Fat Mass card
+  // Click "All-Time" tab to display long-term weekly trends
+  await page.getByRole('button', { name: 'All-Time' }).click();
 
   // Click "All-Time" tab to display long-term weekly trends
   await page.getByRole('button', { name: 'All-Time' }).click();

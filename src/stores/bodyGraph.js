@@ -135,7 +135,11 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         const medianFatMass = medianMass * (medianFat / 100);
         const medianLeanMass = medianMass - medianFatMass;
 
-        const hasSickLogs = weekLogs.some(l => l.is_sick);
+        // Calculate true averages for comparison on weekly charts
+        const avgMass = masses.length > 0 ? masses.reduce((sum, val) => sum + val, 0) / masses.length : 0;
+        const avgFat = fats.length > 0 ? fats.reduce((sum, val) => sum + val, 0) / fats.length : 0;
+        const avgFatMass = avgMass * (avgFat / 100);
+        const avgLeanMass = avgMass - avgFatMass;
 
         // Label format: "Jun 8 - Jun 14"
         const monDate = new Date(mon);
@@ -152,12 +156,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           medianFat,
           medianFatMass,
           medianLeanMass,
-          // Expose as avg* for compatibility
-          avgMass: medianMass,
-          avgFat: medianFat,
-          avgFatMass: medianFatMass,
-          avgLeanMass: medianLeanMass,
-          hasSickLogs
+          avgMass,
+          avgFat,
+          avgFatMass,
+          avgLeanMass
         });
       }
 
@@ -202,8 +204,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           fatChange: 0,
           fatMassChange: 0,
           leanMassChange: 0,
-          unsyncedCount: 0,
-          currentIsSick: false
+          unsyncedCount: 0
         };
       }
 
@@ -221,8 +222,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         fatChange: prevEntry ? Number(currentEntry.body_fat) - Number(prevEntry.body_fat) : 0,
         fatMassChange: prevEntry ? Number(currentEntry.fat_mass) - Number(prevEntry.fat_mass) : 0,
         leanMassChange: prevEntry ? Number(currentEntry.lean_mass) - Number(prevEntry.lean_mass) : 0,
-        unsyncedCount,
-        currentIsSick: !!currentEntry.is_sick
+        unsyncedCount
       };
     }
   },
@@ -427,13 +427,12 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     // Save or update a log entry
-    async saveLogEntry({ id, mass, bodyFat, date, isSick }) {
+    async saveLogEntry({ id, mass, bodyFat, date }) {
       const log = {
         id: id || crypto.randomUUID(),
         date,
         mass: Number(mass),
         body_fat: Number(bodyFat),
-        is_sick: !!isSick,
         synced: false
       };
 

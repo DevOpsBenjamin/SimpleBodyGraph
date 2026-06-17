@@ -141,7 +141,7 @@
         <!-- Weight Average Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span> Historical Weekly Weight Medians (kg)
+            <span class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span> Weekly Weight: Median vs Average (kg)
           </h3>
           <div class="relative h-[240px] w-full">
             <canvas ref="weightAvgCanvas"></canvas>
@@ -151,7 +151,7 @@
         <!-- Lean Mass Average Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Historical Weekly Lean Mass Medians (kg)
+            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Weekly Lean Mass: Median vs Average (kg)
           </h3>
           <div class="relative h-[240px] w-full">
             <canvas ref="leanAvgCanvas"></canvas>
@@ -161,7 +161,7 @@
         <!-- Fat Average Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Historical Weekly Fat Medians (%)
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Weekly Body Fat: Median vs Average (%)
           </h3>
           <div class="relative h-[240px] w-full">
             <canvas ref="fatAvgCanvas"></canvas>
@@ -171,7 +171,7 @@
         <!-- Fat Mass Average Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Historical Weekly Fat Mass Medians (kg)
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Weekly Fat Mass: Median vs Average (kg)
           </h3>
           <div class="relative h-[240px] w-full">
             <canvas ref="fatMassAvgCanvas"></canvas>
@@ -240,7 +240,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
-import { Scale, Plus, ChevronLeft, ChevronRight, Copy, Check, Thermometer } from 'lucide-vue-next';
+import { Scale, Plus, ChevronLeft, ChevronRight, Copy, Check } from 'lucide-vue-next';
 import { Chart, registerables } from 'chart.js';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 
@@ -284,41 +284,7 @@ const goalLinePlugin = {
   }
 };
 
-// Custom Chart.js Plugin to draw vertical dashed line segments connecting the rolling median trend line to raw outlier sick day points
-const sickLinkLinePlugin = {
-  id: 'sickLinkLine',
-  afterDatasetsDraw: (chart) => {
-    const ds0 = chart.data.datasets[0];
-    const ds1 = chart.data.datasets[1];
-    if (!ds0 || !ds1) return;
 
-    const isSickArray = chart.options.plugins?.sickLinkLine?.isSick;
-    if (!isSickArray) return;
-
-    const meta0 = chart.getDatasetMeta(0);
-    const meta1 = chart.getDatasetMeta(1);
-    const ctx = chart.ctx;
-
-    ctx.save();
-    ctx.strokeStyle = '#d97706'; // darker amber for line segment
-    ctx.lineWidth = 1.2;
-    ctx.setLineDash([3, 3]);
-
-    for (let i = 0; i < ds1.data.length; i++) {
-      if (isSickArray[i] && ds1.data[i] !== null && ds1.data[i] !== undefined) {
-        const pt0 = meta0.data[i];
-        const pt1 = meta1.data[i];
-        if (pt0 && pt1 && pt0.x !== undefined && pt0.y !== undefined && pt1.y !== undefined) {
-          ctx.beginPath();
-          ctx.moveTo(pt0.x, pt0.y);
-          ctx.lineTo(pt0.x, pt1.y);
-          ctx.stroke();
-        }
-      }
-    }
-    ctx.restore();
-  }
-};
 
 // Canvas references
 const weightDailyCanvas = ref(null);
@@ -397,18 +363,6 @@ const updateDailyCharts = () => {
     const dailyLeansRaw = Array(7).fill(null);
     const dailyFatsRaw = Array(7).fill(null);
     const dailyFatMassesRaw = Array(7).fill(null);
-    const dailyIsSick = Array(7).fill(false);
-
-    // Sick status flag arrays (kept for backwards compatibility/internal logic)
-    const dailyWeightsIsSick = dailyIsSick;
-    const dailyLeansIsSick = dailyIsSick;
-    const dailyFatsIsSick = dailyIsSick;
-    const dailyFatMassesIsSick = dailyIsSick;
-
-    const dailyWeightsRawOnly = dailyWeightsRaw;
-    const dailyLeansRawOnly = dailyLeansRaw;
-    const dailyFatsRawOnly = dailyFatsRaw;
-    const dailyFatMassesRawOnly = dailyFatMassesRaw;
 
     const localMedian = (arr) => {
       if (!arr || arr.length === 0) return null;
@@ -464,7 +418,6 @@ const updateDailyCharts = () => {
       dailyLeansRaw[dayIndex] = Number(log.lean_mass);
       dailyFatsRaw[dayIndex] = Number(log.body_fat);
       dailyFatMassesRaw[dayIndex] = Number(log.fat_mass);
-      dailyIsSick[dayIndex] = !!log.is_sick;
     }
 
     // 1. Total Weight Daily Chart
@@ -499,13 +452,13 @@ const updateDailyCharts = () => {
             },
             {
               label: 'Raw Weight',
-              data: dailyWeightsRawOnly,
+              data: dailyWeightsRaw,
               showLine: false,
-              pointStyle: dailyIsSick.map(sick => sick ? 'rectRot' : 'circle'),
-              pointRadius: dailyIsSick.map(sick => sick ? 6 : 5),
-              pointHoverRadius: dailyIsSick.map(sick => sick ? 8 : 7),
-              pointBackgroundColor: dailyIsSick.map(sick => sick ? '#f59e0b' : '#ffffff'),
-              pointBorderColor: dailyIsSick.map(sick => sick ? '#d97706' : '#8b5cf6'),
+              pointStyle: 'circle',
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#8b5cf6',
               pointBorderWidth: 2
             }
           ]
@@ -534,10 +487,6 @@ const updateDailyCharts = () => {
                   if (dsLabel === '7-Day Rolling Median') {
                     return ` 7-Day Median: ${val.toFixed(2)} kg`;
                   } else {
-                    const isSick = dailyIsSick[context.dataIndex];
-                    if (isSick) {
-                      return ` Actual Weight: ${val.toFixed(2)} kg (Sick Day)`;
-                    }
                     return ` Weight: ${val.toFixed(2)} kg`;
                   }
                 }
@@ -552,9 +501,6 @@ const updateDailyCharts = () => {
               textColor: 'rgba(167, 139, 250, 0.8)',
               label: 'Target',
               unit: ' kg'
-            },
-            sickLinkLine: {
-              isSick: dailyIsSick
             }
           },
           scales: {
@@ -568,7 +514,7 @@ const updateDailyCharts = () => {
             }
           }
         },
-        plugins: [goalLinePlugin, sickLinkLinePlugin]
+        plugins: [goalLinePlugin]
       });
     }
 
@@ -604,13 +550,13 @@ const updateDailyCharts = () => {
             },
             {
               label: 'Raw Lean',
-              data: dailyLeansRawOnly,
+              data: dailyLeansRaw,
               showLine: false,
-              pointStyle: dailyIsSick.map(sick => sick ? 'rectRot' : 'circle'),
-              pointRadius: dailyIsSick.map(sick => sick ? 6 : 5),
-              pointHoverRadius: dailyIsSick.map(sick => sick ? 8 : 7),
-              pointBackgroundColor: dailyIsSick.map(sick => sick ? '#f59e0b' : '#ffffff'),
-              pointBorderColor: dailyIsSick.map(sick => sick ? '#d97706' : '#3b82f6'),
+              pointStyle: 'circle',
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#3b82f6',
               pointBorderWidth: 2
             }
           ]
@@ -639,10 +585,6 @@ const updateDailyCharts = () => {
                   if (dsLabel === '7-Day Rolling Median') {
                     return ` 7-Day Median: ${val.toFixed(2)} kg`;
                   } else {
-                    const isSick = dailyIsSick[context.dataIndex];
-                    if (isSick) {
-                      return ` Actual Lean: ${val.toFixed(2)} kg (Sick Day)`;
-                    }
                     return ` Lean Mass: ${val.toFixed(2)} kg`;
                   }
                 }
@@ -657,9 +599,6 @@ const updateDailyCharts = () => {
               textColor: 'rgba(96, 165, 250, 0.8)',
               label: 'Target',
               unit: ' kg'
-            },
-            sickLinkLine: {
-              isSick: dailyIsSick
             }
           },
           scales: {
@@ -673,7 +612,7 @@ const updateDailyCharts = () => {
             }
           }
         },
-        plugins: [goalLinePlugin, sickLinkLinePlugin]
+        plugins: [goalLinePlugin]
       });
     }
 
@@ -709,13 +648,13 @@ const updateDailyCharts = () => {
             },
             {
               label: 'Raw Fat',
-              data: dailyFatsRawOnly,
+              data: dailyFatsRaw,
               showLine: false,
-              pointStyle: dailyIsSick.map(sick => sick ? 'rectRot' : 'circle'),
-              pointRadius: dailyIsSick.map(sick => sick ? 6 : 5),
-              pointHoverRadius: dailyIsSick.map(sick => sick ? 8 : 7),
-              pointBackgroundColor: dailyIsSick.map(sick => sick ? '#f59e0b' : '#ffffff'),
-              pointBorderColor: dailyIsSick.map(sick => sick ? '#d97706' : '#10b981'),
+              pointStyle: 'circle',
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#10b981',
               pointBorderWidth: 2
             }
           ]
@@ -744,10 +683,6 @@ const updateDailyCharts = () => {
                   if (dsLabel === '7-Day Rolling Median') {
                     return ` 7-Day Median: ${val.toFixed(1)}%`;
                   } else {
-                    const isSick = dailyIsSick[context.dataIndex];
-                    if (isSick) {
-                      return ` Actual Fat: ${val.toFixed(1)}% (Sick Day)`;
-                    }
                     return ` Body Fat: ${val.toFixed(1)}%`;
                   }
                 }
@@ -762,9 +697,6 @@ const updateDailyCharts = () => {
               textColor: 'rgba(52, 211, 153, 0.8)',
               label: 'Target',
               unit: '%'
-            },
-            sickLinkLine: {
-              isSick: dailyIsSick
             }
           },
           scales: {
@@ -778,7 +710,7 @@ const updateDailyCharts = () => {
             }
           }
         },
-        plugins: [goalLinePlugin, sickLinkLinePlugin]
+        plugins: [goalLinePlugin]
       });
     }
 
@@ -814,13 +746,13 @@ const updateDailyCharts = () => {
             },
             {
               label: 'Raw Fat Mass',
-              data: dailyFatMassesRawOnly,
+              data: dailyFatMassesRaw,
               showLine: false,
-              pointStyle: dailyIsSick.map(sick => sick ? 'rectRot' : 'circle'),
-              pointRadius: dailyIsSick.map(sick => sick ? 6 : 5),
-              pointHoverRadius: dailyIsSick.map(sick => sick ? 8 : 7),
-              pointBackgroundColor: dailyIsSick.map(sick => sick ? '#f59e0b' : '#ffffff'),
-              pointBorderColor: dailyIsSick.map(sick => sick ? '#d97706' : '#f59e0b'),
+              pointStyle: 'circle',
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#f59e0b',
               pointBorderWidth: 2
             }
           ]
@@ -849,10 +781,6 @@ const updateDailyCharts = () => {
                   if (dsLabel === '7-Day Rolling Median') {
                     return ` 7-Day Median: ${val.toFixed(2)} kg`;
                   } else {
-                    const isSick = dailyIsSick[context.dataIndex];
-                    if (isSick) {
-                      return ` Actual Fat Mass: ${val.toFixed(2)} kg (Sick Day)`;
-                    }
                     return ` Fat Mass: ${val.toFixed(2)} kg`;
                   }
                 }
@@ -867,9 +795,6 @@ const updateDailyCharts = () => {
               textColor: 'rgba(245, 158, 11, 0.8)',
               label: 'Target',
               unit: ' kg'
-            },
-            sickLinkLine: {
-              isSick: dailyIsSick
             }
           },
           scales: {
@@ -883,7 +808,7 @@ const updateDailyCharts = () => {
             }
           }
         },
-        plugins: [goalLinePlugin, sickLinkLinePlugin]
+        plugins: [goalLinePlugin]
       });
     }
   });
@@ -900,6 +825,11 @@ const updateWeeklyCharts = () => {
     const medianLeans = sortedWeeks.map(w => w.medianLeanMass);
     const medianFats = sortedWeeks.map(w => w.medianFat);
     const medianFatMasses = sortedWeeks.map(w => w.medianFatMass);
+
+    const averageWeights = sortedWeeks.map(w => w.avgMass);
+    const averageLeans = sortedWeeks.map(w => w.avgLeanMass);
+    const averageFats = sortedWeeks.map(w => w.avgFat);
+    const averageFatMasses = sortedWeeks.map(w => w.avgFatMass);
 
     // 1. Weekly Median Weight
     if (weightAvgCanvas.value) {
@@ -918,25 +848,51 @@ const updateWeeklyCharts = () => {
         type: 'line',
         data: {
           labels,
-          datasets: [{
-            data: medianWeights,
-            borderColor: strokeGrad,
-            borderWidth: 3,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#8b5cf6',
-            pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            fill: true,
-            backgroundColor: fillGrad,
-            tension: 0.3
-          }]
+          datasets: [
+            {
+              label: 'Weekly Median',
+              data: medianWeights,
+              borderColor: strokeGrad,
+              borderWidth: 3,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#8b5cf6',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.3
+            },
+            {
+              label: 'Weekly Average',
+              data: averageWeights,
+              borderColor: 'rgba(167, 139, 250, 0.7)',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: 'rgba(167, 139, 250, 0.7)',
+              pointBorderWidth: 1.5,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: false,
+              tension: 0.3
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              labels: {
+                color: '#9ca3af',
+                font: {
+                  family: 'Outfit',
+                  size: 11
+                }
+              }
+            },
             tooltip: {
               backgroundColor: 'rgba(17, 24, 39, 0.95)',
               titleColor: '#9ca3af',
@@ -944,11 +900,15 @@ const updateWeeklyCharts = () => {
               borderColor: 'rgba(139, 92, 246, 0.3)',
               borderWidth: 1,
               padding: 10,
-              displayColors: false,
+              displayColors: true,
+              mode: 'index',
+              intersect: false,
               callbacks: {
                 label: (context) => {
+                  const dsLabel = context.dataset.label;
                   const val = context.parsed.y;
-                  return ` Median: ${val.toFixed(2)} kg`;
+                  if (val === null || val === undefined) return '';
+                  return ` ${dsLabel}: ${val.toFixed(2)} kg`;
                 }
               }
             },
@@ -992,25 +952,51 @@ const updateWeeklyCharts = () => {
         type: 'line',
         data: {
           labels,
-          datasets: [{
-            data: medianLeans,
-            borderColor: strokeGrad,
-            borderWidth: 3,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#3b82f6',
-            pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            fill: true,
-            backgroundColor: fillGrad,
-            tension: 0.3
-          }]
+          datasets: [
+            {
+              label: 'Weekly Median',
+              data: medianLeans,
+              borderColor: strokeGrad,
+              borderWidth: 3,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#3b82f6',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.3
+            },
+            {
+              label: 'Weekly Average',
+              data: averageLeans,
+              borderColor: 'rgba(147, 197, 253, 0.7)',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: 'rgba(147, 197, 253, 0.7)',
+              pointBorderWidth: 1.5,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: false,
+              tension: 0.3
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              labels: {
+                color: '#9ca3af',
+                font: {
+                  family: 'Outfit',
+                  size: 11
+                }
+              }
+            },
             tooltip: {
               backgroundColor: 'rgba(17, 24, 39, 0.95)',
               titleColor: '#9ca3af',
@@ -1018,11 +1004,15 @@ const updateWeeklyCharts = () => {
               borderColor: 'rgba(59, 130, 246, 0.3)',
               borderWidth: 1,
               padding: 10,
-              displayColors: false,
+              displayColors: true,
+              mode: 'index',
+              intersect: false,
               callbacks: {
                 label: (context) => {
+                  const dsLabel = context.dataset.label;
                   const val = context.parsed.y;
-                  return ` Median: ${val.toFixed(2)} kg`;
+                  if (val === null || val === undefined) return '';
+                  return ` ${dsLabel}: ${val.toFixed(2)} kg`;
                 }
               }
             },
@@ -1066,25 +1056,51 @@ const updateWeeklyCharts = () => {
         type: 'line',
         data: {
           labels,
-          datasets: [{
-            data: medianFats,
-            borderColor: strokeGrad,
-            borderWidth: 3,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#10b981',
-            pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            fill: true,
-            backgroundColor: fillGrad,
-            tension: 0.3
-          }]
+          datasets: [
+            {
+              label: 'Weekly Median',
+              data: medianFats,
+              borderColor: strokeGrad,
+              borderWidth: 3,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#10b981',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.3
+            },
+            {
+              label: 'Weekly Average',
+              data: averageFats,
+              borderColor: 'rgba(110, 231, 183, 0.7)',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: 'rgba(110, 231, 183, 0.7)',
+              pointBorderWidth: 1.5,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: false,
+              tension: 0.3
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              labels: {
+                color: '#9ca3af',
+                font: {
+                  family: 'Outfit',
+                  size: 11
+                }
+              }
+            },
             tooltip: {
               backgroundColor: 'rgba(17, 24, 39, 0.95)',
               titleColor: '#9ca3af',
@@ -1092,11 +1108,15 @@ const updateWeeklyCharts = () => {
               borderColor: 'rgba(16, 185, 129, 0.3)',
               borderWidth: 1,
               padding: 10,
-              displayColors: false,
+              displayColors: true,
+              mode: 'index',
+              intersect: false,
               callbacks: {
                 label: (context) => {
+                  const dsLabel = context.dataset.label;
                   const val = context.parsed.y;
-                  return ` Median: ${val.toFixed(1)}%`;
+                  if (val === null || val === undefined) return '';
+                  return ` ${dsLabel}: ${val.toFixed(1)}%`;
                 }
               }
             },
@@ -1140,25 +1160,51 @@ const updateWeeklyCharts = () => {
         type: 'line',
         data: {
           labels,
-          datasets: [{
-            data: medianFatMasses,
-            borderColor: strokeGrad,
-            borderWidth: 3,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#f59e0b',
-            pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            fill: true,
-            backgroundColor: fillGrad,
-            tension: 0.3
-          }]
+          datasets: [
+            {
+              label: 'Weekly Median',
+              data: medianFatMasses,
+              borderColor: strokeGrad,
+              borderWidth: 3,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#f59e0b',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.3
+            },
+            {
+              label: 'Weekly Average',
+              data: averageFatMasses,
+              borderColor: 'rgba(252, 211, 77, 0.7)',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: 'rgba(252, 211, 77, 0.7)',
+              pointBorderWidth: 1.5,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: false,
+              tension: 0.3
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              labels: {
+                color: '#9ca3af',
+                font: {
+                  family: 'Outfit',
+                  size: 11
+                }
+              }
+            },
             tooltip: {
               backgroundColor: 'rgba(17, 24, 39, 0.95)',
               titleColor: '#9ca3af',
@@ -1166,11 +1212,15 @@ const updateWeeklyCharts = () => {
               borderColor: 'rgba(245, 158, 11, 0.3)',
               borderWidth: 1,
               padding: 10,
-              displayColors: false,
+              displayColors: true,
+              mode: 'index',
+              intersect: false,
               callbacks: {
                 label: (context) => {
+                  const dsLabel = context.dataset.label;
                   const val = context.parsed.y;
-                  return ` Median: ${val.toFixed(2)} kg`;
+                  if (val === null || val === undefined) return '';
+                  return ` ${dsLabel}: ${val.toFixed(2)} kg`;
                 }
               }
             },
