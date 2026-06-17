@@ -53,10 +53,7 @@
               <span>{{ Number(log.fat_mass).toFixed(2) }} <span class="text-[10px] font-normal text-gray-500">kg</span></span>
             </div>
           </div>
-          <!-- Sick day indicator -->
-          <div v-if="log.is_sick" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-[9px] text-amber-400 font-semibold uppercase tracking-wider h-fit">
-            <Thermometer class="w-2.5 h-2.5" /> Sick Outlier
-          </div>
+
         </div>
       </div>
 
@@ -94,7 +91,7 @@
 </template>
 
 <script setup>
-import { Calendar, Trash2, Plus, Cloud as CloudCheck, CloudLightning, Edit3, Thermometer } from 'lucide-vue-next';
+import { Calendar, Trash2, Plus, Cloud as CloudCheck, CloudLightning, Edit3 } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 
 const store = useBodyGraphStore();
