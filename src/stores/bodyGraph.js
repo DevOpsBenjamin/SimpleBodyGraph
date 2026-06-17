@@ -135,6 +135,12 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         const medianFatMass = medianMass * (medianFat / 100);
         const medianLeanMass = medianMass - medianFatMass;
 
+        // Calculate true averages for comparison on weekly charts
+        const avgMass = masses.length > 0 ? masses.reduce((sum, val) => sum + val, 0) / masses.length : 0;
+        const avgFat = fats.length > 0 ? fats.reduce((sum, val) => sum + val, 0) / fats.length : 0;
+        const avgFatMass = avgMass * (avgFat / 100);
+        const avgLeanMass = avgMass - avgFatMass;
+
         const hasSickLogs = weekLogs.some(l => l.is_sick);
 
         // Label format: "Jun 8 - Jun 14"
@@ -152,11 +158,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           medianFat,
           medianFatMass,
           medianLeanMass,
-          // Expose as avg* for compatibility
-          avgMass: medianMass,
-          avgFat: medianFat,
-          avgFatMass: medianFatMass,
-          avgLeanMass: medianLeanMass,
+          avgMass,
+          avgFat,
+          avgFatMass,
+          avgLeanMass,
           hasSickLogs
         });
       }

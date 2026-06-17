@@ -141,7 +141,7 @@
         <!-- Weight Average Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span> Historical Weekly Weight Medians (kg)
+            <span class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span> Weekly Weight: Median vs Average (kg)
           </h3>
           <div class="relative h-[240px] w-full">
             <canvas ref="weightAvgCanvas"></canvas>
@@ -151,7 +151,7 @@
         <!-- Lean Mass Average Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Historical Weekly Lean Mass Medians (kg)
+            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Weekly Lean Mass: Median vs Average (kg)
           </h3>
           <div class="relative h-[240px] w-full">
             <canvas ref="leanAvgCanvas"></canvas>
@@ -161,7 +161,7 @@
         <!-- Fat Average Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Historical Weekly Fat Medians (%)
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Weekly Body Fat: Median vs Average (%)
           </h3>
           <div class="relative h-[240px] w-full">
             <canvas ref="fatAvgCanvas"></canvas>
@@ -171,7 +171,7 @@
         <!-- Fat Mass Average Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
           <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Historical Weekly Fat Mass Medians (kg)
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Weekly Fat Mass: Median vs Average (kg)
           </h3>
           <div class="relative h-[240px] w-full">
             <canvas ref="fatMassAvgCanvas"></canvas>
@@ -901,6 +901,11 @@ const updateWeeklyCharts = () => {
     const medianFats = sortedWeeks.map(w => w.medianFat);
     const medianFatMasses = sortedWeeks.map(w => w.medianFatMass);
 
+    const averageWeights = sortedWeeks.map(w => w.avgMass);
+    const averageLeans = sortedWeeks.map(w => w.avgLeanMass);
+    const averageFats = sortedWeeks.map(w => w.avgFat);
+    const averageFatMasses = sortedWeeks.map(w => w.avgFatMass);
+
     // 1. Weekly Median Weight
     if (weightAvgCanvas.value) {
       if (chartW_Avg) chartW_Avg.destroy();
@@ -918,25 +923,51 @@ const updateWeeklyCharts = () => {
         type: 'line',
         data: {
           labels,
-          datasets: [{
-            data: medianWeights,
-            borderColor: strokeGrad,
-            borderWidth: 3,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#8b5cf6',
-            pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            fill: true,
-            backgroundColor: fillGrad,
-            tension: 0.3
-          }]
+          datasets: [
+            {
+              label: 'Weekly Median',
+              data: medianWeights,
+              borderColor: strokeGrad,
+              borderWidth: 3,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#8b5cf6',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.3
+            },
+            {
+              label: 'Weekly Average',
+              data: averageWeights,
+              borderColor: 'rgba(167, 139, 250, 0.7)',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: 'rgba(167, 139, 250, 0.7)',
+              pointBorderWidth: 1.5,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: false,
+              tension: 0.3
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              labels: {
+                color: '#9ca3af',
+                font: {
+                  family: 'Outfit',
+                  size: 11
+                }
+              }
+            },
             tooltip: {
               backgroundColor: 'rgba(17, 24, 39, 0.95)',
               titleColor: '#9ca3af',
@@ -944,11 +975,15 @@ const updateWeeklyCharts = () => {
               borderColor: 'rgba(139, 92, 246, 0.3)',
               borderWidth: 1,
               padding: 10,
-              displayColors: false,
+              displayColors: true,
+              mode: 'index',
+              intersect: false,
               callbacks: {
                 label: (context) => {
+                  const dsLabel = context.dataset.label;
                   const val = context.parsed.y;
-                  return ` Median: ${val.toFixed(2)} kg`;
+                  if (val === null || val === undefined) return '';
+                  return ` ${dsLabel}: ${val.toFixed(2)} kg`;
                 }
               }
             },
@@ -992,25 +1027,51 @@ const updateWeeklyCharts = () => {
         type: 'line',
         data: {
           labels,
-          datasets: [{
-            data: medianLeans,
-            borderColor: strokeGrad,
-            borderWidth: 3,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#3b82f6',
-            pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            fill: true,
-            backgroundColor: fillGrad,
-            tension: 0.3
-          }]
+          datasets: [
+            {
+              label: 'Weekly Median',
+              data: medianLeans,
+              borderColor: strokeGrad,
+              borderWidth: 3,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#3b82f6',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.3
+            },
+            {
+              label: 'Weekly Average',
+              data: averageLeans,
+              borderColor: 'rgba(147, 197, 253, 0.7)',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: 'rgba(147, 197, 253, 0.7)',
+              pointBorderWidth: 1.5,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: false,
+              tension: 0.3
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              labels: {
+                color: '#9ca3af',
+                font: {
+                  family: 'Outfit',
+                  size: 11
+                }
+              }
+            },
             tooltip: {
               backgroundColor: 'rgba(17, 24, 39, 0.95)',
               titleColor: '#9ca3af',
@@ -1018,11 +1079,15 @@ const updateWeeklyCharts = () => {
               borderColor: 'rgba(59, 130, 246, 0.3)',
               borderWidth: 1,
               padding: 10,
-              displayColors: false,
+              displayColors: true,
+              mode: 'index',
+              intersect: false,
               callbacks: {
                 label: (context) => {
+                  const dsLabel = context.dataset.label;
                   const val = context.parsed.y;
-                  return ` Median: ${val.toFixed(2)} kg`;
+                  if (val === null || val === undefined) return '';
+                  return ` ${dsLabel}: ${val.toFixed(2)} kg`;
                 }
               }
             },
@@ -1066,25 +1131,51 @@ const updateWeeklyCharts = () => {
         type: 'line',
         data: {
           labels,
-          datasets: [{
-            data: medianFats,
-            borderColor: strokeGrad,
-            borderWidth: 3,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#10b981',
-            pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            fill: true,
-            backgroundColor: fillGrad,
-            tension: 0.3
-          }]
+          datasets: [
+            {
+              label: 'Weekly Median',
+              data: medianFats,
+              borderColor: strokeGrad,
+              borderWidth: 3,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#10b981',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.3
+            },
+            {
+              label: 'Weekly Average',
+              data: averageFats,
+              borderColor: 'rgba(110, 231, 183, 0.7)',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: 'rgba(110, 231, 183, 0.7)',
+              pointBorderWidth: 1.5,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: false,
+              tension: 0.3
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              labels: {
+                color: '#9ca3af',
+                font: {
+                  family: 'Outfit',
+                  size: 11
+                }
+              }
+            },
             tooltip: {
               backgroundColor: 'rgba(17, 24, 39, 0.95)',
               titleColor: '#9ca3af',
@@ -1092,11 +1183,15 @@ const updateWeeklyCharts = () => {
               borderColor: 'rgba(16, 185, 129, 0.3)',
               borderWidth: 1,
               padding: 10,
-              displayColors: false,
+              displayColors: true,
+              mode: 'index',
+              intersect: false,
               callbacks: {
                 label: (context) => {
+                  const dsLabel = context.dataset.label;
                   const val = context.parsed.y;
-                  return ` Median: ${val.toFixed(1)}%`;
+                  if (val === null || val === undefined) return '';
+                  return ` ${dsLabel}: ${val.toFixed(1)}%`;
                 }
               }
             },
@@ -1140,25 +1235,51 @@ const updateWeeklyCharts = () => {
         type: 'line',
         data: {
           labels,
-          datasets: [{
-            data: medianFatMasses,
-            borderColor: strokeGrad,
-            borderWidth: 3,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#f59e0b',
-            pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            fill: true,
-            backgroundColor: fillGrad,
-            tension: 0.3
-          }]
+          datasets: [
+            {
+              label: 'Weekly Median',
+              data: medianFatMasses,
+              borderColor: strokeGrad,
+              borderWidth: 3,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#f59e0b',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.3
+            },
+            {
+              label: 'Weekly Average',
+              data: averageFatMasses,
+              borderColor: 'rgba(252, 211, 77, 0.7)',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: 'rgba(252, 211, 77, 0.7)',
+              pointBorderWidth: 1.5,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: false,
+              tension: 0.3
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              labels: {
+                color: '#9ca3af',
+                font: {
+                  family: 'Outfit',
+                  size: 11
+                }
+              }
+            },
             tooltip: {
               backgroundColor: 'rgba(17, 24, 39, 0.95)',
               titleColor: '#9ca3af',
@@ -1166,11 +1287,15 @@ const updateWeeklyCharts = () => {
               borderColor: 'rgba(245, 158, 11, 0.3)',
               borderWidth: 1,
               padding: 10,
-              displayColors: false,
+              displayColors: true,
+              mode: 'index',
+              intersect: false,
               callbacks: {
                 label: (context) => {
+                  const dsLabel = context.dataset.label;
                   const val = context.parsed.y;
-                  return ` Median: ${val.toFixed(2)} kg`;
+                  if (val === null || val === undefined) return '';
+                  return ` ${dsLabel}: ${val.toFixed(2)} kg`;
                 }
               }
             },
