@@ -33,28 +33,24 @@
             <div class="text-xs text-gray-400">Mass</div>
             <div class="text-sm font-bold text-white flex items-baseline gap-1">
               <span>{{ Number(log.mass).toFixed(2) }} <span class="text-[10px] font-normal text-gray-400">kg</span></span>
-              <span v-if="log.is_sick" class="text-[10px] font-medium text-gray-500 font-sans" :title="`Trend estimate is ${Number(log.estimated_mass).toFixed(2)} kg`">(est. {{ Number(log.estimated_mass).toFixed(2) }})</span>
             </div>
           </div>
           <div>
             <div class="text-xs text-gray-400">Lean Mass</div>
             <div class="text-sm font-bold text-blue-400 flex items-baseline gap-1">
               <span>{{ Number(log.lean_mass).toFixed(2) }} <span class="text-[10px] font-normal text-gray-500">kg</span></span>
-              <span v-if="log.is_sick" class="text-[10px] font-medium text-gray-500 font-sans" :title="`Trend estimate is ${Number(log.estimated_lean_mass).toFixed(2)} kg`">(est. {{ Number(log.estimated_lean_mass).toFixed(2) }})</span>
             </div>
           </div>
           <div>
             <div class="text-xs text-gray-400">Body Fat</div>
             <div class="text-sm font-bold text-white flex items-baseline gap-1">
               <span>{{ Number(log.body_fat).toFixed(1) }} <span class="text-[10px] font-normal text-gray-400">%</span></span>
-              <span v-if="log.is_sick" class="text-[10px] font-medium text-gray-500 font-sans" :title="`Trend estimate is ${Number(log.estimated_body_fat).toFixed(1)}%`">(est. {{ Number(log.estimated_body_fat).toFixed(1) }}%)</span>
             </div>
           </div>
           <div>
             <div class="text-xs text-gray-400">Fat Mass</div>
             <div class="text-sm font-bold text-amber-500 flex items-baseline gap-1">
               <span>{{ Number(log.fat_mass).toFixed(2) }} <span class="text-[10px] font-normal text-gray-500">kg</span></span>
-              <span v-if="log.is_sick" class="text-[10px] font-medium text-gray-500 font-sans" :title="`Trend estimate is ${Number(log.estimated_fat_mass).toFixed(2)} kg`">(est. {{ Number(log.estimated_fat_mass).toFixed(2) }})</span>
             </div>
           </div>
           <!-- Sick day indicator -->
