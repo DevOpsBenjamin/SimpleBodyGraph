@@ -38,17 +38,6 @@
         <section class="mb-6">
           <div class="flex p-1 rounded-xl bg-gray-900/80 border border-gray-800/60 max-w-md">
             <button 
-              @click="store.activeTab = 'daily'"
-              :class="[
-                'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
-                store.activeTab === 'daily' 
-                  ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md' 
-                  : 'text-gray-400 hover:text-gray-200'
-              ]"
-            >
-              Week Focus
-            </button>
-            <button 
               @click="store.activeTab = 'weekly'"
               :class="[
                 'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
@@ -58,6 +47,17 @@
               ]"
             >
               All-Time
+            </button>
+            <button 
+              @click="store.activeTab = 'daily'"
+              :class="[
+                'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
+                store.activeTab === 'daily' 
+                  ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md' 
+                  : 'text-gray-400 hover:text-gray-200'
+              ]"
+            >
+              Week Focus
             </button>
             <button 
               @click="store.activeTab = 'history'"
