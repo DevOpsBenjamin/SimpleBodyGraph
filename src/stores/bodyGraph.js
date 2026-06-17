@@ -50,7 +50,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     session: null,
     isOnline: navigator.onLine,
     isSyncing: false,
-    activeTab: 'daily',
+    activeTab: 'weekly',
     showAddModal: false,
     showAuthModal: false,
     showSettingsModal: false,
@@ -389,7 +389,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       if (!supabase) {
         this.user = null;
         this.session = null;
-        this.activeTab = 'daily';
+        this.activeTab = 'weekly';
         this.selectedWeekIndex = 0;
         this.editingLog = null;
         await this.loadLogs();
@@ -401,7 +401,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         
         this.user = null;
         this.session = null;
-        this.activeTab = 'daily';
+        this.activeTab = 'weekly';
         this.selectedWeekIndex = 0;
         this.editingLog = null;
         

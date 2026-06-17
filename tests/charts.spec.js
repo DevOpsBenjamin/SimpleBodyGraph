@@ -56,22 +56,23 @@ test('Seed user data and take screenshot', async ({ page }) => {
   // Click "Continue as Guest" again since memory state is reset
   await page.getByRole('button', { name: 'Continue as Guest' }).click();
 
+  // Click "Week Focus" tab to display active week helper cards
+  await page.getByRole('button', { name: 'Week Focus' }).click();
+
   // Wait for the active week logs helper or charts to load
-  await expect(page.locator('.glass-card >> text=Hevy Helper')).toBeVisible();
+  await expect(page.locator('.glass-card >> text=Hevy Helper').first()).toBeVisible();
 
   // Assert Hevy Helper shows correct medians (from the active week of Jun 15 - Jun 21)
-  await expect(page.locator('text=W: 105.78 kg')).toBeVisible();
-  await expect(page.locator('text=Lean: 69.50 kg')).toBeVisible();
-  await expect(page.locator('text=Fat: 34.3%')).toBeVisible();
-  await expect(page.locator('text=Fat kg: 36.28 kg')).toBeVisible();
+  await expect(page.locator('text=W: 105.78 kg').first()).toBeVisible();
+  await expect(page.locator('text=Lean: 69.50 kg').first()).toBeVisible();
+  await expect(page.locator('text=Fat: 34.3%').first()).toBeVisible();
+  await expect(page.locator('text=Fat kg: 36.28 kg').first()).toBeVisible();
 
   // Assert raw measurements of latest day (Jun 17) are displayed on the top cards
   await expect(page.locator('text=105.35 kg').first()).toBeVisible(); // Total Mass card
   await expect(page.locator('text=69.32 kg').first()).toBeVisible(); // Lean Mass card
   await expect(page.locator('text=34.2 %').first()).toBeVisible(); // Body Fat card
   await expect(page.locator('text=36.03 kg').first()).toBeVisible(); // Fat Mass card
-  // Click "All-Time" tab to display long-term weekly trends
-  await page.getByRole('button', { name: 'All-Time' }).click();
 
   // Click "All-Time" tab to display long-term weekly trends
   await page.getByRole('button', { name: 'All-Time' }).click();
