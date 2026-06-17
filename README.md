@@ -55,26 +55,56 @@ npm run build
 
 ## 📊 Supabase Database Schema
 
-To enable cloud synchronization, run the following SQL command in your Supabase SQL Editor to create the `logs` table:
+Database migrations are managed via the **Supabase CLI** under the [supabase/migrations](file:///Users/devops.benjamin/Work/BodyGraph/SimpleBodyGraph/supabase/migrations) folder.
+
+### Option A: Apply via Supabase CLI (Recommended)
+If you have Supabase CLI set up, link your project and push migrations:
+```bash
+supabase login
+supabase link --project-ref your-project-ref
+supabase db push
+```
+
+### Option B: Manual Execution via Supabase SQL Editor
+If configuring manually via the Supabase Dashboard, copy and execute the following SQL command to create the `logs` table, enable Row-Level Security (RLS), and configure user isolation policies:
 
 ```sql
+-- Create logs table with user isolation
 CREATE TABLE public.logs (
     id UUID PRIMARY KEY,
     date DATE NOT NULL,
     mass NUMERIC(5, 2) NOT NULL,
     body_fat NUMERIC(4, 2) NOT NULL,
+    user_id UUID REFERENCES auth.users(id) DEFAULT auth.uid() NOT NULL,
     created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE public.logs ENABLE ROW LEVEL SECURITY;
 
--- Create a Policy allowing public access (or update according to auth settings)
-CREATE POLICY "Allow public read, write, and delete access" 
-ON public.logs 
-FOR ALL 
-USING (true) 
-WITH CHECK (true);
+-- 1. Read Policy: Users can only read their own logs
+CREATE POLICY "Allow users to read their own logs" 
+ON public.logs FOR SELECT 
+USING (auth.uid() = user_id);
+
+-- 2. Insert Policy: Users can only insert logs under their own user_id
+CREATE POLICY "Allow users to insert their own logs" 
+ON public.logs FOR INSERT 
+WITH CHECK (auth.uid() = user_id);
+
+-- 3. Update Policy: Users can only update their own logs
+CREATE POLICY "Allow users to update their own logs" 
+ON public.logs FOR UPDATE 
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+
+-- 4. Delete Policy: Users can only delete their own logs
+CREATE POLICY "Allow users to delete their own logs" 
+ON public.logs FOR DELETE 
+USING (auth.uid() = user_id);
+
+-- Grant privileges to authenticated users
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.logs TO authenticated;
 ```
 
 ---
