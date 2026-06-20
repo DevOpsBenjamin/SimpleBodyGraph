@@ -76,6 +76,9 @@ test('Seed user data and take screenshot', async ({ page }) => {
   // Click "All-Time" tab to display long-term weekly trends
   await page.getByRole('button', { name: 'All-Time' }).click();
 
+  // Assert the Hevy Sync Helper list is visible at the bottom
+  await expect(page.locator('text=Hevy Sync Helper')).toBeVisible();
+
   // Let it render for 1 second
   await page.waitForTimeout(1000);
 
