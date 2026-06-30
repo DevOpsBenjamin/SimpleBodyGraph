@@ -71,7 +71,7 @@ test('Seed user data and take screenshot', async ({ page }) => {
   // Assert 7d rolling medians are displayed on the top cards (calculated over the last 7 days ending Jun 17)
   await expect(page.locator('text=106.08 kg').first()).toBeVisible(); // Total Mass card
   await expect(page.locator('text=69.72 kg').first()).toBeVisible(); // Lean Mass card
-  await expect(page.locator('text=34.3 %').first()).toBeVisible(); // Body Fat card
+  await expect(page.locator('text=36.39 kg').first()).toBeVisible(); // Fat Mass card
 
   // Click "All-Time" tab to display long-term weekly trends
   await page.getByRole('button', { name: 'All-Time' }).click();

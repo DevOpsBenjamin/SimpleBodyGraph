@@ -261,7 +261,7 @@ export async function syncLogs(userId = 'guest') {
       // Check if any local synced log was deleted on remote, and remove it locally
       const remoteIds = new Set(remoteLogs.map(l => l.id));
       for (const lLog of currentLocalLogs) {
-        if (lLog.synced && !remoteIds.has(lLog.id)) {
+        if (lLog.synced && !remoteIds.has(lLog.id) && !unsyncedMap.has(lLog.id)) {
           store.delete(lLog.id);
         }
       }
