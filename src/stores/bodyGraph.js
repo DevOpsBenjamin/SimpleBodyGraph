@@ -235,9 +235,11 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           rollingMedianMass: null,
           rollingMedianFat: null,
           rollingMedianLeanMass: null,
+          rollingMedianFatMass: null,
           rollingMedianMassChange: 0,
           rollingMedianFatChange: 0,
           rollingMedianLeanMassChange: 0,
+          rollingMedianFatMassChange: 0,
           unsyncedCount: 0
         };
       }
@@ -254,10 +256,16 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       const rollingMedianMass = getRollingMedianForDate(currentLogs, latestDateStr, 'mass', 7);
       const rollingMedianFat = getRollingMedianForDate(currentLogs, latestDateStr, 'body_fat', 7);
       const rollingMedianLeanMass = getRollingMedianForDate(currentLogs, latestDateStr, 'lean_mass', 7);
+      const rollingMedianFatMass = (rollingMedianMass !== null && rollingMedianFat !== null)
+        ? rollingMedianMass * (rollingMedianFat / 100)
+        : null;
 
       const prevRollingMedianMass = getRollingMedianForDate(currentLogs, prevWindowEndDateStr, 'mass', 7);
       const prevRollingMedianFat = getRollingMedianForDate(currentLogs, prevWindowEndDateStr, 'body_fat', 7);
       const prevRollingMedianLeanMass = getRollingMedianForDate(currentLogs, prevWindowEndDateStr, 'lean_mass', 7);
+      const prevRollingMedianFatMass = (prevRollingMedianMass !== null && prevRollingMedianFat !== null)
+        ? prevRollingMedianMass * (prevRollingMedianFat / 100)
+        : null;
 
       const rollingMedianMassChange = (rollingMedianMass !== null && prevRollingMedianMass !== null)
         ? rollingMedianMass - prevRollingMedianMass
@@ -269,6 +277,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
       const rollingMedianLeanMassChange = (rollingMedianLeanMass !== null && prevRollingMedianLeanMass !== null)
         ? rollingMedianLeanMass - prevRollingMedianLeanMass
+        : 0;
+
+      const rollingMedianFatMassChange = (rollingMedianFatMass !== null && prevRollingMedianFatMass !== null)
+        ? rollingMedianFatMass - prevRollingMedianFatMass
         : 0;
 
       return {
@@ -283,9 +295,11 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         rollingMedianMass,
         rollingMedianFat,
         rollingMedianLeanMass,
+        rollingMedianFatMass,
         rollingMedianMassChange,
         rollingMedianFatChange,
         rollingMedianLeanMassChange,
+        rollingMedianFatMassChange,
         unsyncedCount
       };
     }
