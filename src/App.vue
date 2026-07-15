@@ -70,6 +70,17 @@
             >
               Logs History
             </button>
+            <button
+              @click="store.activeTab = 'measurements'"
+              :class="[
+                'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
+                store.activeTab === 'measurements'
+                  ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md'
+                  : 'text-gray-400 hover:text-gray-200'
+              ]"
+            >
+              Measurements
+            </button>
           </div>
         </section>
 
@@ -80,12 +91,24 @@
 
           <!-- History entries list -->
           <HistoryList v-show="store.activeTab === 'history'" />
+
+          <!-- Measurements view -->
+          <MeasurementsView v-show="store.activeTab === 'measurements'" />
         </section>
       </main>
 
-      <!-- FAB Button -->
-      <div class="fixed bottom-6 right-6 z-20">
+      <!-- FAB Buttons -->
+      <div class="fixed bottom-6 right-6 z-20 flex flex-col gap-3">
+        <button
+          v-if="store.activeTab === 'measurements'"
+          @click="store.showAddMeasurementModal = true"
+          class="w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30 hover:scale-105 transition-all duration-300 select-none cursor-pointer"
+          title="Add Measurement"
+        >
+          <Plus class="w-8 h-8" />
+        </button>
         <button 
+          v-else
           @click="store.showAddModal = true"
           class="w-14 h-14 rounded-full bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white flex items-center justify-center shadow-lg shadow-violet-600/30 hover:scale-105 transition-all duration-300 select-none cursor-pointer"
           title="Add Log Entry"
@@ -94,8 +117,9 @@
         </button>
       </div>
 
-      <!-- Modal Form overlay -->
+      <!-- Modal Form overlays -->
       <LogForm />
+      <MeasurementForm />
 
       <!-- Auth modal overlay -->
       <AuthModal />
@@ -118,6 +142,8 @@ import StatsOverview from './components/StatsOverview.vue';
 import ProgressCharts from './components/ProgressCharts.vue';
 import HistoryList from './components/HistoryList.vue';
 import LogForm from './components/LogForm.vue';
+import MeasurementForm from './components/MeasurementForm.vue';
+import MeasurementsView from './components/MeasurementsView.vue';
 import AuthModal from './components/AuthModal.vue';
 import SettingsModal from './components/SettingsModal.vue';
 
