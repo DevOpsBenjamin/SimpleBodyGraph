@@ -5,7 +5,10 @@ import {
   saveLog, 
   deleteLog, 
   syncLogs, 
-  migrateGuestLogsInDB 
+  migrateGuestLogsInDB,
+  getAllMeasurements,
+  saveMeasurement,
+  deleteMeasurement
 } from '../db';
 
 // Helper to find the Monday (YYYY-MM-DD) of a given date
@@ -74,12 +77,14 @@ function getPreviousWindowEndDate(refDateStr, offsetDays = 7) {
 export const useBodyGraphStore = defineStore('bodyGraph', {
   state: () => ({
     logs: [],
+    measurements: [],
     user: null,
     session: null,
     isOnline: navigator.onLine,
     isSyncing: false,
     activeTab: 'weekly',
     showAddModal: false,
+    showAddMeasurementModal: false,
     showAuthModal: false,
     showSettingsModal: false,
     initialized: false,
@@ -91,7 +96,8 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     // Index of the week in the groupedWeeks list (0 is the newest week)
     selectedWeekIndex: 0,
     // Active log record being edited, null if creating a new one
-    editingLog: null
+    editingLog: null,
+    editingMeasurement: null
   }),
 
   getters: {
@@ -194,6 +200,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       // Sort weeks descending (latest week first)
       weeks.sort((a, b) => b.monday.localeCompare(a.monday));
       return weeks;
+    },
+
+    sortedMeasurements: (state) => {
+      return [...state.measurements].sort((a, b) => b.date.localeCompare(a.date));
     },
 
     // Gets currently selected active week
@@ -310,6 +320,11 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     setEditingLog(log) {
       this.editingLog = log;
       this.showAddModal = true;
+    },
+
+    setEditingMeasurement(measurement) {
+      this.editingMeasurement = measurement;
+      this.showAddMeasurementModal = true;
     },
 
     // Navigation actions for weeks list
@@ -482,6 +497,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         this.activeTab = 'weekly';
         this.selectedWeekIndex = 0;
         this.editingLog = null;
+        this.editingMeasurement = null;
         
         await this.loadLogs();
       } catch (error) {
@@ -493,6 +509,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     async loadLogs() {
       try {
         this.logs = await getAllLogs(this.currentUserId);
+        this.measurements = await getAllMeasurements(this.currentUserId);
         
         // Cleanly clamp selectedWeekIndex after loading logs to keep bounds valid
         const maxIndex = this.groupedWeeks.length - 1;
@@ -500,7 +517,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           this.selectedWeekIndex = Math.max(0, maxIndex);
         }
       } catch (error) {
-        console.error('Store failed to load logs:', error);
+        console.error('Store failed to load logs/measurements:', error);
       }
     },
 
@@ -533,6 +550,40 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         this.triggerSync();
       } catch (error) {
         console.error('Store failed to delete log:', error);
+        throw error;
+      }
+    },
+
+    async saveMeasurementEntry(measurementData) {
+      const log = {
+        id: measurementData.id || crypto.randomUUID(),
+        date: measurementData.date,
+        waist: measurementData.waist ? Number(measurementData.waist) : null,
+        chest: measurementData.chest ? Number(measurementData.chest) : null,
+        arms: measurementData.arms ? Number(measurementData.arms) : null,
+        thighs: measurementData.thighs ? Number(measurementData.thighs) : null,
+        synced: false
+      };
+
+      try {
+        await saveMeasurement(log, this.currentUserId);
+        await this.loadLogs();
+        this.showAddMeasurementModal = false;
+        this.editingMeasurement = null;
+        this.triggerSync();
+      } catch (error) {
+        console.error('Store failed to save measurement:', error);
+        throw error;
+      }
+    },
+
+    async deleteMeasurementEntry(id) {
+      try {
+        await deleteMeasurement(id, this.currentUserId);
+        await this.loadLogs();
+        this.triggerSync();
+      } catch (error) {
+        console.error('Store failed to delete measurement:', error);
         throw error;
       }
     },
