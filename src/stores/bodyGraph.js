@@ -82,7 +82,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     session: null,
     isOnline: navigator.onLine,
     isSyncing: false,
-    activeTab: 'weekly',
+    activeTab: 'monthly',
     showAddModal: false,
     showAddMeasurementModal: false,
     showAuthModal: false,
@@ -143,6 +143,63 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     // Groups logs into weeks (Monday to Sunday) and computes stats
+    // Groups logs into months and computes true median stats based on all raw logs
+    groupedMonths() {
+      const logsToUse = this.logsWithEstimates;
+      if (logsToUse.length === 0) return [];
+
+      const groups = {};
+
+      for (const log of logsToUse) {
+        // e.g., '2025-06'
+        const monthKey = log.date.substring(0, 7);
+        if (!groups[monthKey]) {
+          groups[monthKey] = [];
+        }
+        groups[monthKey].push(log);
+      }
+
+      const months = [];
+      for (const [monthKey, monthLogs] of Object.entries(groups)) {
+        const masses = monthLogs.map(l => Number(l.mass));
+        const fats = monthLogs.map(l => Number(l.body_fat));
+
+        const medianMass = calculateMedian(masses);
+        const medianFat = calculateMedian(fats);
+        const medianFatMass = medianMass * (medianFat / 100);
+        const medianLeanMass = medianMass - medianFatMass;
+
+        const avgMass = masses.length > 0 ? masses.reduce((sum, val) => sum + val, 0) / masses.length : 0;
+        const avgFat = fats.length > 0 ? fats.reduce((sum, val) => sum + val, 0) / fats.length : 0;
+        const avgFatMass = avgMass * (avgFat / 100);
+        const avgLeanMass = avgMass - avgFatMass;
+
+        // Create a date object for the first day of the month for time scale plotting
+        const startDateStr = `${monthKey}-01`;
+        const dateObj = new Date(startDateStr);
+        const label = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+        months.push({
+          id: monthKey,
+          startDate: startDateStr,
+          label,
+          logs: monthLogs,
+          medianMass,
+          medianFat,
+          medianFatMass,
+          medianLeanMass,
+          avgMass,
+          avgFat,
+          avgFatMass,
+          avgLeanMass
+        });
+      }
+
+      // Sort months descending (latest month first)
+      months.sort((a, b) => b.id.localeCompare(a.id));
+      return months;
+    },
+
     groupedWeeks() {
       const logsToUse = this.logsWithEstimates;
       if (logsToUse.length === 0) return [];
@@ -482,7 +539,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       if (!supabase) {
         this.user = null;
         this.session = null;
-        this.activeTab = 'weekly';
+        this.activeTab = 'monthly';
         this.selectedWeekIndex = 0;
         this.editingLog = null;
         await this.loadLogs();
@@ -494,7 +551,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         
         this.user = null;
         this.session = null;
-        this.activeTab = 'weekly';
+        this.activeTab = 'monthly';
         this.selectedWeekIndex = 0;
         this.editingLog = null;
         this.editingMeasurement = null;
