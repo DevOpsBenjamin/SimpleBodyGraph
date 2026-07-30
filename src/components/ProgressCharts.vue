@@ -15,10 +15,58 @@
 
   <div v-else class="space-y-6">
     
-    <!-- 1. DAILY FOCUS SECTION (WEEK FOCUS) -->
+    <!-- 1. MONTHLY VIEW -->
     <div 
-      v-show="store.activeTab === 'daily'"
-      class="space-y-4 animate-fade-in"
+      v-show="store.activeTab === 'monthly'"
+      class="space-y-6 animate-fade-in"
+    >
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Weight Average Chart -->
+        <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
+          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span> Monthly Weight: Median vs Average (kg)
+          </h3>
+          <div class="relative h-[240px] w-full">
+            <canvas ref="weightMonthlyCanvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Lean Mass Average Chart -->
+        <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
+          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Monthly Lean Mass: Median vs Average (kg)
+          </h3>
+          <div class="relative h-[240px] w-full">
+            <canvas ref="leanMonthlyCanvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Fat Average Chart -->
+        <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
+          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Monthly Body Fat: Median vs Average (%)
+          </h3>
+          <div class="relative h-[240px] w-full">
+            <canvas ref="fatMonthlyCanvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Fat Mass Average Chart -->
+        <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
+          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Monthly Fat Mass: Median vs Average (kg)
+          </h3>
+          <div class="relative h-[240px] w-full">
+            <canvas ref="fatMassMonthlyCanvas"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. WEEKLY VIEW (WITH HEVY HELPER) -->
+    <div
+      v-show="store.activeTab === 'weekly'"
+      class="space-y-6"
       @touchstart="handleTouchStart"
       @touchend="handleTouchEnd"
     >
@@ -85,91 +133,6 @@
           <Check v-if="copiedWeekId === store.activeWeek.id" class="w-4 h-4 text-emerald-400 animate-bounce" />
           <Copy v-else class="w-4 h-4 text-violet-400" />
           <span>{{ copiedWeekId === store.activeWeek.id ? 'Copied!' : 'Copy' }}</span>
-        </button>
-      </div>
-
-      <!-- Daily Charts grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Weight Daily Chart -->
-        <div class="glass-card p-4 sm:p-5 rounded-3xl relative shadow-lg">
-          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-violet-500"></span> Daily Weight Fluctuations (kg)
-          </h3>
-          <div class="relative h-[240px] w-full">
-            <canvas ref="weightDailyCanvas"></canvas>
-          </div>
-        </div>
-
-        <!-- Lean Mass Daily Chart -->
-        <div class="glass-card p-4 sm:p-5 rounded-3xl relative shadow-lg">
-          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-blue-500"></span> Daily Lean Mass Fluctuations (kg)
-          </h3>
-          <div class="relative h-[240px] w-full">
-            <canvas ref="leanDailyCanvas"></canvas>
-          </div>
-        </div>
-
-        <!-- Fat Daily Chart -->
-        <div class="glass-card p-4 sm:p-5 rounded-3xl relative shadow-lg">
-          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Daily Body Fat Evolution (%)
-          </h3>
-          <div class="relative h-[240px] w-full">
-            <canvas ref="fatDailyCanvas"></canvas>
-          </div>
-        </div>
-
-        <!-- Fat Mass Daily Chart -->
-        <div class="glass-card p-4 sm:p-5 rounded-3xl relative shadow-lg">
-          <h3 class="text-xs font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Daily Fat Mass Evolution (kg)
-          </h3>
-          <div class="relative h-[240px] w-full">
-            <canvas ref="fatMassDailyCanvas"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. ALL-TIME LONG-TERM VIEW -->
-    <div 
-      v-show="store.activeTab === 'weekly'"
-      class="space-y-6"
-    >
-      <!-- HEVY SYNC HELPER FOR LATEST WEEK -->
-      <div 
-        v-if="store.groupedWeeks.length > 0" 
-        class="glass-card p-4 rounded-3xl max-w-md mx-auto shadow-lg flex items-center justify-between border border-gray-800/40 hover:border-gray-700/60 transition-all duration-300"
-      >
-        <div class="flex items-center gap-3">
-          <div class="p-2 rounded-xl bg-violet-600/10 border border-violet-500/15 flex-shrink-0">
-            <Copy class="w-4 h-4 text-violet-400" />
-          </div>
-          <div>
-            <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-              <span>Hevy Helper (Latest Week)</span>
-            </h4>
-            <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1.5 text-[11px] text-gray-400">
-              <span class="flex items-center gap-0.5">W: <strong class="text-white">{{ store.groupedWeeks[0].medianMass.toFixed(2) }} kg</strong></span>
-              <span class="text-gray-700">|</span>
-              <span class="flex items-center gap-0.5">Lean: <strong class="text-blue-400">{{ store.groupedWeeks[0].medianLeanMass.toFixed(2) }} kg</strong></span>
-              <span class="text-gray-700">|</span>
-              <span class="flex items-center gap-0.5">Fat: <strong class="text-emerald-400">{{ store.groupedWeeks[0].medianFat.toFixed(1) }}%</strong></span>
-              <span class="text-gray-700">|</span>
-              <span class="flex items-center gap-0.5">Fat kg: <strong class="text-amber-400">{{ store.groupedWeeks[0].medianFatMass.toFixed(2) }} kg</strong></span>
-            </div>
-          </div>
-        </div>
-
-        <button 
-          @click="copyWeeklyAverage(store.groupedWeeks[0])"
-          class="p-2 px-3 rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer border border-gray-700/30 flex-shrink-0 flex items-center gap-1.5 text-xs font-medium"
-          title="Copy Weekly Medians"
-        >
-          <Check v-if="copiedWeekId === store.groupedWeeks[0].id" class="w-4 h-4 text-emerald-400 animate-bounce" />
-          <Copy v-else class="w-4 h-4 text-violet-400" />
-          <span>{{ copiedWeekId === store.groupedWeeks[0].id ? 'Copied!' : 'Copy' }}</span>
         </button>
       </div>
 
@@ -279,6 +242,7 @@
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { Scale, Plus, ChevronLeft, ChevronRight, Copy, Check } from 'lucide-vue-next';
 import { Chart, registerables } from 'chart.js';
+import 'chartjs-adapter-date-fns';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 
 Chart.register(...registerables);
@@ -324,20 +288,20 @@ const goalLinePlugin = {
 
 
 // Canvas references
-const weightDailyCanvas = ref(null);
-const leanDailyCanvas = ref(null);
-const fatDailyCanvas = ref(null);
-const fatMassDailyCanvas = ref(null);
+const weightMonthlyCanvas = ref(null);
+const leanMonthlyCanvas = ref(null);
+const fatMonthlyCanvas = ref(null);
+const fatMassMonthlyCanvas = ref(null);
 const weightAvgCanvas = ref(null);
 const leanAvgCanvas = ref(null);
 const fatAvgCanvas = ref(null);
 const fatMassAvgCanvas = ref(null);
 
 // Chart references
-let chartW_Daily = null;
-let chartL_Daily = null;
-let chartF_Daily = null;
-let chartFM_Daily = null;
+let chartW_Monthly = null;
+let chartL_Monthly = null;
+let chartF_Monthly = null;
+let chartFM_Monthly = null;
 let chartW_Avg = null;
 let chartL_Avg = null;
 let chartF_Avg = null;
@@ -381,122 +345,92 @@ const handleTouchEnd = (e) => {
   }
 };
 
-// Render Daily Week Detail Charts
-const updateDailyCharts = () => {
-  if (!store.activeWeek) return;
+const commonTimeScaleOptions = {
+  type: 'time',
+  time: {
+    unit: 'month',
+    tooltipFormat: 'MMM yyyy',
+    displayFormats: {
+      month: 'MMM yyyy'
+    }
+  },
+  grid: { display: false },
+  ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 10 } }
+};
+
+const commonWeeklyTimeScaleOptions = {
+  type: 'time',
+  time: {
+    unit: 'week',
+    tooltipFormat: 'MMM d, yyyy',
+    displayFormats: {
+      week: 'MMM d'
+    }
+  },
+  grid: { display: false },
+  ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 10 } }
+};
+
+// Render Global Monthly Median Trend Charts
+const updateMonthlyCharts = () => {
+  if (store.groupedMonths.length === 0) return;
 
   nextTick(() => {
-    const startOfWeek = new Date(store.activeWeek.monday + 'T00:00:00');
-    const daysLabel = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    
-    // Dataset 0: Rolling median values
-    const dailyWeights = Array(7).fill(null);
-    const dailyLeans = Array(7).fill(null);
-    const dailyFats = Array(7).fill(null);
-    const dailyFatMasses = Array(7).fill(null);
-    
-    // Dataset 1: Raw weights for days they exist
-    const dailyWeightsRaw = Array(7).fill(null);
-    const dailyLeansRaw = Array(7).fill(null);
-    const dailyFatsRaw = Array(7).fill(null);
-    const dailyFatMassesRaw = Array(7).fill(null);
+    const sortedMonths = [...store.groupedMonths].reverse();
+    const medianWeights = sortedMonths.map(m => ({ x: m.startDate, y: m.medianMass }));
+    const medianLeans = sortedMonths.map(m => ({ x: m.startDate, y: m.medianLeanMass }));
+    const medianFats = sortedMonths.map(m => ({ x: m.startDate, y: m.medianFat }));
+    const medianFatMasses = sortedMonths.map(m => ({ x: m.startDate, y: m.medianFatMass }));
 
-    const localMedian = (arr) => {
-      if (!arr || arr.length === 0) return null;
-      const sorted = [...arr].filter(v => v !== null && v !== undefined && !isNaN(v)).sort((a, b) => a - b);
-      if (sorted.length === 0) return null;
-      const mid = Math.floor(sorted.length / 2);
-      return sorted.length % 2 !== 0 
-        ? sorted[mid] 
-        : (sorted[mid - 1] + sorted[mid]) / 2;
-    };
+    const averageWeights = sortedMonths.map(m => ({ x: m.startDate, y: m.avgMass }));
+    const averageLeans = sortedMonths.map(m => ({ x: m.startDate, y: m.avgLeanMass }));
+    const averageFats = sortedMonths.map(m => ({ x: m.startDate, y: m.avgFat }));
+    const averageFatMasses = sortedMonths.map(m => ({ x: m.startDate, y: m.avgFatMass }));
 
-    const formatYMD = (d) => {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const dt = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${dt}`;
-    };
-
-    // Calculate rolling 7-day median for each of the 7 days of the active week
-    for (let i = 0; i < 7; i++) {
-      const dEnd = new Date(startOfWeek);
-      dEnd.setDate(dEnd.getDate() + i);
-      
-      const dStart = new Date(dEnd);
-      dStart.setDate(dStart.getDate() - 6);
-
-      const startDateStr = formatYMD(dStart);
-      const endDateStr = formatYMD(dEnd);
-
-      const windowLogs = store.logs.filter(log => log.date >= startDateStr && log.date <= endDateStr);
-      if (windowLogs.length > 0) {
-        const masses = windowLogs.map(l => Number(l.mass));
-        const fats = windowLogs.map(l => Number(l.body_fat));
-        
-        const medM = localMedian(masses);
-        const medF = localMedian(fats);
-        const medFM = medM !== null && medF !== null ? medM * (medF / 100) : null;
-        const medL = medM !== null && medFM !== null ? medM - medFM : null;
-
-        dailyWeights[i] = medM;
-        dailyLeans[i] = medL;
-        dailyFats[i] = medF;
-        dailyFatMasses[i] = medFM;
-      }
-    }
-
-    // Populate raw logs
-    for (const log of store.activeWeek.logs) {
-      const d = new Date(log.date + 'T00:00:00');
-      const dayIndex = (d.getDay() + 6) % 7; // Monday = 0
-      
-      dailyWeightsRaw[dayIndex] = Number(log.mass);
-      dailyLeansRaw[dayIndex] = Number(log.lean_mass);
-      dailyFatsRaw[dayIndex] = Number(log.body_fat);
-      dailyFatMassesRaw[dayIndex] = Number(log.fat_mass);
-    }
-
-    // 1. Total Weight Daily Chart
-    if (weightDailyCanvas.value) {
-      if (chartW_Daily) chartW_Daily.destroy();
-      const ctx = weightDailyCanvas.value.getContext('2d');
+    // 1. Monthly Median Weight
+    if (weightMonthlyCanvas.value) {
+      if (chartW_Monthly) chartW_Monthly.destroy();
+      const ctx = weightMonthlyCanvas.value.getContext('2d');
       
       const strokeGrad = ctx.createLinearGradient(0, 0, 0, 300);
       strokeGrad.addColorStop(0, '#a78bfa');
-      strokeGrad.addColorStop(1, '#6366f1');
+      strokeGrad.addColorStop(1, '#4f46e5');
       
       const fillGrad = ctx.createLinearGradient(0, 0, 0, 250);
       fillGrad.addColorStop(0, 'rgba(139, 92, 246, 0.2)');
       fillGrad.addColorStop(1, 'rgba(139, 92, 246, 0)');
 
-      chartW_Daily = new Chart(ctx, {
+      chartW_Monthly = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: daysLabel,
           datasets: [
             {
-              label: '7-Day Rolling Median',
-              data: dailyWeights,
+              label: 'Monthly Median',
+              data: medianWeights,
               borderColor: strokeGrad,
               borderWidth: 3,
-              pointRadius: 0,
-              pointHoverRadius: 0,
-              spanGaps: true,
-              fill: true,
-              backgroundColor: fillGrad,
-              tension: 0.25
-            },
-            {
-              label: 'Raw Weight',
-              data: dailyWeightsRaw,
-              showLine: false,
-              pointStyle: 'circle',
-              pointRadius: 5,
-              pointHoverRadius: 7,
               pointBackgroundColor: '#ffffff',
               pointBorderColor: '#8b5cf6',
-              pointBorderWidth: 2
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.3
+            },
+            {
+              label: 'Monthly Average',
+              data: averageWeights,
+              borderColor: 'rgba(167, 139, 250, 0.7)',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: 'rgba(167, 139, 250, 0.7)',
+              pointBorderWidth: 1.5,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: false,
+              tension: 0.3
             }
           ]
         },
@@ -504,7 +438,16 @@ const updateDailyCharts = () => {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              labels: {
+                color: '#9ca3af',
+                font: {
+                  family: 'Outfit',
+                  size: 11
+                }
+              }
+            },
             tooltip: {
               backgroundColor: 'rgba(17, 24, 39, 0.95)',
               titleColor: '#9ca3af',
@@ -520,16 +463,8 @@ const updateDailyCharts = () => {
                   const dsLabel = context.dataset.label;
                   const val = context.parsed.y;
                   if (val === null || val === undefined) return '';
-
-                  if (dsLabel === '7-Day Rolling Median') {
-                    return ` 7-Day Median: ${val.toFixed(2)} kg`;
-                  } else {
-                    return ` Weight: ${val.toFixed(2)} kg`;
-                  }
+                  return ` ${dsLabel}: ${val.toFixed(2)} kg`;
                 }
-              },
-              filter: (tooltipItem) => {
-                return tooltipItem.raw !== null && tooltipItem.raw !== undefined;
               }
             },
             goalLine: {
@@ -545,56 +480,57 @@ const updateDailyCharts = () => {
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },
-            x: {
-              grid: { display: false },
-              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
-            }
+            x: commonTimeScaleOptions
           }
         },
         plugins: [goalLinePlugin]
       });
     }
 
-    // 2. Lean Mass Daily Chart
-    if (leanDailyCanvas.value) {
-      if (chartL_Daily) chartL_Daily.destroy();
-      const ctx = leanDailyCanvas.value.getContext('2d');
+    // 2. Monthly Median Lean Mass
+    if (leanMonthlyCanvas.value) {
+      if (chartL_Monthly) chartL_Monthly.destroy();
+      const ctx = leanMonthlyCanvas.value.getContext('2d');
       
       const strokeGrad = ctx.createLinearGradient(0, 0, 0, 300);
       strokeGrad.addColorStop(0, '#60a5fa');
-      strokeGrad.addColorStop(1, '#3b82f6');
+      strokeGrad.addColorStop(1, '#2563eb');
       
       const fillGrad = ctx.createLinearGradient(0, 0, 0, 250);
       fillGrad.addColorStop(0, 'rgba(59, 130, 246, 0.2)');
       fillGrad.addColorStop(1, 'rgba(59, 130, 246, 0)');
 
-      chartL_Daily = new Chart(ctx, {
+      chartL_Monthly = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: daysLabel,
           datasets: [
             {
-              label: '7-Day Rolling Median',
-              data: dailyLeans,
+              label: 'Monthly Median',
+              data: medianLeans,
               borderColor: strokeGrad,
               borderWidth: 3,
-              pointRadius: 0,
-              pointHoverRadius: 0,
-              spanGaps: true,
-              fill: true,
-              backgroundColor: fillGrad,
-              tension: 0.25
-            },
-            {
-              label: 'Raw Lean',
-              data: dailyLeansRaw,
-              showLine: false,
-              pointStyle: 'circle',
-              pointRadius: 5,
-              pointHoverRadius: 7,
               pointBackgroundColor: '#ffffff',
               pointBorderColor: '#3b82f6',
-              pointBorderWidth: 2
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.3
+            },
+            {
+              label: 'Monthly Average',
+              data: averageLeans,
+              borderColor: 'rgba(147, 197, 253, 0.7)',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: 'rgba(147, 197, 253, 0.7)',
+              pointBorderWidth: 1.5,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: false,
+              tension: 0.3
             }
           ]
         },
@@ -602,7 +538,16 @@ const updateDailyCharts = () => {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              labels: {
+                color: '#9ca3af',
+                font: {
+                  family: 'Outfit',
+                  size: 11
+                }
+              }
+            },
             tooltip: {
               backgroundColor: 'rgba(17, 24, 39, 0.95)',
               titleColor: '#9ca3af',
@@ -618,16 +563,8 @@ const updateDailyCharts = () => {
                   const dsLabel = context.dataset.label;
                   const val = context.parsed.y;
                   if (val === null || val === undefined) return '';
-
-                  if (dsLabel === '7-Day Rolling Median') {
-                    return ` 7-Day Median: ${val.toFixed(2)} kg`;
-                  } else {
-                    return ` Lean Mass: ${val.toFixed(2)} kg`;
-                  }
+                  return ` ${dsLabel}: ${val.toFixed(2)} kg`;
                 }
-              },
-              filter: (tooltipItem) => {
-                return tooltipItem.raw !== null && tooltipItem.raw !== undefined;
               }
             },
             goalLine: {
@@ -643,20 +580,17 @@ const updateDailyCharts = () => {
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },
-            x: {
-              grid: { display: false },
-              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
-            }
+            x: commonTimeScaleOptions
           }
         },
         plugins: [goalLinePlugin]
       });
     }
 
-    // 3. Body Fat (%) Daily Chart
-    if (fatDailyCanvas.value) {
-      if (chartF_Daily) chartF_Daily.destroy();
-      const ctx = fatDailyCanvas.value.getContext('2d');
+    // 3. Monthly Median Body Fat (%)
+    if (fatMonthlyCanvas.value) {
+      if (chartF_Monthly) chartF_Monthly.destroy();
+      const ctx = fatMonthlyCanvas.value.getContext('2d');
       
       const strokeGrad = ctx.createLinearGradient(0, 0, 0, 300);
       strokeGrad.addColorStop(0, '#34d399');
@@ -665,34 +599,38 @@ const updateDailyCharts = () => {
       const fillGrad = ctx.createLinearGradient(0, 0, 0, 250);
       fillGrad.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
       fillGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
- 
-      chartF_Daily = new Chart(ctx, {
+
+      chartF_Monthly = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: daysLabel,
           datasets: [
             {
-              label: '7-Day Rolling Median',
-              data: dailyFats,
+              label: 'Monthly Median',
+              data: medianFats,
               borderColor: strokeGrad,
               borderWidth: 3,
-              pointRadius: 0,
-              pointHoverRadius: 0,
-              spanGaps: true,
-              fill: true,
-              backgroundColor: fillGrad,
-              tension: 0.25
-            },
-            {
-              label: 'Raw Fat',
-              data: dailyFatsRaw,
-              showLine: false,
-              pointStyle: 'circle',
-              pointRadius: 5,
-              pointHoverRadius: 7,
               pointBackgroundColor: '#ffffff',
               pointBorderColor: '#10b981',
-              pointBorderWidth: 2
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.3
+            },
+            {
+              label: 'Monthly Average',
+              data: averageFats,
+              borderColor: 'rgba(110, 231, 183, 0.7)',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: 'rgba(110, 231, 183, 0.7)',
+              pointBorderWidth: 1.5,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: false,
+              tension: 0.3
             }
           ]
         },
@@ -700,7 +638,16 @@ const updateDailyCharts = () => {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              labels: {
+                color: '#9ca3af',
+                font: {
+                  family: 'Outfit',
+                  size: 11
+                }
+              }
+            },
             tooltip: {
               backgroundColor: 'rgba(17, 24, 39, 0.95)',
               titleColor: '#9ca3af',
@@ -716,16 +663,8 @@ const updateDailyCharts = () => {
                   const dsLabel = context.dataset.label;
                   const val = context.parsed.y;
                   if (val === null || val === undefined) return '';
- 
-                  if (dsLabel === '7-Day Rolling Median') {
-                    return ` 7-Day Median: ${val.toFixed(1)}%`;
-                  } else {
-                    return ` Body Fat: ${val.toFixed(1)}%`;
-                  }
+                  return ` ${dsLabel}: ${val.toFixed(1)}%`;
                 }
-              },
-              filter: (tooltipItem) => {
-                return tooltipItem.raw !== null && tooltipItem.raw !== undefined;
               }
             },
             goalLine: {
@@ -741,56 +680,57 @@ const updateDailyCharts = () => {
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },
-            x: {
-              grid: { display: false },
-              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
-            }
+            x: commonTimeScaleOptions
           }
         },
         plugins: [goalLinePlugin]
       });
     }
 
-    // 4. Fat Mass (kg) Daily Chart
-    if (fatMassDailyCanvas.value) {
-      if (chartFM_Daily) chartFM_Daily.destroy();
-      const ctx = fatMassDailyCanvas.value.getContext('2d');
+    // 4. Monthly Median Fat Mass (kg)
+    if (fatMassMonthlyCanvas.value) {
+      if (chartFM_Monthly) chartFM_Monthly.destroy();
+      const ctx = fatMassMonthlyCanvas.value.getContext('2d');
       
       const strokeGrad = ctx.createLinearGradient(0, 0, 0, 300);
       strokeGrad.addColorStop(0, '#fbbf24');
-      strokeGrad.addColorStop(1, '#f59e0b');
+      strokeGrad.addColorStop(1, '#d97706');
       
       const fillGrad = ctx.createLinearGradient(0, 0, 0, 250);
       fillGrad.addColorStop(0, 'rgba(245, 158, 11, 0.2)');
       fillGrad.addColorStop(1, 'rgba(245, 158, 11, 0)');
 
-      chartFM_Daily = new Chart(ctx, {
+      chartFM_Monthly = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: daysLabel,
           datasets: [
             {
-              label: '7-Day Rolling Median',
-              data: dailyFatMasses,
+              label: 'Monthly Median',
+              data: medianFatMasses,
               borderColor: strokeGrad,
               borderWidth: 3,
-              pointRadius: 0,
-              pointHoverRadius: 0,
-              spanGaps: true,
-              fill: true,
-              backgroundColor: fillGrad,
-              tension: 0.25
-            },
-            {
-              label: 'Raw Fat Mass',
-              data: dailyFatMassesRaw,
-              showLine: false,
-              pointStyle: 'circle',
-              pointRadius: 5,
-              pointHoverRadius: 7,
               pointBackgroundColor: '#ffffff',
               pointBorderColor: '#f59e0b',
-              pointBorderWidth: 2
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              fill: true,
+              backgroundColor: fillGrad,
+              tension: 0.3
+            },
+            {
+              label: 'Monthly Average',
+              data: averageFatMasses,
+              borderColor: 'rgba(252, 211, 77, 0.7)',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: 'rgba(252, 211, 77, 0.7)',
+              pointBorderWidth: 1.5,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: false,
+              tension: 0.3
             }
           ]
         },
@@ -798,7 +738,16 @@ const updateDailyCharts = () => {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              labels: {
+                color: '#9ca3af',
+                font: {
+                  family: 'Outfit',
+                  size: 11
+                }
+              }
+            },
             tooltip: {
               backgroundColor: 'rgba(17, 24, 39, 0.95)',
               titleColor: '#9ca3af',
@@ -814,16 +763,8 @@ const updateDailyCharts = () => {
                   const dsLabel = context.dataset.label;
                   const val = context.parsed.y;
                   if (val === null || val === undefined) return '';
-
-                  if (dsLabel === '7-Day Rolling Median') {
-                    return ` 7-Day Median: ${val.toFixed(2)} kg`;
-                  } else {
-                    return ` Fat Mass: ${val.toFixed(2)} kg`;
-                  }
+                  return ` ${dsLabel}: ${val.toFixed(2)} kg`;
                 }
-              },
-              filter: (tooltipItem) => {
-                return tooltipItem.raw !== null && tooltipItem.raw !== undefined;
               }
             },
             goalLine: {
@@ -839,10 +780,7 @@ const updateDailyCharts = () => {
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },
-            x: {
-              grid: { display: false },
-              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
-            }
+            x: commonTimeScaleOptions
           }
         },
         plugins: [goalLinePlugin]
@@ -857,16 +795,15 @@ const updateWeeklyCharts = () => {
 
   nextTick(() => {
     const sortedWeeks = [...store.groupedWeeks].reverse();
-    const labels = sortedWeeks.map(w => w.label);
-    const medianWeights = sortedWeeks.map(w => w.medianMass);
-    const medianLeans = sortedWeeks.map(w => w.medianLeanMass);
-    const medianFats = sortedWeeks.map(w => w.medianFat);
-    const medianFatMasses = sortedWeeks.map(w => w.medianFatMass);
+    const medianWeights = sortedWeeks.map(w => ({ x: w.monday, y: w.medianMass }));
+    const medianLeans = sortedWeeks.map(w => ({ x: w.monday, y: w.medianLeanMass }));
+    const medianFats = sortedWeeks.map(w => ({ x: w.monday, y: w.medianFat }));
+    const medianFatMasses = sortedWeeks.map(w => ({ x: w.monday, y: w.medianFatMass }));
 
-    const averageWeights = sortedWeeks.map(w => w.avgMass);
-    const averageLeans = sortedWeeks.map(w => w.avgLeanMass);
-    const averageFats = sortedWeeks.map(w => w.avgFat);
-    const averageFatMasses = sortedWeeks.map(w => w.avgFatMass);
+    const averageWeights = sortedWeeks.map(w => ({ x: w.monday, y: w.avgMass }));
+    const averageLeans = sortedWeeks.map(w => ({ x: w.monday, y: w.avgLeanMass }));
+    const averageFats = sortedWeeks.map(w => ({ x: w.monday, y: w.avgFat }));
+    const averageFatMasses = sortedWeeks.map(w => ({ x: w.monday, y: w.avgFatMass }));
 
     // 1. Weekly Median Weight
     if (weightAvgCanvas.value) {
@@ -884,7 +821,6 @@ const updateWeeklyCharts = () => {
       chartW_Avg = new Chart(ctx, {
         type: 'line',
         data: {
-          labels,
           datasets: [
             {
               label: 'Weekly Median',
@@ -962,10 +898,7 @@ const updateWeeklyCharts = () => {
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },
-            x: {
-              grid: { display: false },
-              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 10 } }
-            }
+            x: commonWeeklyTimeScaleOptions
           }
         },
         plugins: [goalLinePlugin]
@@ -988,7 +921,6 @@ const updateWeeklyCharts = () => {
       chartL_Avg = new Chart(ctx, {
         type: 'line',
         data: {
-          labels,
           datasets: [
             {
               label: 'Weekly Median',
@@ -1066,10 +998,7 @@ const updateWeeklyCharts = () => {
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },
-            x: {
-              grid: { display: false },
-              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 10 } }
-            }
+            x: commonWeeklyTimeScaleOptions
           }
         },
         plugins: [goalLinePlugin]
@@ -1092,7 +1021,6 @@ const updateWeeklyCharts = () => {
       chartF_Avg = new Chart(ctx, {
         type: 'line',
         data: {
-          labels,
           datasets: [
             {
               label: 'Weekly Median',
@@ -1170,10 +1098,7 @@ const updateWeeklyCharts = () => {
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },
-            x: {
-              grid: { display: false },
-              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 10 } }
-            }
+            x: commonWeeklyTimeScaleOptions
           }
         },
         plugins: [goalLinePlugin]
@@ -1196,7 +1121,6 @@ const updateWeeklyCharts = () => {
       chartFM_Avg = new Chart(ctx, {
         type: 'line',
         data: {
-          labels,
           datasets: [
             {
               label: 'Weekly Median',
@@ -1274,10 +1198,7 @@ const updateWeeklyCharts = () => {
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },
-            x: {
-              grid: { display: false },
-              ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 10 } }
-            }
+            x: commonWeeklyTimeScaleOptions
           }
         },
         plugins: [goalLinePlugin]
@@ -1287,8 +1208,8 @@ const updateWeeklyCharts = () => {
 };
 
 const drawAll = () => {
-  if (store.activeTab === 'daily') {
-    updateDailyCharts();
+  if (store.activeTab === 'monthly') {
+    updateMonthlyCharts();
   } else if (store.activeTab === 'weekly') {
     updateWeeklyCharts();
   }
@@ -1298,21 +1219,15 @@ watch([() => store.logs, () => store.activeTab, () => store.targetMass, () => st
   drawAll();
 }, { deep: true });
 
-watch(() => store.selectedWeekIndex, () => {
-  if (store.activeTab === 'daily') {
-    updateDailyCharts();
-  }
-});
-
 onMounted(() => {
   drawAll();
 });
 
 onUnmounted(() => {
-  if (chartW_Daily) chartW_Daily.destroy();
-  if (chartL_Daily) chartL_Daily.destroy();
-  if (chartF_Daily) chartF_Daily.destroy();
-  if (chartFM_Daily) chartFM_Daily.destroy();
+  if (chartW_Monthly) chartW_Monthly.destroy();
+  if (chartL_Monthly) chartL_Monthly.destroy();
+  if (chartF_Monthly) chartF_Monthly.destroy();
+  if (chartFM_Monthly) chartFM_Monthly.destroy();
   if (chartW_Avg) chartW_Avg.destroy();
   if (chartL_Avg) chartL_Avg.destroy();
   if (chartF_Avg) chartF_Avg.destroy();
