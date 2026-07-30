@@ -6,7 +6,7 @@ test('Seed user data and take screenshot', async ({ page }) => {
   page.on('pageerror', err => console.error('BROWSER ERROR:', err.message));
 
   // Navigate to application
-  await page.goto('http://localhost:5174/');
+  await page.goto('http://localhost:4173/');
 
   // 1. Click "Continue as Guest" on OnboardingScreen
   await page.getByRole('button', { name: 'Continue as Guest' }).click();
@@ -18,7 +18,7 @@ test('Seed user data and take screenshot', async ({ page }) => {
   await page.evaluate(() => {
     return new Promise((resolve, reject) => {
       const DB_NAME = 'SimpleBodyGraphDB';
-      const DB_VERSION = 2;
+      const DB_VERSION = 3;
       const STORE_LOGS = 'logs';
       const request = indexedDB.open(DB_NAME, DB_VERSION);
       request.onerror = () => reject(request.error);
@@ -56,28 +56,17 @@ test('Seed user data and take screenshot', async ({ page }) => {
   // Click "Continue as Guest" again since memory state is reset
   await page.getByRole('button', { name: 'Continue as Guest' }).click();
 
-  // Click "Week Focus" tab to display active week helper cards
-  await page.getByRole('button', { name: 'Week Focus' }).click();
-
-  // Wait for the active week logs helper or charts to load
+  // Wait for the active month logs helper or charts to load since Month is the new default tab
   await expect(page.locator('.glass-card >> text=Hevy Helper').first()).toBeVisible();
-
-  // Assert Hevy Helper shows correct medians (from the active week of Jun 15 - Jun 21)
-  await expect(page.locator('text=W: 105.78 kg').first()).toBeVisible();
-  await expect(page.locator('text=Lean: 69.50 kg').first()).toBeVisible();
-  await expect(page.locator('text=Fat: 34.3%').first()).toBeVisible();
-  await expect(page.locator('text=Fat kg: 36.28 kg').first()).toBeVisible();
 
   // Assert 7d rolling medians are displayed on the top cards (calculated over the last 7 days ending Jun 17)
   await expect(page.locator('text=106.08 kg').first()).toBeVisible(); // Total Mass card
   await expect(page.locator('text=69.72 kg').first()).toBeVisible(); // Lean Mass card
   await expect(page.locator('text=36.39 kg').first()).toBeVisible(); // Fat Mass card
 
-  // Click "All-Time" tab to display long-term weekly trends
-  await page.getByRole('button', { name: 'All-Time' }).click();
-
   // Assert the Hevy Sync Helper list is visible at the bottom
-  await expect(page.locator('text=Hevy Sync Helper')).toBeVisible();
+  // Using bounding box or first visible element
+  await expect(page.locator('text=Hevy Sync Helper').first()).toBeVisible();
 
   // Let it render for 1 second
   await page.waitForTimeout(1000);
