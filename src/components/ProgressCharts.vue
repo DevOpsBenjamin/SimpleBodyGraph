@@ -19,7 +19,75 @@
     <div 
       v-show="store.activeTab === 'monthly'"
       class="space-y-6 animate-fade-in"
+      @touchstart="handleTouchStart"
+      @touchend="handleTouchEnd"
     >
+      <!-- MONTH NAVIGATION BAR -->
+      <div v-if="store.activeMonth" class="flex items-center justify-between glass-card p-3 rounded-2xl max-w-sm mx-auto shadow-md">
+        <!-- Prev month button -->
+        <button
+          @click="store.goToPreviousMonth"
+          :disabled="store.selectedMonthIndex >= store.groupedMonths.length - 1"
+          class="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors duration-200"
+        >
+          <ChevronLeft class="w-5 h-5" />
+        </button>
+
+        <!-- Current month display label -->
+        <div class="text-center select-none">
+          <div class="text-xs text-violet-400 font-semibold uppercase tracking-wider">Active Month Focus</div>
+          <div class="text-sm font-bold text-white mt-0.5">{{ store.activeMonth.label }}</div>
+        </div>
+
+        <!-- Next month button -->
+        <button
+          @click="store.goToNextMonth"
+          :disabled="store.selectedMonthIndex <= 0"
+          class="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors duration-200"
+        >
+          <ChevronRight class="w-5 h-5" />
+        </button>
+      </div>
+
+      <!-- Touch Swipe tip -->
+      <p class="text-center text-[10px] text-gray-500 select-none">💡 Swipe left/right on cards to navigate months</p>
+
+      <!-- HEVY SYNC HELPER FOR ACTIVE MONTH -->
+      <div
+        v-if="store.activeMonth"
+        class="glass-card p-4 rounded-3xl max-w-md mx-auto shadow-lg flex items-center justify-between border border-gray-800/40 hover:border-gray-700/60 transition-all duration-300"
+      >
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-xl bg-violet-600/10 border border-violet-500/15 flex-shrink-0">
+            <Copy class="w-4 h-4 text-violet-400" />
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+              <span>Hevy Helper</span>
+            </h4>
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1.5 text-[11px] text-gray-400">
+              <span class="flex items-center gap-0.5">W: <strong class="text-white">{{ store.activeMonth.medianMass.toFixed(2) }} kg</strong></span>
+              <span class="text-gray-700">|</span>
+              <span class="flex items-center gap-0.5">Lean: <strong class="text-blue-400">{{ store.activeMonth.medianLeanMass.toFixed(2) }} kg</strong></span>
+              <span class="text-gray-700">|</span>
+              <span class="flex items-center gap-0.5">Fat: <strong class="text-emerald-400">{{ store.activeMonth.medianFat.toFixed(1) }}%</strong></span>
+              <span class="text-gray-700">|</span>
+              <span class="flex items-center gap-0.5">Fat kg: <strong class="text-amber-400">{{ store.activeMonth.medianFatMass.toFixed(2) }} kg</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          @click="copyAverage(store.activeMonth)"
+          class="p-2 px-3 rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer border border-gray-700/30 flex-shrink-0 flex items-center gap-1.5 text-xs font-medium"
+          title="Copy Monthly Medians"
+        >
+          <Check v-if="copiedId === store.activeMonth.id" class="w-4 h-4 text-emerald-400 animate-bounce" />
+          <Copy v-else class="w-4 h-4 text-violet-400" />
+          <span>{{ copiedId === store.activeMonth.id ? 'Copied!' : 'Copy' }}</span>
+        </button>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Weight Average Chart -->
         <div class="glass-card p-4 sm:p-5 rounded-3xl shadow-lg">
@@ -58,6 +126,62 @@
           </h3>
           <div class="relative h-[240px] w-full">
             <canvas ref="fatMassMonthlyCanvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- HEVY SYNC UTILITY (MONTHLY) -->
+      <div class="glass-card p-5 rounded-3xl max-w-2xl mx-auto shadow-xl">
+        <div class="flex items-center gap-2 mb-2">
+          <Copy class="w-4.5 h-4.5 text-violet-400" />
+          <h3 class="text-sm font-bold text-white">Hevy Sync Helper</h3>
+        </div>
+        <p class="text-xs text-gray-400 mb-4">
+          Click the copy button to copy your monthly median values to enter them directly into your Hevy logs.
+        </p>
+
+        <!-- Averages List -->
+        <div class="space-y-2.5">
+          <div
+            v-for="month in store.groupedMonths"
+            :key="month.id"
+            class="flex items-center justify-between p-3 rounded-xl bg-gray-900/60 border border-gray-800/40 hover:border-gray-700/60 transition-colors duration-200"
+          >
+            <div>
+              <div class="text-xs font-semibold text-white flex items-center gap-1.5">
+                <span>{{ month.label }}</span>
+              </div>
+              <div class="text-[10px] text-gray-500 mt-0.5">Based on {{ month.logs.length }} records</div>
+            </div>
+
+            <div class="flex items-center gap-5 sm:gap-6 flex-wrap sm:flex-nowrap">
+              <div class="text-right">
+                <span class="text-[10px] text-gray-400 block leading-none">Med Weight</span>
+                <span class="text-sm font-bold text-white mt-0.5 block">{{ month.medianMass.toFixed(2) }} kg</span>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-blue-400 block leading-none">Med Lean</span>
+                <span class="text-sm font-bold text-blue-400 mt-0.5 block">{{ month.medianLeanMass.toFixed(2) }} kg</span>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-emerald-400 block leading-none">Med Fat %</span>
+                <span class="text-sm font-bold text-emerald-400 mt-0.5 block">{{ month.medianFat.toFixed(1) }}%</span>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-amber-400 block leading-none">Med Fat kg</span>
+                <span class="text-sm font-bold text-amber-400 mt-0.5 block">{{ month.medianFatMass.toFixed(2) }} kg</span>
+              </div>
+
+              <!-- Copy trigger -->
+              <button
+                @click="copyAverage(month)"
+                class="p-2 rounded-lg bg-gray-800 hover:bg-gray-750 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer border border-gray-700/30 flex-shrink-0"
+                title="Copy Monthly Averages"
+              >
+                <Check v-if="copiedId === month.id" class="w-4 h-4 text-emerald-400 animate-pulse" />
+                <Copy v-else class="w-4 h-4 text-violet-400" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -126,13 +250,13 @@
         </div>
 
         <button 
-          @click="copyWeeklyAverage(store.activeWeek)"
+          @click="copyAverage(store.activeWeek)"
           class="p-2 px-3 rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer border border-gray-700/30 flex-shrink-0 flex items-center gap-1.5 text-xs font-medium"
           title="Copy Weekly Medians"
         >
-          <Check v-if="copiedWeekId === store.activeWeek.id" class="w-4 h-4 text-emerald-400 animate-bounce" />
+          <Check v-if="copiedId === store.activeWeek.id" class="w-4 h-4 text-emerald-400 animate-bounce" />
           <Copy v-else class="w-4 h-4 text-violet-400" />
-          <span>{{ copiedWeekId === store.activeWeek.id ? 'Copied!' : 'Copy' }}</span>
+          <span>{{ copiedId === store.activeWeek.id ? 'Copied!' : 'Copy' }}</span>
         </button>
       </div>
 
@@ -222,11 +346,11 @@
 
               <!-- Copy trigger -->
               <button 
-                @click="copyWeeklyAverage(week)"
+                @click="copyAverage(week)"
                 class="p-2 rounded-lg bg-gray-800 hover:bg-gray-750 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer border border-gray-700/30 flex-shrink-0"
                 title="Copy Weekly Averages"
               >
-                <Check v-if="copiedWeekId === week.id" class="w-4 h-4 text-emerald-400 animate-pulse" />
+                <Check v-if="copiedId === week.id" class="w-4 h-4 text-emerald-400 animate-pulse" />
                 <Copy v-else class="w-4 h-4 text-violet-400" />
               </button>
             </div>
@@ -307,15 +431,15 @@ let chartL_Avg = null;
 let chartF_Avg = null;
 let chartFM_Avg = null;
 
-const copiedWeekId = ref(null);
+const copiedId = ref(null);
 
 // Copy Hevy text
-const copyWeeklyAverage = (week) => {
-  const text = `Weight: ${week.medianMass.toFixed(2)}kg, Fat: ${week.medianFat.toFixed(1)}%`;
+const copyAverage = (item) => {
+  const text = `Weight: ${item.medianMass.toFixed(2)}kg, Fat: ${item.medianFat.toFixed(1)}%`;
   navigator.clipboard.writeText(text).then(() => {
-    copiedWeekId.value = week.id;
+    copiedId.value = item.id;
     setTimeout(() => {
-      copiedWeekId.value = null;
+      copiedId.value = null;
     }, 2000);
   });
 };
@@ -338,9 +462,17 @@ const handleTouchEnd = (e) => {
   // Horizontal delta check
   if (Math.abs(deltaX) > 60 && Math.abs(deltaY) < 40) {
     if (deltaX > 0) {
-      store.goToPreviousWeek();
+      if (store.activeTab === 'monthly') {
+        store.goToPreviousMonth();
+      } else {
+        store.goToPreviousWeek();
+      }
     } else {
-      store.goToNextWeek();
+      if (store.activeTab === 'monthly') {
+        store.goToNextMonth();
+      } else {
+        store.goToNextWeek();
+      }
     }
   }
 };

@@ -93,6 +93,8 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     targetMass: null,
     targetFat: null,
     
+    // Index of the month in the groupedMonths list (0 is the newest month)
+    selectedMonthIndex: 0,
     // Index of the week in the groupedWeeks list (0 is the newest week)
     selectedWeekIndex: 0,
     // Active log record being edited, null if creating a new one
@@ -263,6 +265,15 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       return [...state.measurements].sort((a, b) => b.date.localeCompare(a.date));
     },
 
+    // Gets currently selected active month
+    activeMonth() {
+      const months = this.groupedMonths;
+      if (months.length === 0) return null;
+
+      const safeIndex = Math.max(0, Math.min(this.selectedMonthIndex, months.length - 1));
+      return months[safeIndex];
+    },
+
     // Gets currently selected active week
     activeWeek() {
       const weeks = this.groupedWeeks;
@@ -382,6 +393,20 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     setEditingMeasurement(measurement) {
       this.editingMeasurement = measurement;
       this.showAddMeasurementModal = true;
+    },
+
+    // Navigation actions for months list
+    goToPreviousMonth() {
+      const maxIndex = this.groupedMonths.length - 1;
+      if (this.selectedMonthIndex < maxIndex) {
+        this.selectedMonthIndex++;
+      }
+    },
+
+    goToNextMonth() {
+      if (this.selectedMonthIndex > 0) {
+        this.selectedMonthIndex--;
+      }
     },
 
     // Navigation actions for weeks list
@@ -540,6 +565,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         this.user = null;
         this.session = null;
         this.activeTab = 'monthly';
+        this.selectedMonthIndex = 0;
         this.selectedWeekIndex = 0;
         this.editingLog = null;
         await this.loadLogs();
@@ -552,6 +578,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         this.user = null;
         this.session = null;
         this.activeTab = 'monthly';
+        this.selectedMonthIndex = 0;
         this.selectedWeekIndex = 0;
         this.editingLog = null;
         this.editingMeasurement = null;
@@ -568,7 +595,12 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         this.logs = await getAllLogs(this.currentUserId);
         this.measurements = await getAllMeasurements(this.currentUserId);
         
-        // Cleanly clamp selectedWeekIndex after loading logs to keep bounds valid
+        // Cleanly clamp selected indices after loading logs to keep bounds valid
+        const maxMonthIndex = this.groupedMonths.length - 1;
+        if (this.selectedMonthIndex > maxMonthIndex) {
+          this.selectedMonthIndex = Math.max(0, maxMonthIndex);
+        }
+
         const maxIndex = this.groupedWeeks.length - 1;
         if (this.selectedWeekIndex > maxIndex) {
           this.selectedWeekIndex = Math.max(0, maxIndex);
