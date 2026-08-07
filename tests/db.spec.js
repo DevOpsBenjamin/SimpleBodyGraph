@@ -222,4 +222,60 @@ test.describe('IndexedDB Database Helpers', () => {
     expect(migratedMs[0].user_id).toBe('user-new-456');
     expect(migratedMs[0].synced).toBe(false);
   });
+
+  test('benchmark: bulkWrite performance compared to other approaches', async ({ page }) => {
+    const results = await page.evaluate(async () => {
+      const logsToInsert = Array.from({ length: 300 }, (_, i) => ({
+        id: `bench_${i}`,
+        date: `2026-08-${String(i % 28 + 1).padStart(2, '0')}`,
+        mass: 80 + (i % 10),
+        body_fat: 15 + (i % 5),
+        synced: false,
+        user_id: 'bench-user'
+      }));
+
+      // Method A: Individual transactions for each put (sequential saveLog)
+      const startA = performance.now();
+      for (const log of logsToInsert) {
+        await window.__db.saveLog({ ...log, id: log.id + '_A' }, 'bench-user-A');
+      }
+      const endA = performance.now();
+      const durationA = endA - startA;
+
+      // Method B: Old loop put on same transaction
+      const startB = performance.now();
+      const db = await window.__db.openDB();
+      const tx = db.transaction('logs', 'readwrite');
+      const store = tx.objectStore('logs');
+      for (const log of logsToInsert) {
+        store.put({ ...log, id: log.id + '_B', user_id: 'bench-user-B' });
+      }
+      await new Promise((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(new Error('Tx aborted'));
+      });
+      const endB = performance.now();
+      const durationB = endB - startB;
+
+      // Method C: New bulkWrite utility
+      const startC = performance.now();
+      const preparedLogs = logsToInsert.map(log => ({ ...log, id: log.id + '_C', user_id: 'bench-user-C' }));
+      await window.__db.bulkWrite('logs', { puts: preparedLogs });
+      const endC = performance.now();
+      const durationC = endC - startC;
+
+      return { durationA, durationB, durationC };
+    });
+
+    console.log(`\n=================== BENCHMARK RESULTS ===================`);
+    console.log(`Inserting 300 logs:`);
+    console.log(`Method A (Individual saveLog transactions): ${results.durationA.toFixed(2)} ms`);
+    console.log(`Method B (Old manual transaction with loop): ${results.durationB.toFixed(2)} ms`);
+    console.log(`Method C (New generic bulkWrite): ${results.durationC.toFixed(2)} ms`);
+    console.log(`Improvement of bulkWrite over Method A: ${((results.durationA - results.durationC) / results.durationA * 100).toFixed(2)}% speedup`);
+    console.log(`=========================================================\n`);
+
+    expect(results.durationC).toBeLessThan(results.durationA); // bulkWrite should be significantly faster than individual transactions!
+  });
 });

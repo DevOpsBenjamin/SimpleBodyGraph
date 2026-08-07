@@ -264,45 +264,47 @@ export async function clearPendingMeasurementDeletions(ids) {
   });
 }
 
+export async function bulkWrite(storeName, { puts = [], deletes = [] }) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, 'readwrite');
+    const store = transaction.objectStore(storeName);
+
+    for (const item of puts) {
+      store.put(item);
+    }
+    for (const id of deletes) {
+      store.delete(id);
+    }
+
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+    transaction.onabort = () => reject(new Error('Transaction aborted'));
+  });
+}
+
 // Migrate local guest logs to authenticated user
 export async function migrateGuestLogsInDB(newUserId) {
   if (!newUserId || newUserId === 'guest') return;
-  
-  const db = await openDB();
+
   const guestLogs = await getAllLogs('guest');
-  if (guestLogs.length === 0) return;
-
-  const transaction = db.transaction(STORE_LOGS, 'readwrite');
-  const store = transaction.objectStore(STORE_LOGS);
-
-  for (const log of guestLogs) {
-    log.user_id = newUserId;
-    log.synced = false; // Trigger upload
-    store.put(log);
+  if (guestLogs.length > 0) {
+    for (const log of guestLogs) {
+      log.user_id = newUserId;
+      log.synced = false; // Trigger upload
+    }
+    await bulkWrite(STORE_LOGS, { puts: guestLogs });
+    console.log(`Migrated ${guestLogs.length} logs from Guest to user ${newUserId}`);
   }
-
-  await new Promise((resolve, reject) => {
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error);
-  });
-  console.log(`Migrated ${guestLogs.length} logs from Guest to user ${newUserId}`);
 
   // Migrate measurements
   const guestMeasurements = await getAllMeasurements('guest');
   if (guestMeasurements.length > 0) {
-    const mTransaction = db.transaction(STORE_MEASUREMENTS, 'readwrite');
-    const mStore = mTransaction.objectStore(STORE_MEASUREMENTS);
-
     for (const log of guestMeasurements) {
       log.user_id = newUserId;
       log.synced = false;
-      mStore.put(log);
     }
-
-    await new Promise((resolve, reject) => {
-      mTransaction.oncomplete = () => resolve();
-      mTransaction.onerror = () => reject(mTransaction.error);
-    });
+    await bulkWrite(STORE_MEASUREMENTS, { puts: guestMeasurements });
     console.log(`Migrated ${guestMeasurements.length} measurements from Guest to user ${newUserId}`);
   }
 }
@@ -344,17 +346,10 @@ async function syncUnsyncedLogs(userId, db) {
 
     if (!pushError) {
       // Mark locally as synced
-      const transaction = db.transaction(STORE_LOGS, 'readwrite');
-      const store = transaction.objectStore(STORE_LOGS);
       for (const log of unsynced) {
         log.synced = true;
-        store.put(log);
       }
-      await new Promise((resolve, reject) => {
-        transaction.oncomplete = () => resolve();
-        transaction.onerror = () => reject(transaction.error);
-        transaction.onabort = () => reject(new Error('Transaction aborted'));
-      });
+      await bulkWrite(STORE_LOGS, { puts: unsynced });
       console.log('Pushed unsynced logs successfully:', unsynced);
     } else {
       console.error('Error pushing unsynced logs to remote:', pushError);
@@ -448,17 +443,10 @@ async function syncUnsyncedMeasurements(userId, db) {
       .upsert(recordsToPush);
 
     if (!mPushError) {
-      const transaction = db.transaction(STORE_MEASUREMENTS, 'readwrite');
-      const store = transaction.objectStore(STORE_MEASUREMENTS);
       for (const log of unsyncedM) {
         log.synced = true;
-        store.put(log);
       }
-      await new Promise((resolve, reject) => {
-        transaction.oncomplete = () => resolve();
-        transaction.onerror = () => reject(transaction.error);
-        transaction.onabort = () => reject(new Error('Transaction aborted'));
-      });
+      await bulkWrite(STORE_MEASUREMENTS, { puts: unsyncedM });
       console.log('Pushed unsynced measurements successfully:', unsyncedM);
     } else {
       console.error('Error pushing unsynced measurements:', mPushError);
@@ -559,6 +547,7 @@ if (typeof window !== 'undefined') {
     getPendingMeasurementDeletions,
     clearPendingMeasurementDeletions,
     migrateGuestLogsInDB,
-    syncLogs
+    syncLogs,
+    bulkWrite
   };
 }
