@@ -1,5 +1,68 @@
 import { describe, it, expect } from 'vitest';
-import { getMondayOfDate, calculateMedian } from '../src/stores/bodyGraph';
+import { getMondayOfDate, calculateMedian, getRollingLogsForDate } from '../src/stores/bodyGraph';
+import { MOCK_LOGS } from './db-helper';
+
+describe('getRollingLogsForDate', () => {
+  it('should return an empty array if logs list is empty', () => {
+    expect(getRollingLogsForDate([], '2026-06-15')).toEqual([]);
+  });
+
+  it('should return correct logs for default days = 7', () => {
+    // We'll use the global seed MOCK_LOGS.
+    // Let's test window with end date of '2026-06-15' (range is [2026-06-09, 2026-06-15])
+    const result = getRollingLogsForDate(MOCK_LOGS, '2026-06-15');
+    // From MOCK_LOGS:
+    // id: 3, date: 2026-06-15
+    // id: 4, date: 2026-06-14
+    // id: 5, date: 2026-06-13
+    // id: 6, date: 2026-06-12
+    // id: 7, date: 2026-06-11
+    // id: 8, date: 2026-06-10
+    // id: 9, date: 2026-06-09
+    // id: 10, date: 2026-06-08 (outside)
+    const expectedIds = ['3', '4', '5', '6', '7', '8', '9'];
+    expect(result.map(l => l.id)).toEqual(expect.arrayContaining(expectedIds));
+    expect(result.length).toBe(7);
+  });
+
+  it('should return correct logs for single-day window (days = 1)', () => {
+    const result = getRollingLogsForDate(MOCK_LOGS, '2026-06-15', 1);
+    expect(result.map(l => l.id)).toEqual(['3']);
+  });
+
+  it('should handle dates crossing month boundaries correctly (days = 14)', () => {
+    // End date is '2026-07-05'. 14-day window should cover [2026-06-22, 2026-07-05]
+    const result = getRollingLogsForDate(MOCK_LOGS, '2026-07-05', 14);
+    // In MOCK_LOGS:
+    // 'j4' is '2026-07-05'
+    // 'j5' is '2026-07-01'
+    // June 17, 16, 15... are outside (before 2026-06-22)
+    const expectedIds = ['j4', 'j5'];
+    expect(result.map(l => l.id)).toEqual(expectedIds);
+  });
+
+  it('should be inclusive of start and end boundary dates', () => {
+    // End date: '2026-06-12', days: 3 => [2026-06-10, 2026-06-12]
+    // Expected logs: '6' (2026-06-12), '7' (2026-06-11), '8' (2026-06-10)
+    const result = getRollingLogsForDate(MOCK_LOGS, '2026-06-12', 3);
+    const expectedIds = ['6', '7', '8'];
+    expect(result.map(l => l.id)).toEqual(expect.arrayContaining(expectedIds));
+    expect(result.length).toBe(3);
+  });
+
+  it('should return empty if no logs fall within the range', () => {
+    // A date range where no log exists in global seed
+    const result = getRollingLogsForDate(MOCK_LOGS, '2026-01-01', 7);
+    expect(result).toEqual([]);
+  });
+
+  it('should correctly select all logs for a larger window (days = 90)', () => {
+    // End date is '2026-07-15'. 90-day window covers [2026-04-17, 2026-07-15]
+    // All logs in MOCK_LOGS are between 2026-05-05 and 2026-07-15, so all 23 logs should match.
+    const result = getRollingLogsForDate(MOCK_LOGS, '2026-07-15', 90);
+    expect(result.length).toBe(23);
+  });
+});
 
 describe('calculateMedian', () => {
   it('should return 0 if the array is null, undefined, or empty', () => {
