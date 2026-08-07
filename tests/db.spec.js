@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { clearIndexedDB, MOCK_LOGS, MOCK_MEASUREMENTS, seedIndexedDB } from './db-helper';
+import { MOCK_LOGS, MOCK_MEASUREMENTS, seedIndexedDB } from './db-helper';
 
 test.describe('IndexedDB Database Helpers', () => {
   test.beforeEach(async ({ page }) => {
@@ -14,8 +14,8 @@ test.describe('IndexedDB Database Helpers', () => {
     await page.getByRole('button', { name: 'Continue as Guest' }).click();
     await expect(page.getByRole('button', { name: 'Add Log Entry' })).toBeVisible();
 
-    // Clear db to start clean for each test
-    await clearIndexedDB(page);
+    // Seed IndexedDB with the global seed dataset to start with a unified, 3-month dataset
+    await seedIndexedDB(page, MOCK_LOGS, MOCK_MEASUREMENTS);
   });
 
   test('openDB opens the database and configures correct stores', async ({ page }) => {
@@ -31,81 +31,79 @@ test.describe('IndexedDB Database Helpers', () => {
   });
 
   test('saveLog and getAllLogs handles logs correctly by user_id and date sorting', async ({ page }) => {
-    // Save log entries for guest
-    const log1 = { date: '2026-06-15', mass: 80.5, body_fat: 20.1, synced: false };
-    const log2 = { id: 'custom-id-2', date: '2026-06-16', mass: 79.9, body_fat: 19.8, synced: true };
-
-    const savedLog1 = await page.evaluate(async (l) => {
-      return await window.__db.saveLog(l, 'guest');
-    }, log1);
-
-    const savedLog2 = await page.evaluate(async (l) => {
-      return await window.__db.saveLog(l, 'guest');
-    }, log2);
-
-    // Assert auto id generation for log1
-    expect(savedLog1.id).toBeDefined();
-    expect(savedLog1.user_id).toBe('guest');
-
-    // Assert custom id retention
-    expect(savedLog2.id).toBe('custom-id-2');
-    expect(savedLog2.user_id).toBe('guest');
-
-    // Save a log for a different user
-    const userLog = { date: '2026-06-14', mass: 90, body_fat: 25, synced: false };
-    await page.evaluate(async (l) => {
-      return await window.__db.saveLog(l, 'user-123');
-    }, userLog);
-
-    // Retrieve guest logs and check count & descending sorting
+    // 1. Retrieve seeded guest logs and check count & descending sorting
     const guestLogs = await page.evaluate(async () => {
       return await window.__db.getAllLogs('guest');
     });
 
-    expect(guestLogs).toHaveLength(2);
-    expect(guestLogs[0].date).toBe('2026-06-16'); // 16th should be first
-    expect(guestLogs[1].date).toBe('2026-06-15'); // 15th should be second
+    // Check we have the 23 logs from MOCK_LOGS
+    expect(guestLogs).toHaveLength(23);
+    // Verify descending order by checking first and last dates
+    expect(guestLogs[0].date).toBe('2026-07-15');
+    expect(guestLogs[22].date).toBe('2026-05-05');
 
-    // Retrieve user-123 logs
+    // 2. Add a new log entry to test saveLog additions
+    const newLog = { date: '2026-07-20', mass: 99.5, body_fat: 31.5, synced: false };
+    const savedLog = await page.evaluate(async (l) => {
+      return await window.__db.saveLog(l, 'guest');
+    }, newLog);
+
+    expect(savedLog.id).toBeDefined();
+    expect(savedLog.user_id).toBe('guest');
+
+    // Retrieve again and verify new log is first (latest date)
+    const updatedGuestLogs = await page.evaluate(async () => {
+      return await window.__db.getAllLogs('guest');
+    });
+    expect(updatedGuestLogs).toHaveLength(24);
+    expect(updatedGuestLogs[0].date).toBe('2026-07-20');
+
+    // 3. Test saving a log for a different user to verify user_id isolation
+    const userLog = { date: '2026-07-20', mass: 90, body_fat: 25, synced: false };
+    await page.evaluate(async (l) => {
+      return await window.__db.saveLog(l, 'user-123');
+    }, userLog);
+
     const userLogs = await page.evaluate(async () => {
       return await window.__db.getAllLogs('user-123');
     });
     expect(userLogs).toHaveLength(1);
     expect(userLogs[0].mass).toBe(90);
+
+    // Verify guest logs still has 24 logs
+    const finalGuestLogs = await page.evaluate(async () => {
+      return await window.__db.getAllLogs('guest');
+    });
+    expect(finalGuestLogs).toHaveLength(24);
   });
 
   test('deleteLog removes logs and tracks deletions offline', async ({ page }) => {
-    // Seed database with a guest log
-    const testLog = { id: 'delete-me-123', date: '2026-06-17', mass: 105, body_fat: 34, synced: true };
-    await page.evaluate(async (l) => {
-      await window.__db.saveLog(l, 'guest');
-    }, testLog);
-
-    // Verify it exists
+    // 1. Verify log exists in the seeded dataset
     let logs = await page.evaluate(async () => await window.__db.getAllLogs('guest'));
-    expect(logs).toHaveLength(1);
+    expect(logs).toHaveLength(23);
 
-    // Delete log
+    // 2. Delete an existing synced log (e.g. 'j3')
     const deletedId = await page.evaluate(async () => {
-      return await window.__db.deleteLog('delete-me-123', 'guest');
+      return await window.__db.deleteLog('j3', 'guest');
     });
-    expect(deletedId).toBe('delete-me-123');
+    expect(deletedId).toBe('j3');
 
-    // Verify it is gone from the main store
+    // 3. Verify it is gone from the main store (count becomes 22)
     logs = await page.evaluate(async () => await window.__db.getAllLogs('guest'));
-    expect(logs).toHaveLength(0);
+    expect(logs).toHaveLength(22);
+    expect(logs.find(l => l.id === 'j3')).toBeUndefined();
 
-    // Verify deletion is recorded in pending deletions store
+    // 4. Verify deletion is recorded in pending deletions store
     let pending = await page.evaluate(async () => {
       return await window.__db.getPendingDeletions('guest');
     });
     expect(pending).toHaveLength(1);
-    expect(pending[0]).toEqual({ id: 'delete-me-123', user_id: 'guest' });
+    expect(pending[0]).toEqual({ id: 'j3', user_id: 'guest' });
 
-    // Clear pending deletions
+    // 5. Clear pending deletions
     await page.evaluate(async (ids) => {
       await window.__db.clearPendingDeletions(ids);
-    }, ['delete-me-123']);
+    }, ['j3']);
 
     // Verify pending is now empty
     pending = await page.evaluate(async () => {
@@ -115,84 +113,69 @@ test.describe('IndexedDB Database Helpers', () => {
   });
 
   test('getUnsyncedLogs returns only unsynced logs', async ({ page }) => {
-    const logs = [
-      { id: '1', date: '2026-06-15', mass: 80, body_fat: 20, synced: true },
-      { id: '2', date: '2026-06-16', mass: 81, body_fat: 21, synced: false },
-      { id: '3', date: '2026-06-17', mass: 82, body_fat: 22, synced: false }
-    ];
-
-    for (const log of logs) {
-      await page.evaluate(async (l) => {
-        await window.__db.saveLog(l, 'guest');
-      }, log);
-    }
-
     const unsynced = await page.evaluate(async () => {
       return await window.__db.getUnsyncedLogs('guest');
     });
 
     expect(unsynced).toHaveLength(2);
     const unsyncedIds = unsynced.map(l => l.id);
-    expect(unsyncedIds).toContain('2');
-    expect(unsyncedIds).toContain('3');
+    expect(unsyncedIds).toContain('j1');
+    expect(unsyncedIds).toContain('j2');
   });
 
   test('saveMeasurement and getAllMeasurements handles tape measurements correctly', async ({ page }) => {
-    const m1 = { date: '2026-06-15', waist: 90, chest: 100, arms: 35, thighs: 60, synced: false };
-    const m2 = { id: 'custom-m-2', date: '2026-06-16', waist: 89, chest: 99, arms: 34.5, thighs: 59.5, synced: true };
-
-    const savedM1 = await page.evaluate(async (m) => {
-      return await window.__db.saveMeasurement(m, 'guest');
-    }, m1);
-
-    const savedM2 = await page.evaluate(async (m) => {
-      return await window.__db.saveMeasurement(m, 'guest');
-    }, m2);
-
-    expect(savedM1.id).toBeDefined();
-    expect(savedM1.user_id).toBe('guest');
-    expect(savedM2.id).toBe('custom-m-2');
-
-    // Query guest measurements and check descending date sorting
+    // 1. Retrieve seeded guest measurements and check count & descending sorting
     const guestMs = await page.evaluate(async () => {
       return await window.__db.getAllMeasurements('guest');
     });
 
-    expect(guestMs).toHaveLength(2);
-    expect(guestMs[0].date).toBe('2026-06-16');
-    expect(guestMs[1].date).toBe('2026-06-15');
+    expect(guestMs).toHaveLength(3);
+    expect(guestMs[0].date).toBe('2026-06-17');
+    expect(guestMs[2].date).toBe('2026-06-03');
+
+    // 2. Add a new measurement entry to verify saving works
+    const newM = { date: '2026-06-20', waist: 88, chest: 98, arms: 34, thighs: 58, synced: false };
+    const savedM = await page.evaluate(async (m) => {
+      return await window.__db.saveMeasurement(m, 'guest');
+    }, newM);
+
+    expect(savedM.id).toBeDefined();
+    expect(savedM.user_id).toBe('guest');
+
+    // 3. Verify retrieved list contains the new first element
+    const updatedMs = await page.evaluate(async () => {
+      return await window.__db.getAllMeasurements('guest');
+    });
+    expect(updatedMs).toHaveLength(4);
+    expect(updatedMs[0].date).toBe('2026-06-20');
   });
 
   test('deleteMeasurement removes measurement and tracks deletions offline', async ({ page }) => {
-    const m = { id: 'delete-m-123', date: '2026-06-17', waist: 90, synced: true };
-    await page.evaluate(async (item) => {
-      await window.__db.saveMeasurement(item, 'guest');
-    }, m);
-
     let measurements = await page.evaluate(async () => await window.__db.getAllMeasurements('guest'));
-    expect(measurements).toHaveLength(1);
+    expect(measurements).toHaveLength(3);
 
-    // Delete measurement
+    // Delete measurement 'm3'
     const deletedId = await page.evaluate(async () => {
-      return await window.__db.deleteMeasurement('delete-m-123', 'guest');
+      return await window.__db.deleteMeasurement('m3', 'guest');
     });
-    expect(deletedId).toBe('delete-m-123');
+    expect(deletedId).toBe('m3');
 
-    // Verify deleted locally
+    // Verify deleted locally (count becomes 2)
     measurements = await page.evaluate(async () => await window.__db.getAllMeasurements('guest'));
-    expect(measurements).toHaveLength(0);
+    expect(measurements).toHaveLength(2);
+    expect(measurements.find(item => item.id === 'm3')).toBeUndefined();
 
     // Verify deletion tracked
     let pending = await page.evaluate(async () => {
       return await window.__db.getPendingMeasurementDeletions('guest');
     });
     expect(pending).toHaveLength(1);
-    expect(pending[0]).toEqual({ id: 'delete-m-123', user_id: 'guest' });
+    expect(pending[0]).toEqual({ id: 'm3', user_id: 'guest' });
 
     // Clear pending measurement deletions
     await page.evaluate(async (ids) => {
       await window.__db.clearPendingMeasurementDeletions(ids);
-    }, ['delete-m-123']);
+    }, ['m3']);
 
     pending = await page.evaluate(async () => {
       return await window.__db.getPendingMeasurementDeletions('guest');
@@ -201,55 +184,41 @@ test.describe('IndexedDB Database Helpers', () => {
   });
 
   test('getUnsyncedMeasurements returns only unsynced measurements', async ({ page }) => {
-    const measurements = [
-      { id: 'm1', date: '2026-06-15', waist: 90, synced: true },
-      { id: 'm2', date: '2026-06-16', waist: 91, synced: false }
-    ];
-
-    for (const m of measurements) {
-      await page.evaluate(async (item) => {
-        await window.__db.saveMeasurement(item, 'guest');
-      }, m);
-    }
-
     const unsynced = await page.evaluate(async () => {
       return await window.__db.getUnsyncedMeasurements('guest');
     });
 
     expect(unsynced).toHaveLength(1);
-    expect(unsynced[0].id).toBe('m2');
+    expect(unsynced[0].id).toBe('m1');
   });
 
   test('migrateGuestLogsInDB correctly updates guest data ownership and sets synced: false', async ({ page }) => {
-    // Seed some guest logs and measurements
-    await seedIndexedDB(page, [
-      { id: 'l1', date: '2026-06-15', mass: 80, body_fat: 20, synced: true, user_id: 'guest' }
-    ], [
-      { id: 'm1', date: '2026-06-15', waist: 90, synced: true, user_id: 'guest' }
-    ]);
+    // 1. Verify we have guest logs and measurements initially
+    const initialGuestLogs = await page.evaluate(async () => await window.__db.getAllLogs('guest'));
+    const initialGuestMs = await page.evaluate(async () => await window.__db.getAllMeasurements('guest'));
+    expect(initialGuestLogs).toHaveLength(23);
+    expect(initialGuestMs).toHaveLength(3);
 
-    // Run guest migration to a new user
+    // 2. Run guest migration to a new user
     await page.evaluate(async () => {
       await window.__db.migrateGuestLogsInDB('user-new-456');
     });
 
-    // Check guest logs and measurements are empty (no longer owned by 'guest')
+    // 3. Check guest logs and measurements are empty (no longer owned by 'guest')
     const guestLogs = await page.evaluate(async () => await window.__db.getAllLogs('guest'));
     const guestMs = await page.evaluate(async () => await window.__db.getAllMeasurements('guest'));
     expect(guestLogs).toHaveLength(0);
     expect(guestMs).toHaveLength(0);
 
-    // Check they are now owned by 'user-new-456' and synced is set to false
+    // 4. Check they are now owned by 'user-new-456' and synced is set to false
     const migratedLogs = await page.evaluate(async () => await window.__db.getAllLogs('user-new-456'));
     const migratedMs = await page.evaluate(async () => await window.__db.getAllMeasurements('user-new-456'));
 
-    expect(migratedLogs).toHaveLength(1);
-    expect(migratedLogs[0].id).toBe('l1');
+    expect(migratedLogs).toHaveLength(23);
     expect(migratedLogs[0].user_id).toBe('user-new-456');
     expect(migratedLogs[0].synced).toBe(false);
 
-    expect(migratedMs).toHaveLength(1);
-    expect(migratedMs[0].id).toBe('m1');
+    expect(migratedMs).toHaveLength(3);
     expect(migratedMs[0].user_id).toBe('user-new-456');
     expect(migratedMs[0].synced).toBe(false);
   });

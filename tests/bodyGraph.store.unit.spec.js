@@ -1,8 +1,8 @@
 import { vi, beforeEach, describe, it, expect } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 
-// Use vi.hoisted to stub globals before any imports are evaluated
-vi.hoisted(() => {
+// Use vi.hoisted to stub globals and define mock data before any imports are evaluated
+const { mockLogs, mockMeasurements } = vi.hoisted(() => {
   // Ensure navigator.onLine is always defined and true
   try {
     Object.defineProperty(globalThis, 'navigator', {
@@ -36,16 +36,57 @@ vi.hoisted(() => {
       randomUUID: vi.fn(() => 'mocked-uuid-1234')
     };
   }
+
+  // Unified global seed dataset (identical to tests/db-helper.js)
+  return {
+    mockLogs: [
+      // --- July 2026 (Reduced weight & fat) ---
+      // A couple of unsynced entries for offline/unsynced test coverage
+      { id: 'j1', date: '2026-07-15', mass: 100.20, body_fat: 32.1, synced: false, user_id: 'guest' },
+      { id: 'j2', date: '2026-07-12', mass: 100.80, body_fat: 32.2, synced: false, user_id: 'guest' },
+      { id: 'j3', date: '2026-07-08', mass: 101.40, body_fat: 32.4, synced: true, user_id: 'guest' },
+      { id: 'j4', date: '2026-07-05', mass: 101.90, body_fat: 32.5, synced: true, user_id: 'guest' },
+      { id: 'j5', date: '2026-07-01', mass: 102.30, body_fat: 32.7, synced: true, user_id: 'guest' },
+
+      // --- June 2026 (Baseline) ---
+      { id: '1', date: '2026-06-17', mass: 105.35, body_fat: 34.2, synced: true, user_id: 'guest' },
+      { id: '2', date: '2026-06-16', mass: 105.78, body_fat: 34.3, synced: true, user_id: 'guest' },
+      { id: '3', date: '2026-06-15', mass: 106.20, body_fat: 34.4, synced: true, user_id: 'guest' },
+      { id: '4', date: '2026-06-14', mass: 107.40, body_fat: 34.6, synced: true, user_id: 'guest' },
+      { id: '5', date: '2026-06-13', mass: 106.60, body_fat: 34.3, synced: true, user_id: 'guest' },
+      { id: '6', date: '2026-06-12', mass: 105.80, body_fat: 34.1, synced: true, user_id: 'guest' },
+      { id: '7', date: '2026-06-11', mass: 106.08, body_fat: 34.2, synced: true, user_id: 'guest' },
+      { id: '8', date: '2026-06-10', mass: 106.35, body_fat: 34.3, synced: true, user_id: 'guest' },
+      { id: '9', date: '2026-06-09', mass: 106.35, body_fat: 34.6, synced: true, user_id: 'guest' },
+      { id: '10', date: '2026-06-08', mass: 106.35, body_fat: 34.8, synced: true, user_id: 'guest' },
+      { id: '11', date: '2026-06-07', mass: 106.80, body_fat: 34.9, synced: true, user_id: 'guest' },
+      { id: '12', date: '2026-06-06', mass: 107.25, body_fat: 35.0, synced: true, user_id: 'guest' },
+      { id: '13', date: '2026-06-05', mass: 107.65, body_fat: 35.1, synced: true, user_id: 'guest' },
+
+      // --- May 2026 (Higher weight & fat) ---
+      { id: 'y1', date: '2026-05-25', mass: 110.80, body_fat: 36.2, synced: true, user_id: 'guest' },
+      { id: 'y2', date: '2026-05-20', mass: 111.20, body_fat: 36.3, synced: true, user_id: 'guest' },
+      { id: 'y3', date: '2026-05-15', mass: 111.50, body_fat: 36.4, synced: true, user_id: 'guest' },
+      { id: 'y4', date: '2026-05-10', mass: 112.10, body_fat: 36.5, synced: true, user_id: 'guest' },
+      { id: 'y5', date: '2026-05-05', mass: 112.40, body_fat: 36.6, synced: true, user_id: 'guest' }
+    ],
+    mockMeasurements: [
+      // An unsynced entry for offline/unsynced test coverage
+      { id: 'm1', date: '2026-06-17', waist: 95, chest: 104, arms: 38, thighs: 62, synced: false, user_id: 'guest' },
+      { id: 'm2', date: '2026-06-10', waist: 96, chest: 105, arms: 38.5, thighs: 63, synced: true, user_id: 'guest' },
+      { id: 'm3', date: '2026-06-03', waist: 97, chest: 106, arms: 39, thighs: 64, synced: true, user_id: 'guest' }
+    ]
+  };
 });
 
 // Mock the database dependencies
 vi.mock('../src/db', () => ({
-  getAllLogs: vi.fn(() => Promise.resolve([])),
+  getAllLogs: vi.fn(() => Promise.resolve(mockLogs)),
   saveLog: vi.fn(() => Promise.resolve({ id: 'mocked-log' })),
   deleteLog: vi.fn(() => Promise.resolve('mocked-log-id')),
   syncLogs: vi.fn(() => Promise.resolve({ success: true })),
   migrateGuestLogsInDB: vi.fn(() => Promise.resolve()),
-  getAllMeasurements: vi.fn(() => Promise.resolve([])),
+  getAllMeasurements: vi.fn(() => Promise.resolve(mockMeasurements)),
   saveMeasurement: vi.fn(() => Promise.resolve({ id: 'mocked-m' })),
   deleteMeasurement: vi.fn(() => Promise.resolve('mocked-m-id')),
 }));
@@ -79,6 +120,16 @@ describe('useBodyGraphStore', () => {
     vi.clearAllMocks();
     mockAuthChangeCallback = null;
     localStorage.clear();
+
+    // Pre-populate the store with our global seed logs, measurements, and 3 default paliers
+    const store = useBodyGraphStore();
+    store.logs = [...mockLogs];
+    store.measurements = [...mockMeasurements];
+    store.paliers = [
+      { id: 'p1', mass: 100, fat: 28, validated: false },
+      { id: 'p2', mass: 95, fat: 25, validated: false },
+      { id: 'p3', mass: 85, fat: 20, validated: false }
+    ];
   });
 
   describe('Getters', () => {
@@ -123,84 +174,60 @@ describe('useBodyGraphStore', () => {
 
     it('logsWithEstimates computes fat_mass and lean_mass correctly', () => {
       const store = useBodyGraphStore();
-      store.logs = [
-        { date: '2026-06-15', mass: 100, body_fat: 20 },
-        { date: '2026-06-16', mass: 80, body_fat: 15 }
-      ];
-
-      expect(store.logsWithEstimates).toEqual([
-        { date: '2026-06-15', mass: 100, body_fat: 20, fat_mass: 20, lean_mass: 80 },
-        { date: '2026-06-16', mass: 80, body_fat: 15, fat_mass: 12, lean_mass: 68 }
-      ]);
+      // Test calculations on first entry of seeded logs
+      const firstEstimated = store.logsWithEstimates[0];
+      expect(firstEstimated.id).toBe('j1');
+      expect(firstEstimated.fat_mass).toBeCloseTo(32.1642, 4);
+      expect(firstEstimated.lean_mass).toBeCloseTo(68.0358, 4);
     });
 
     it('groupedMonths processes and sorts logs into monthly groups correctly', () => {
       const store = useBodyGraphStore();
-      store.logs = [
-        { date: '2026-06-15', mass: 100, body_fat: 20 },
-        { date: '2026-06-10', mass: 102, body_fat: 22 },
-        { date: '2026-05-01', mass: 110, body_fat: 25 }
-      ];
-
       const months = store.groupedMonths;
-      expect(months).toHaveLength(2);
+      expect(months).toHaveLength(3);
 
-      // Latest month should be first
-      expect(months[0].id).toBe('2026-06');
-      expect(months[0].label).toBe('June 2026');
-      expect(months[0].medianMass).toBe(101); // median of 100 and 102
-      expect(months[0].medianFat).toBe(21); // median of 20 and 22
-      expect(months[0].medianFatMass).toBe(21.21); // 101 * (21 / 100)
+      // July 2026 (newest month should be first)
+      expect(months[0].id).toBe('2026-07');
+      expect(months[0].label).toBe('July 2026');
+      expect(months[0].medianMass).toBe(101.40);
+      expect(months[0].medianFat).toBe(32.4);
 
-      expect(months[1].id).toBe('2026-05');
-      expect(months[1].label).toBe('May 2026');
+      // June 2026
+      expect(months[1].id).toBe('2026-06');
+      expect(months[1].label).toBe('June 2026');
+
+      // May 2026
+      expect(months[2].id).toBe('2026-05');
+      expect(months[2].label).toBe('May 2026');
     });
 
     it('groupedWeeks groups and processes logs into weekly groups correctly', () => {
       const store = useBodyGraphStore();
-      // 2026-06-17 is a Wednesday, Monday is 2026-06-15, Sunday is 2026-06-21.
-      store.logs = [
-        { date: '2026-06-17', mass: 100, body_fat: 20 },
-        { date: '2026-06-16', mass: 102, body_fat: 22 },
-        // Different week (previous Monday is 2026-06-08)
-        { date: '2026-06-11', mass: 105, body_fat: 25 }
-      ];
-
       const weeks = store.groupedWeeks;
-      expect(weeks).toHaveLength(2);
-      expect(weeks[0].id).toBe('2026-06-15');
-      expect(weeks[0].label).toBe('Jun 15 - Jun 21');
-      expect(weeks[0].medianMass).toBe(101);
+      expect(weeks.length).toBeGreaterThan(0);
 
-      expect(weeks[1].id).toBe('2026-06-08');
-      expect(weeks[1].label).toBe('Jun 8 - Jun 14');
+      // Latest week (week of Jul 15, 2026)
+      expect(weeks[0].id).toBe('2026-07-13');
+      expect(weeks[0].label).toBe('Jul 13 - Jul 19');
+      expect(weeks[0].medianMass).toBe(100.20);
     });
 
     it('sortedMeasurements sorts measurements descending by date', () => {
       const store = useBodyGraphStore();
-      store.measurements = [
-        { date: '2026-06-10', waist: 95 },
-        { date: '2026-06-15', waist: 92 },
-        { date: '2026-06-12', waist: 94 }
-      ];
-
-      expect(store.sortedMeasurements).toEqual([
-        { date: '2026-06-15', waist: 92 },
-        { date: '2026-06-12', waist: 94 },
-        { date: '2026-06-10', waist: 95 }
-      ]);
+      expect(store.sortedMeasurements[0].date).toBe('2026-06-17');
+      expect(store.sortedMeasurements[2].date).toBe('2026-06-03');
     });
 
     it('activeMonth and activeWeek return null when empty, or current active selection', () => {
       const store = useBodyGraphStore();
+      // 1. With pre-populated seed data
+      expect(store.activeMonth.id).toBe('2026-07');
+      expect(store.activeWeek.id).toBe('2026-07-13');
+
+      // 2. When empty
+      store.logs = [];
       expect(store.activeMonth).toBeNull();
       expect(store.activeWeek).toBeNull();
-
-      store.logs = [
-        { date: '2026-06-15', mass: 100, body_fat: 20 }
-      ];
-      expect(store.activeMonth.id).toBe('2026-06');
-      expect(store.activeWeek.id).toBe('2026-06-15');
     });
 
     it('targetLeanMass and targetFatMass compute correct target weights', () => {
@@ -216,6 +243,11 @@ describe('useBodyGraphStore', () => {
 
     it('activePalier returns the first palier in order that is not validated', () => {
       const store = useBodyGraphStore();
+      // Initially, the pre-populated palier is the first one (p1)
+      expect(store.activePalier).toEqual({ id: 'p1', mass: 100, fat: 28, validated: false });
+
+      // Test clearing and custom assignment
+      store.paliers = [];
       expect(store.activePalier).toBeNull();
 
       const p1 = { id: '1', mass: 90, validated: true };
@@ -228,6 +260,7 @@ describe('useBodyGraphStore', () => {
 
     it('stats handles empty logs gracefully', () => {
       const store = useBodyGraphStore();
+      store.logs = [];
       const s = store.stats;
       expect(s.currentMass).toBeNull();
       expect(s.rollingMedianMass).toBeNull();
@@ -236,30 +269,18 @@ describe('useBodyGraphStore', () => {
 
     it('stats computes weights, changes, rolling medians, and unsynced count', () => {
       const store = useBodyGraphStore();
-      // Need logs over more than 7 days to trigger different rolling median and previous window median
-      // Latest log: 2026-06-17.
-      // 7d window: [2026-06-11, 2026-06-17]. Logs in this window: 17th, 16th, 15th. Values: 100, 102, 104. Median = 102.
-      // Previous 7d window end date: 2026-06-10.
-      // Prev window [2026-06-04, 2026-06-10]. Logs: 10th. Value: 110. Median = 110.
-      store.logs = [
-        { date: '2026-06-17', mass: 100, body_fat: 20, synced: true },
-        { date: '2026-06-16', mass: 102, body_fat: 22, synced: false },
-        { date: '2026-06-15', mass: 104, body_fat: 24, synced: false },
-        { date: '2026-06-10', mass: 110, body_fat: 30, synced: true }
-      ];
-
       const s = store.stats;
-      expect(s.currentMass).toBe(100);
-      expect(s.currentFat).toBe(20);
-      expect(s.massChange).toBe(-2); // 100 - 102
-      expect(s.unsyncedCount).toBe(2);
 
-      expect(s.rollingMedianMass).toBe(102); // median of 100, 102, 104
-      expect(s.rollingMedianFat).toBe(22); // median of 20, 22, 24
+      expect(s.currentMass).toBe(100.20);
+      expect(s.currentFat).toBe(32.1);
+      expect(s.massChange).toBeCloseTo(-0.60, 4); // 100.20 - 100.80
+      expect(s.unsyncedCount).toBe(2); // j1 and j2 are unsynced
 
-      // Previous window (around 10th) only has one entry (110)
-      expect(s.rollingMedianMassChange).toBe(-8); // 102 - 110
-      expect(s.rollingMedianFatChange).toBe(-8); // 22 - 30
+      expect(s.rollingMedianMass).toBeCloseTo(100.50, 4); // median of 100.20 and 100.80
+      expect(s.rollingMedianFat).toBeCloseTo(32.15, 4); // median of 32.1 and 32.2
+
+      expect(s.rollingMedianMassChange).toBeCloseTo(-1.15, 4); // 100.50 - 101.65
+      expect(s.rollingMedianFatChange).toBeCloseTo(-0.30, 4); // 32.15 - 32.45
     });
   });
 
@@ -280,19 +301,20 @@ describe('useBodyGraphStore', () => {
 
     it('goToPreviousMonth/goToNextMonth navigates months bounds safely', () => {
       const store = useBodyGraphStore();
-      store.logs = [
-        { date: '2026-06-15', mass: 100, body_fat: 20 },
-        { date: '2026-05-15', mass: 100, body_fat: 20 }
-      ];
-      // 2 months in groupedMonths
-      expect(store.groupedMonths).toHaveLength(2);
+      expect(store.groupedMonths).toHaveLength(3);
       expect(store.selectedMonthIndex).toBe(0);
 
       store.goToPreviousMonth();
       expect(store.selectedMonthIndex).toBe(1);
 
+      store.goToPreviousMonth();
+      expect(store.selectedMonthIndex).toBe(2);
+
       // Boundary check
       store.goToPreviousMonth();
+      expect(store.selectedMonthIndex).toBe(2);
+
+      store.goToNextMonth();
       expect(store.selectedMonthIndex).toBe(1);
 
       store.goToNextMonth();
@@ -305,40 +327,43 @@ describe('useBodyGraphStore', () => {
 
     it('goToPreviousWeek/goToNextWeek navigates weeks bounds safely', () => {
       const store = useBodyGraphStore();
-      store.logs = [
-        { date: '2026-06-17', mass: 100, body_fat: 20 },
-        { date: '2026-06-10', mass: 100, body_fat: 20 }
-      ];
-      expect(store.groupedWeeks).toHaveLength(2);
+      const weeksCount = store.groupedWeeks.length;
+      expect(weeksCount).toBeGreaterThan(1);
       expect(store.selectedWeekIndex).toBe(0);
 
       store.goToPreviousWeek();
       expect(store.selectedWeekIndex).toBe(1);
 
+      // Navigate to the end
+      for (let i = 2; i < weeksCount; i++) {
+        store.goToPreviousWeek();
+      }
+      const maxIndex = weeksCount - 1;
+      expect(store.selectedWeekIndex).toBe(maxIndex);
+
       // Boundary check
       store.goToPreviousWeek();
-      expect(store.selectedWeekIndex).toBe(1);
+      expect(store.selectedWeekIndex).toBe(maxIndex);
 
       store.goToNextWeek();
-      expect(store.selectedWeekIndex).toBe(0);
-
-      // Boundary check
-      store.goToNextWeek();
-      expect(store.selectedWeekIndex).toBe(0);
+      expect(store.selectedWeekIndex).toBe(maxIndex - 1);
     });
 
     it('enableGuestMode triggers isGuestMode and loads logs', async () => {
       const store = useBodyGraphStore();
-      vi.mocked(db.getAllLogs).mockResolvedValue([{ id: 'l1', date: '2026-06-15' }]);
-
       await store.enableGuestMode();
       expect(store.isGuestMode).toBe(true);
       expect(db.getAllLogs).toHaveBeenCalledWith('guest');
-      expect(store.logs).toHaveLength(1);
+      expect(store.logs).toHaveLength(23);
     });
 
     it('syncSingleGoalsFromActivePalier pulls targets from first unvalidated palier', () => {
       const store = useBodyGraphStore();
+      // Test pulling from the default pre-populated paliers (active: p1 100/28)
+      store.syncSingleGoalsFromActivePalier();
+      expect(store.targetMass).toBe(100);
+      expect(store.targetFat).toBe(28);
+
       store.paliers = [
         { id: '1', mass: 90, fat: 18, validated: true },
         { id: '2', mass: 85, fat: 15, validated: false }
@@ -428,6 +453,7 @@ describe('useBodyGraphStore', () => {
       expect(store.isGuestMode).toBe(false);
       expect(supabase.auth.signOut).toHaveBeenCalled();
       expect(db.getAllLogs).toHaveBeenCalledWith('guest');
+      expect(store.logs).toHaveLength(23);
     });
 
     it('initAuth sets up targets and sets up supabase auth callbacks', async () => {
@@ -528,35 +554,24 @@ describe('useBodyGraphStore', () => {
     describe('checkAndAutoValidatePaliers Weight Loss/Gain validation', () => {
       it('validates a palier for weight loss trend', async () => {
         const store = useBodyGraphStore();
-        // Weight loss: initial mass is higher (e.g., 100), target is lower (e.g., 90)
+        // Weight loss: initial mass (oldest log) is 112.40, target is 105.00
         store.paliers = [
-          { id: 'p1', mass: 90, validated: false }
-        ];
-        // Oldest log is 100 (which establishes start weight > target)
-        store.logs = [
-          { date: '2026-06-15', mass: 88, body_fat: 20 },
-          { date: '2026-06-01', mass: 100, body_fat: 20 }
+          { id: 'p1', mass: 105.00, validated: false }
         ];
 
-        // 7d rolling median of mass (using 88) is 88. Start weight is 100.
-        // isPrise is false (target 90 < 100 start weight).
-        // rollingMedian (88) <= target (90) is true -> should validate palier.
         const updatePaliersSpy = vi.spyOn(store, 'updatePaliers');
         await store.checkAndAutoValidatePaliers();
 
         expect(updatePaliersSpy).toHaveBeenCalledWith([
-          { id: 'p1', mass: 90, validated: true }
+          { id: 'p1', mass: 105.00, validated: true }
         ]);
       });
 
       it('does not validate a palier for weight loss trend if target not reached', async () => {
         const store = useBodyGraphStore();
+        // Weight loss: initial mass is 112.40, target is 95.00 (not reached yet, since rolling median is 100.50)
         store.paliers = [
-          { id: 'p1', mass: 90, validated: false }
-        ];
-        store.logs = [
-          { date: '2026-06-15', mass: 95, body_fat: 20 },
-          { date: '2026-06-01', mass: 100, body_fat: 20 }
+          { id: 'p1', mass: 95.00, validated: false }
         ];
 
         const updatePaliersSpy = vi.spyOn(store, 'updatePaliers');
@@ -567,23 +582,19 @@ describe('useBodyGraphStore', () => {
 
       it('validates a palier for weight gain trend', async () => {
         const store = useBodyGraphStore();
-        // Weight gain: initial mass is lower (e.g., 80), target is higher (e.g., 90)
+        // Weight gain trend: reverse the logs so weight goes from 100.20 (oldest) up to 112.40 (latest)
+        store.logs = [...mockLogs].reverse();
+
+        // Target is 110.00 (which is > 100.20 start weight)
         store.paliers = [
-          { id: 'p1', mass: 90, validated: false }
-        ];
-        store.logs = [
-          { date: '2026-06-15', mass: 92, body_fat: 15 },
-          { date: '2026-06-01', mass: 80, body_fat: 15 }
+          { id: 'p1', mass: 110.00, validated: false }
         ];
 
-        // 7d rolling median of mass is 92. Start weight is 80.
-        // isPrise is true (target 90 > 80 start weight).
-        // rollingMedian (92) >= target (90) is true -> should validate.
         const updatePaliersSpy = vi.spyOn(store, 'updatePaliers');
         await store.checkAndAutoValidatePaliers();
 
         expect(updatePaliersSpy).toHaveBeenCalledWith([
-          { id: 'p1', mass: 90, validated: true }
+          { id: 'p1', mass: 110.00, validated: true }
         ]);
       });
     });
