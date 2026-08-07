@@ -11,13 +11,13 @@
 
     <!-- Modal Card -->
     <div 
-      class="w-full sm:max-w-md bg-gray-900 border-t sm:border border-gray-800 rounded-t-3xl sm:rounded-3xl p-6 relative z-10 shadow-2xl shadow-black max-h-[90vh] overflow-y-auto transform translate-y-0 transition-all duration-300 animate-fade-in"
+      class="w-full sm:max-w-lg bg-gray-900 border-t sm:border border-gray-800 rounded-t-3xl sm:rounded-3xl p-6 relative z-10 shadow-2xl shadow-black max-h-[90vh] overflow-y-auto transform translate-y-0 transition-all duration-300 animate-fade-in font-sans text-gray-100"
     >
       <!-- Modal Header -->
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-bold text-white flex items-center gap-2 font-sans">
+        <h2 class="text-xl font-bold text-white flex items-center gap-2">
           <Settings class="w-5 h-5 text-violet-400" />
-          Settings & Goals
+          Configuration des Paliers
         </h2>
         <button 
           @click="closeModal"
@@ -28,58 +28,113 @@
       </div>
 
       <!-- Goals Form -->
-      <form @submit.prevent="handleSave" class="space-y-5">
-        <!-- Target Mass (Weight) -->
-        <div class="space-y-1.5">
-          <label for="settings-mass" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 font-sans">
-            <Scale class="w-3.5 h-3.5 text-violet-400" /> Target Weight (kg)
-          </label>
-          <div class="relative">
-            <input 
-              id="settings-mass"
-              type="number" 
-              step="0.01" 
-              min="0"
-              max="999"
-              v-model="targetMass"
-              placeholder="ex: 70.0"
-              class="w-full px-4 py-2.5 rounded-xl glass-input text-xs text-white"
-            />
-            <span class="absolute inset-y-0 right-4 flex items-center text-xs text-gray-500 font-medium select-none pointer-events-none font-sans">
-              kg
-            </span>
-          </div>
-          <p class="text-[10px] text-gray-500 font-sans">Leave blank to disable the weight goal line.</p>
-        </div>
+      <form @submit.prevent="handleSave" class="space-y-6">
 
-        <!-- Target Body Fat -->
-        <div class="space-y-1.5">
-          <label for="settings-fat" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 font-sans">
-            <Percent class="w-3.5 h-3.5 text-emerald-400" /> Target Body Fat (%)
-          </label>
-          <div class="relative">
-            <input 
-              id="settings-fat"
-              type="number" 
-              step="0.1" 
-              min="0"
-              max="100"
-              v-model="targetFat"
-              placeholder="ex: 12.0"
-              class="w-full px-4 py-2.5 rounded-xl glass-input text-xs text-white"
-            />
-            <span class="absolute inset-y-0 right-4 flex items-center text-xs text-gray-500 font-medium select-none pointer-events-none font-sans">
-              %
-            </span>
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-violet-400 uppercase tracking-wider">Liste de vos objectifs</span>
+            <button
+              type="button"
+              @click="addPalier"
+              class="text-xs bg-violet-600/20 hover:bg-violet-600/40 text-violet-300 px-3 py-1.5 rounded-lg font-semibold transition-all duration-200 flex items-center gap-1 cursor-pointer"
+            >
+              <Plus class="w-3.5 h-3.5" /> Ajouter un palier
+            </button>
           </div>
-          <p class="text-[10px] text-gray-500 font-sans">Leave blank to disable the body fat goal line.</p>
+
+          <!-- Paliers list -->
+          <div v-if="paliers.length === 0" class="text-center py-8 text-xs text-gray-500 border border-dashed border-gray-800 rounded-2xl">
+            Aucun palier configuré. Ajoutez votre premier objectif pour commencer !
+          </div>
+
+          <div v-else class="space-y-3">
+            <div
+              v-for="(palier, index) in paliers"
+              :key="palier.id"
+              class="bg-gray-950/60 border border-gray-800/80 p-3.5 rounded-2xl relative flex flex-col gap-3 group transition-all duration-200 hover:border-violet-500/20"
+            >
+              <!-- Palier Header / Actions -->
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-gray-300 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-violet-500"></span>
+                  Palier {{ index + 1 }}
+                </span>
+                <div class="flex items-center gap-2">
+                  <!-- Manual Toggle Validation -->
+                  <button
+                    type="button"
+                    @click="toggleValidation(index)"
+                    :class="[
+                      'text-[10px] px-2 py-1 rounded-md font-semibold transition-all duration-150 cursor-pointer flex items-center gap-1',
+                      palier.validated
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : 'bg-gray-800 text-gray-400 hover:text-white border border-transparent'
+                    ]"
+                  >
+                    <CheckCircle class="w-3.5 h-3.5" />
+                    <span>{{ palier.validated ? 'Validé' : 'Non validé' }}</span>
+                  </button>
+
+                  <!-- Delete -->
+                  <button
+                    type="button"
+                    @click="removePalier(index)"
+                    class="p-1 rounded-lg hover:bg-rose-500/10 text-gray-500 hover:text-rose-400 transition-colors cursor-pointer"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              <!-- Inputs -->
+              <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-1">
+                  <label :for="'palier-weight-' + index" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Poids Cible</label>
+                  <div class="relative">
+                    <input
+                      :id="'palier-weight-' + index"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="999"
+                      v-model="palier.mass"
+                      placeholder="ex: 85.0"
+                      class="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-800 focus:border-violet-500/40 text-xs text-white"
+                    />
+                    <span class="absolute inset-y-0 right-3 flex items-center text-[10px] text-gray-500 font-medium pointer-events-none">
+                      kg
+                    </span>
+                  </div>
+                </div>
+
+                <div class="space-y-1">
+                  <label :for="'palier-fat-' + index" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Taux de Fat</label>
+                  <div class="relative">
+                    <input
+                      :id="'palier-fat-' + index"
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      v-model="palier.fat"
+                      placeholder="ex: 20.0"
+                      class="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-800 focus:border-violet-500/40 text-xs text-white"
+                    />
+                    <span class="absolute inset-y-0 right-3 flex items-center text-[10px] text-gray-500 font-medium pointer-events-none">
+                      %
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Feedback Messages -->
-        <div v-if="errorMsg" class="text-xs text-rose-400 font-medium bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl font-sans">
+        <div v-if="errorMsg" class="text-xs text-rose-400 font-medium bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl">
           {{ errorMsg }}
         </div>
-        <div v-if="successMsg" class="text-xs text-emerald-400 font-medium bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-xl font-sans">
+        <div v-if="successMsg" class="text-xs text-emerald-400 font-medium bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-xl">
           {{ successMsg }}
         </div>
 
@@ -90,7 +145,7 @@
             @click="clearGoals"
             class="flex-1 py-2.5 px-4 rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-400 hover:text-white transition-all duration-200 text-xs font-semibold cursor-pointer border border-gray-700/30 font-sans"
           >
-            Clear Goals
+            Vider la liste
           </button>
           
           <button 
@@ -98,7 +153,7 @@
             :disabled="loading"
             class="flex-1 py-2.5 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 active:scale-[0.98] text-white font-semibold text-xs transition-all duration-200 cursor-pointer shadow-lg shadow-violet-500/10 flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed font-sans"
           >
-            {{ loading ? 'Saving...' : 'Save Goals' }}
+            {{ loading ? 'Sauvegarde...' : 'Sauvegarder' }}
           </button>
         </div>
       </form>
@@ -108,13 +163,12 @@
 
 <script setup>
 import { ref, watch } from 'vue';
-import { Settings, X, Scale, Percent } from 'lucide-vue-next';
+import { Settings, X, Trash2, Plus, CheckCircle } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 
 const store = useBodyGraphStore();
 
-const targetMass = ref(store.targetMass !== null ? store.targetMass : '');
-const targetFat = ref(store.targetFat !== null ? store.targetFat : '');
+const paliers = ref([]);
 const loading = ref(false);
 const errorMsg = ref('');
 const successMsg = ref('');
@@ -122,8 +176,12 @@ const successMsg = ref('');
 // Watch store state changes to sync values in inputs
 watch(() => store.showSettingsModal, (isOpen) => {
   if (isOpen) {
-    targetMass.value = store.targetMass !== null ? store.targetMass : '';
-    targetFat.value = store.targetFat !== null ? store.targetFat : '';
+    paliers.value = store.paliers.map(p => ({
+      id: p.id || crypto.randomUUID(),
+      mass: p.mass !== null && p.mass !== undefined ? p.mass : '',
+      fat: p.fat !== null && p.fat !== undefined ? p.fat : '',
+      validated: !!p.validated
+    }));
     errorMsg.value = '';
     successMsg.value = '';
   }
@@ -133,42 +191,69 @@ const closeModal = () => {
   store.showSettingsModal = false;
 };
 
+const addPalier = () => {
+  paliers.value.push({
+    id: crypto.randomUUID(),
+    mass: '',
+    fat: '',
+    validated: false
+  });
+};
+
+const removePalier = (index) => {
+  paliers.value.splice(index, 1);
+};
+
+const toggleValidation = (index) => {
+  paliers.value[index].validated = !paliers.value[index].validated;
+};
+
 const handleSave = async () => {
   loading.value = true;
   errorMsg.value = '';
   successMsg.value = '';
 
-  const massVal = targetMass.value === '' ? null : Number(targetMass.value);
-  const fatVal = targetFat.value === '' ? null : Number(targetFat.value);
+  // Validate the inputs
+  const formattedPaliers = [];
+  for (let i = 0; i < paliers.value.length; i++) {
+    const p = paliers.value[i];
+    const massVal = p.mass === '' ? null : Number(p.mass);
+    const fatVal = p.fat === '' ? null : Number(p.fat);
 
-  // Simple checks
-  if (massVal !== null && (isNaN(massVal) || massVal <= 0)) {
-    errorMsg.value = 'Weight must be a positive number';
-    loading.value = false;
-    return;
-  }
-  if (fatVal !== null && (isNaN(fatVal) || fatVal < 0 || fatVal > 100)) {
-    errorMsg.value = 'Body fat must be a percentage between 0 and 100';
-    loading.value = false;
-    return;
+    if (massVal !== null && (isNaN(massVal) || massVal <= 0)) {
+      errorMsg.value = `Palier ${i + 1} : Le poids doit être un nombre positif`;
+      loading.value = false;
+      return;
+    }
+    if (fatVal !== null && (isNaN(fatVal) || fatVal < 0 || fatVal > 100)) {
+      errorMsg.value = `Palier ${i + 1} : Le taux de graisse doit être compris entre 0 et 100%`;
+      loading.value = false;
+      return;
+    }
+
+    formattedPaliers.push({
+      id: p.id,
+      mass: massVal,
+      fat: fatVal,
+      validated: p.validated
+    });
   }
 
   try {
-    await store.updateGoals(massVal, fatVal);
-    successMsg.value = 'Goals updated successfully!';
+    await store.updatePaliers(formattedPaliers);
+    successMsg.value = 'Objectifs sauvegardés avec succès !';
     setTimeout(() => {
       closeModal();
     }, 800);
   } catch (error) {
-    errorMsg.value = 'Failed to save goals: ' + error.message;
+    errorMsg.value = 'Échec de la sauvegarde : ' + error.message;
   } finally {
     loading.value = false;
   }
 };
 
 const clearGoals = async () => {
-  targetMass.value = '';
-  targetFat.value = '';
+  paliers.value = [];
   await handleSave();
 };
 </script>

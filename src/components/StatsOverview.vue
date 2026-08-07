@@ -27,26 +27,40 @@
         <div v-else class="text-[11px] text-gray-500 mt-1.5">No 7d change</div>
       </div>
       <!-- Goal target info -->
-      <div v-if="store.targetMass !== null" class="flex items-center justify-between mt-2 pt-2 border-t border-violet-500/10 text-[10px] text-violet-300/60 font-medium font-sans">
-        <span>Target: {{ store.targetMass.toFixed(2) }} kg</span>
-        <span v-if="store.stats.rollingMedianMass">
-          <span v-if="store.stats.rollingMedianMass > store.targetMass">
-            {{ (store.stats.rollingMedianMass - store.targetMass).toFixed(2) }} kg to lose
+      <div v-if="store.activePalier && store.targetMass !== null" class="flex flex-col gap-0.5 mt-2 pt-2 border-t border-violet-500/10 text-[10px] text-violet-300/60 font-medium font-sans">
+        <div class="flex items-center justify-between">
+          <span class="text-violet-300 font-bold bg-violet-500/15 px-1.5 py-0.5 rounded">Palier {{ activePalierIndex + 1 }}</span>
+          <span v-if="store.stats.rollingMedianMass">
+            <span v-if="store.stats.rollingMedianMass > store.targetMass">
+              {{ (store.stats.rollingMedianMass - store.targetMass).toFixed(2) }} kg à perdre
+            </span>
+            <span v-else-if="store.stats.rollingMedianMass < store.targetMass">
+              {{ (store.targetMass - store.stats.rollingMedianMass).toFixed(2) }} kg à prendre
+            </span>
+            <span v-else class="text-emerald-400 font-bold">
+              🎉 Palier atteint !
+            </span>
           </span>
-          <span v-else-if="store.stats.rollingMedianMass < store.targetMass">
-            {{ (store.targetMass - store.stats.rollingMedianMass).toFixed(2) }} kg to gain
-          </span>
-          <span v-else class="text-emerald-400 font-bold">
-            🎉 Goal met!
-          </span>
-        </span>
+        </div>
+        <div class="flex justify-between items-center text-[9px] text-violet-400/60">
+          <span>Target: {{ store.targetMass.toFixed(2) }} kg ({{ store.targetFat ? store.targetFat.toFixed(1) + '%' : 'sans limite de graisse' }})</span>
+        </div>
+      </div>
+      <div v-else-if="store.activePalier" class="flex flex-col gap-0.5 mt-2 pt-2 border-t border-violet-500/10 text-[10px] text-violet-300/60 font-medium font-sans">
+        <div class="flex items-center justify-between">
+          <span class="text-violet-300 font-bold bg-violet-500/15 px-1.5 py-0.5 rounded">Palier {{ activePalierIndex + 1 }}</span>
+          <span class="text-emerald-400 font-bold">Sans objectif de poids</span>
+        </div>
+      </div>
+      <div v-else-if="store.paliers.length > 0 && !store.activePalier" class="mt-2 pt-2 border-t border-violet-500/10 text-[10px] text-emerald-400 font-bold font-sans text-center">
+        🎉 Tous les paliers validés !
       </div>
       <button 
         v-else 
         @click="store.showSettingsModal = true"
         class="mt-2 pt-2 border-t border-dashed border-violet-500/10 text-[10px] text-violet-400/80 hover:text-violet-300 font-medium cursor-pointer w-full text-left transition-colors duration-150 font-sans"
       >
-        + Set target weight
+        + Configurer les paliers
       </button>
     </div>
 
@@ -77,27 +91,23 @@
         <div v-else class="text-[11px] text-gray-500 mt-1.5">No 7d change</div>
       </div>
       <!-- Goal target info -->
-      <div v-if="store.targetFatMass !== null" class="flex items-center justify-between mt-2 pt-2 border-t border-amber-500/10 text-[10px] text-amber-300/60 font-medium font-sans">
+      <div v-if="store.activePalier && store.targetFatMass !== null" class="flex items-center justify-between mt-2 pt-2 border-t border-amber-500/10 text-[10px] text-amber-300/60 font-medium font-sans">
         <span>Target: {{ store.targetFatMass.toFixed(2) }} kg</span>
         <span v-if="store.stats.rollingMedianFatMass">
           <span v-if="store.stats.rollingMedianFatMass > store.targetFatMass">
-            {{ (store.stats.rollingMedianFatMass - store.targetFatMass).toFixed(2) }} kg to lose
+            {{ (store.stats.rollingMedianFatMass - store.targetFatMass).toFixed(2) }} kg à perdre
           </span>
           <span v-else-if="store.stats.rollingMedianFatMass < store.targetFatMass">
-            {{ (store.targetFatMass - store.stats.rollingMedianFatMass).toFixed(2) }} kg to gain
+            {{ (store.targetFatMass - store.stats.rollingMedianFatMass).toFixed(2) }} kg à prendre
           </span>
           <span v-else class="text-emerald-400 font-bold">
-            🎉 Goal met!
+            🎉 Atteint !
           </span>
         </span>
       </div>
-      <button 
-        v-else 
-        @click="store.showSettingsModal = true"
-        class="mt-2 pt-2 border-t border-dashed border-amber-500/10 text-[10px] text-amber-400/80 hover:text-amber-300 font-medium cursor-pointer w-full text-left transition-colors duration-150 font-sans"
-      >
-        + Set target fat %
-      </button>
+      <div v-else class="mt-2 pt-2 border-t border-dashed border-amber-500/10 text-[10px] text-gray-650 font-medium font-sans">
+        Pas de limite fat
+      </div>
     </div>
 
     <!-- Lean Mass Card (Half width on mobile) -->
@@ -127,22 +137,22 @@
         <div v-else class="text-[11px] text-gray-500 mt-1.5">No 7d change</div>
       </div>
       <!-- Goal target info -->
-      <div v-if="store.targetLeanMass !== null" class="flex items-center justify-between mt-2 pt-2 border-t border-blue-500/10 text-[10px] text-blue-300/60 font-medium font-sans">
+      <div v-if="store.activePalier && store.targetLeanMass !== null" class="flex items-center justify-between mt-2 pt-2 border-t border-blue-500/10 text-[10px] text-blue-300/60 font-medium font-sans">
         <span>Target: {{ store.targetLeanMass.toFixed(2) }} kg</span>
         <span v-if="store.stats.rollingMedianLeanMass">
           <span v-if="store.stats.rollingMedianLeanMass < store.targetLeanMass">
-            {{ (store.targetLeanMass - store.stats.rollingMedianLeanMass).toFixed(2) }} kg to gain
+            {{ (store.targetLeanMass - store.stats.rollingMedianLeanMass).toFixed(2) }} kg à prendre
           </span>
           <span v-else-if="store.stats.rollingMedianLeanMass > store.targetLeanMass">
-            {{ (store.stats.rollingMedianLeanMass - store.targetLeanMass).toFixed(2) }} kg above target
+            {{ (store.stats.rollingMedianLeanMass - store.targetLeanMass).toFixed(2) }} kg au dessus
           </span>
           <span v-else class="text-emerald-400 font-bold">
-            🎉 Target met!
+            🎉 Atteint !
           </span>
         </span>
       </div>
-      <div v-else class="mt-2 pt-2 border-t border-dashed border-blue-500/10 text-[10px] text-gray-600 font-medium font-sans">
-        No target set
+      <div v-else class="mt-2 pt-2 border-t border-dashed border-blue-500/10 text-[10px] text-gray-650 font-medium font-sans">
+        Pas d'objectif set
       </div>
     </div>
   </section>
@@ -154,6 +164,12 @@ import { Scale, Percent, TrendingUp, TrendingDown, Dumbbell } from 'lucide-vue-n
 import { useBodyGraphStore } from '../stores/bodyGraph';
 
 const store = useBodyGraphStore();
+
+const activePalierIndex = computed(() => {
+  const active = store.activePalier;
+  if (!active) return -1;
+  return store.paliersSorted.findIndex(p => p.id === active.id);
+});
 
 const massTrendClass = computed(() => {
   const change = store.stats.rollingMedianMassChange;

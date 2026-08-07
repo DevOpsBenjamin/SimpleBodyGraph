@@ -378,34 +378,43 @@ const goalLinePlugin = {
   id: 'goalLine',
   afterDraw: (chart) => {
     const goalOpts = chart.options.plugins?.goalLine;
-    if (!goalOpts || goalOpts.value === undefined || goalOpts.value === null) return;
+    if (!goalOpts || !goalOpts.lines || goalOpts.lines.length === 0) return;
     
-    const value = goalOpts.value;
     const yScale = chart.scales.y;
+    const ctx = chart.ctx;
+    const xLeft = chart.scales.x.left;
+    const xRight = chart.scales.x.right;
     
-    if (value >= yScale.min && value <= yScale.max) {
-      const ctx = chart.ctx;
-      const y = yScale.getPixelForValue(value);
-      const xLeft = chart.scales.x.left;
-      const xRight = chart.scales.x.right;
+    goalOpts.lines.forEach(line => {
+      const value = line.value;
+      if (value === undefined || value === null) return;
       
-      ctx.save();
-      ctx.strokeStyle = goalOpts.color || '#8b5cf6';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([5, 5]); // Dashed line
-      
-      ctx.beginPath();
-      ctx.moveTo(xLeft, y);
-      ctx.lineTo(xRight, y);
-      ctx.stroke();
-      
-      ctx.fillStyle = goalOpts.textColor || goalOpts.color || '#a78bfa';
-      ctx.font = '10px Outfit, sans-serif';
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'bottom';
-      ctx.fillText(`${goalOpts.label || 'Goal'}: ${value}${goalOpts.unit || ''}`, xRight - 6, y - 3);
-      ctx.restore();
-    }
+      if (value >= yScale.min && value <= yScale.max) {
+        const y = yScale.getPixelForValue(value);
+
+        ctx.save();
+        ctx.strokeStyle = line.color || '#8b5cf6';
+        ctx.lineWidth = line.lineWidth || 1.5;
+
+        if (line.dashed) {
+          ctx.setLineDash([5, 5]); // Dashed line
+        } else {
+          ctx.setLineDash([]); // Solid line
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(xLeft, y);
+        ctx.lineTo(xRight, y);
+        ctx.stroke();
+
+        ctx.fillStyle = line.textColor || line.color || '#a78bfa';
+        ctx.font = '10px Outfit, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(`${line.label || 'Goal'}: ${value}${goalOpts.unit || ''}`, xRight - 6, y - 3);
+        ctx.restore();
+      }
+    });
   }
 };
 
@@ -501,6 +510,72 @@ const commonWeeklyTimeScaleOptions = {
   },
   grid: { display: false },
   ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 10 } }
+};
+
+// Generates multiple goal lines configuration based on paliers for weight, fat, lean, and fat mass charts
+const getGoalLinesForMetric = (metricType) => {
+  const paliers = store.paliersSorted;
+  if (paliers.length === 0) return [];
+
+  // Find active palier index
+  const activePalier = store.activePalier;
+  const activeIndex = activePalier ? paliers.findIndex(p => p.id === activePalier.id) : -1;
+
+  return paliers.map((palier, index) => {
+    let value = null;
+    let label = `Palier ${index + 1}`;
+    let baseColor = '';
+
+    if (metricType === 'weight') {
+      value = palier.mass;
+      baseColor = '139, 92, 246'; // violet
+    } else if (metricType === 'fat') {
+      value = palier.fat;
+      baseColor = '16, 185, 129'; // emerald
+    } else if (metricType === 'lean') {
+      value = (palier.mass !== null && palier.fat !== null)
+        ? palier.mass - (palier.mass * (palier.fat / 100))
+        : null;
+      baseColor = '59, 130, 246'; // blue
+    } else if (metricType === 'fat_mass') {
+      value = (palier.mass !== null && palier.fat !== null)
+        ? palier.mass * (palier.fat / 100)
+        : null;
+      baseColor = '245, 158, 11'; // amber
+    }
+
+    if (value === null) return null;
+
+    // Design:
+    // - Completed/validated paliers: solid green line, low opacity but solid.
+    // - Uncompleted: dashed line.
+    // - Closer to active palier => higher opacity.
+    // We compute Rank-based opacity decay from activeIndex
+    let dashed = !palier.validated;
+    let opacity = 0.8;
+    let strokeColor = '';
+
+    if (palier.validated) {
+      // Completed => beautiful solid green/emerald
+      strokeColor = `rgba(16, 185, 129, 0.4)`;
+    } else {
+      // Uncompleted. Rank based decay.
+      if (activeIndex !== -1) {
+        const diff = Math.abs(index - activeIndex);
+        opacity = Math.max(0.15, 0.8 - (diff * 0.25));
+      }
+      strokeColor = `rgba(${baseColor}, ${opacity})`;
+    }
+
+    return {
+      value,
+      label,
+      color: strokeColor,
+      textColor: strokeColor,
+      dashed,
+      lineWidth: activeIndex === index ? 2 : 1.2
+    };
+  }).filter(Boolean);
 };
 
 // Render Global Monthly Median Trend Charts
@@ -600,10 +675,7 @@ const updateMonthlyCharts = () => {
               }
             },
             goalLine: {
-              value: store.targetMass,
-              color: 'rgba(167, 139, 250, 0.4)',
-              textColor: 'rgba(167, 139, 250, 0.8)',
-              label: 'Target',
+              lines: getGoalLinesForMetric('weight'),
               unit: ' kg'
             }
           },
@@ -700,10 +772,7 @@ const updateMonthlyCharts = () => {
               }
             },
             goalLine: {
-              value: store.targetLeanMass,
-              color: 'rgba(96, 165, 250, 0.4)',
-              textColor: 'rgba(96, 165, 250, 0.8)',
-              label: 'Target',
+              lines: getGoalLinesForMetric('lean'),
               unit: ' kg'
             }
           },
@@ -800,10 +869,7 @@ const updateMonthlyCharts = () => {
               }
             },
             goalLine: {
-              value: store.targetFat,
-              color: 'rgba(52, 211, 153, 0.4)',
-              textColor: 'rgba(52, 211, 153, 0.8)',
-              label: 'Target',
+              lines: getGoalLinesForMetric('fat'),
               unit: '%'
             }
           },
@@ -900,10 +966,7 @@ const updateMonthlyCharts = () => {
               }
             },
             goalLine: {
-              value: store.targetFatMass,
-              color: 'rgba(245, 158, 11, 0.4)',
-              textColor: 'rgba(245, 158, 11, 0.8)',
-              label: 'Target',
+              lines: getGoalLinesForMetric('fat_mass'),
               unit: ' kg'
             }
           },
@@ -1018,10 +1081,7 @@ const updateWeeklyCharts = () => {
               }
             },
             goalLine: {
-              value: store.targetMass,
-              color: 'rgba(167, 139, 250, 0.4)',
-              textColor: 'rgba(167, 139, 250, 0.8)',
-              label: 'Target',
+              lines: getGoalLinesForMetric('weight'),
               unit: ' kg'
             }
           },
@@ -1118,10 +1178,7 @@ const updateWeeklyCharts = () => {
               }
             },
             goalLine: {
-              value: store.targetLeanMass,
-              color: 'rgba(96, 165, 250, 0.4)',
-              textColor: 'rgba(96, 165, 250, 0.8)',
-              label: 'Target',
+              lines: getGoalLinesForMetric('lean'),
               unit: ' kg'
             }
           },
@@ -1218,10 +1275,7 @@ const updateWeeklyCharts = () => {
               }
             },
             goalLine: {
-              value: store.targetFat,
-              color: 'rgba(52, 211, 153, 0.4)',
-              textColor: 'rgba(52, 211, 153, 0.8)',
-              label: 'Target',
+              lines: getGoalLinesForMetric('fat'),
               unit: '%'
             }
           },
@@ -1318,10 +1372,7 @@ const updateWeeklyCharts = () => {
               }
             },
             goalLine: {
-              value: store.targetFatMass,
-              color: 'rgba(245, 158, 11, 0.4)',
-              textColor: 'rgba(245, 158, 11, 0.8)',
-              label: 'Target',
+              lines: getGoalLinesForMetric('fat_mass'),
               unit: ' kg'
             }
           },
@@ -1347,7 +1398,7 @@ const drawAll = () => {
   }
 };
 
-watch([() => store.logs, () => store.activeTab, () => store.targetMass, () => store.targetFat], () => {
+watch([() => store.logs, () => store.activeTab, () => store.paliers], () => {
   drawAll();
 }, { deep: true });
 
