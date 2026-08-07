@@ -47,7 +47,7 @@ export function calculateMedian(arr) {
 }
 
 // Helper to get logs falling into a specific date range [refDate - days + 1, refDate]
-function getRollingLogsForDate(logs, refDateStr, days = 7) {
+export function getRollingLogsForDate(logs, refDateStr, days = 7) {
   const refDate = new Date(refDateStr);
   const startDate = new Date(refDate);
   startDate.setDate(startDate.getDate() - (days - 1));
