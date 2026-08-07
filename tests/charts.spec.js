@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { seedIndexedDB, MOCK_LOGS } from './db-helper';
 
 test('Seed user data and take screenshot', async ({ page }) => {
   // Listen to browser console and errors
@@ -14,41 +15,8 @@ test('Seed user data and take screenshot', async ({ page }) => {
   // Wait for onboarding to transition and the main page / add button to appear
   await expect(page.getByRole('button', { name: 'Add Log Entry' })).toBeVisible();
 
-  // 2. Execute JavaScript in context to clear IndexedDB and seed user logs
-  await page.evaluate(() => {
-    return new Promise((resolve, reject) => {
-      const DB_NAME = 'SimpleBodyGraphDB';
-      const DB_VERSION = 3;
-      const STORE_LOGS = 'logs';
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
-      request.onerror = () => reject(request.error);
-      request.onsuccess = (event) => {
-        const db = event.target.result;
-        const transaction = db.transaction(STORE_LOGS, 'readwrite');
-        const store = transaction.objectStore(STORE_LOGS);
-        store.clear();
-        const testLogs = [
-          { id: '1', date: '2026-06-17', mass: 105.35, body_fat: 34.2, synced: true, user_id: 'guest' },
-          { id: '2', date: '2026-06-16', mass: 105.78, body_fat: 34.3, synced: true, user_id: 'guest' },
-          { id: '3', date: '2026-06-15', mass: 106.20, body_fat: 34.4, synced: true, user_id: 'guest' },
-          { id: '4', date: '2026-06-14', mass: 107.40, body_fat: 34.6, synced: true, user_id: 'guest' },
-          { id: '5', date: '2026-06-13', mass: 106.60, body_fat: 34.3, synced: true, user_id: 'guest' },
-          { id: '6', date: '2026-06-12', mass: 105.80, body_fat: 34.1, synced: true, user_id: 'guest' },
-          { id: '7', date: '2026-06-11', mass: 106.08, body_fat: 34.2, synced: true, user_id: 'guest' },
-          { id: '8', date: '2026-06-10', mass: 106.35, body_fat: 34.3, synced: true, user_id: 'guest' },
-          { id: '9', date: '2026-06-09', mass: 106.35, body_fat: 34.6, synced: true, user_id: 'guest' },
-          { id: '10', date: '2026-06-08', mass: 106.35, body_fat: 34.8, synced: true, user_id: 'guest' },
-          { id: '11', date: '2026-06-07', mass: 106.80, body_fat: 34.9, synced: true, user_id: 'guest' },
-          { id: '12', date: '2026-06-06', mass: 107.25, body_fat: 35.0, synced: true, user_id: 'guest' },
-          { id: '13', date: '2026-06-05', mass: 107.65, body_fat: 35.1, synced: true, user_id: 'guest' }
-        ];
-        testLogs.forEach(log => store.put(log));
-        transaction.oncomplete = () => {
-          resolve('Seeded successfully');
-        };
-      };
-    });
-  });
+  // 2. Clear IndexedDB and seed user logs using reusable helper
+  await seedIndexedDB(page, MOCK_LOGS);
 
   // Reload the page to load the seeded logs
   await page.reload();
