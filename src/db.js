@@ -526,3 +526,24 @@ export async function syncLogs(userId = 'guest') {
     return { success: false, error };
   }
 }
+
+// Expose helpers to window for easy, native unit testing in browser context
+if (typeof window !== 'undefined') {
+  window.__db = {
+    openDB,
+    getAllLogs,
+    saveLog,
+    deleteLog,
+    getUnsyncedLogs,
+    getPendingDeletions,
+    clearPendingDeletions,
+    getAllMeasurements,
+    saveMeasurement,
+    deleteMeasurement,
+    getUnsyncedMeasurements,
+    getPendingMeasurementDeletions,
+    clearPendingMeasurementDeletions,
+    migrateGuestLogsInDB,
+    syncLogs
+  };
+}
