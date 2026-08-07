@@ -2,10 +2,18 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import './style.css'
 import App from './App.vue'
+import { useBodyGraphStore } from './stores/bodyGraph'
 
 const app = createApp(App)
-app.use(createPinia())
+const pinia = createPinia()
+app.use(pinia)
 app.mount('#app')
+
+// Expose Pinia and the store for E2E and integration tests
+if (typeof window !== 'undefined') {
+  window.pinia = pinia
+  window.useBodyGraphStore = useBodyGraphStore
+}
 
 // Register Service Worker for offline-first capabilities
 if ('serviceWorker' in navigator) {
