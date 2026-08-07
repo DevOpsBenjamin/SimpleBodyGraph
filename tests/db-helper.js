@@ -1,7 +1,8 @@
 export const MOCK_LOGS = [
   // --- July 2026 (Reduced weight & fat) ---
-  { id: 'j1', date: '2026-07-15', mass: 100.20, body_fat: 32.1, synced: true, user_id: 'guest' },
-  { id: 'j2', date: '2026-07-12', mass: 100.80, body_fat: 32.2, synced: true, user_id: 'guest' },
+  // A couple of unsynced entries for offline/unsynced test coverage
+  { id: 'j1', date: '2026-07-15', mass: 100.20, body_fat: 32.1, synced: false, user_id: 'guest' },
+  { id: 'j2', date: '2026-07-12', mass: 100.80, body_fat: 32.2, synced: false, user_id: 'guest' },
   { id: 'j3', date: '2026-07-08', mass: 101.40, body_fat: 32.4, synced: true, user_id: 'guest' },
   { id: 'j4', date: '2026-07-05', mass: 101.90, body_fat: 32.5, synced: true, user_id: 'guest' },
   { id: 'j5', date: '2026-07-01', mass: 102.30, body_fat: 32.7, synced: true, user_id: 'guest' },
@@ -30,7 +31,8 @@ export const MOCK_LOGS = [
 ];
 
 export const MOCK_MEASUREMENTS = [
-  { id: 'm1', date: '2026-06-17', waist: 95, chest: 104, arms: 38, thighs: 62, synced: true, user_id: 'guest' },
+  // An unsynced entry for offline/unsynced test coverage
+  { id: 'm1', date: '2026-06-17', waist: 95, chest: 104, arms: 38, thighs: 62, synced: false, user_id: 'guest' },
   { id: 'm2', date: '2026-06-10', waist: 96, chest: 105, arms: 38.5, thighs: 63, synced: true, user_id: 'guest' },
   { id: 'm3', date: '2026-06-03', waist: 97, chest: 106, arms: 39, thighs: 64, synced: true, user_id: 'guest' }
 ];
