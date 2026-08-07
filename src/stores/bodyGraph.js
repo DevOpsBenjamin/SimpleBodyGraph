@@ -12,7 +12,7 @@ import {
 } from '../db';
 
 // Helper to find the Monday (YYYY-MM-DD) of a given date
-function getMondayOfDate(dateStr) {
+export function getMondayOfDate(dateStr) {
   const dateObj = new Date(dateStr);
   const day = dateObj.getDay();
   const diff = dateObj.getDate() - day + (day === 0 ? -6 : 1);
