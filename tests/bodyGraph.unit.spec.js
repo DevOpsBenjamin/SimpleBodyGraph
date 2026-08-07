@@ -1,5 +1,37 @@
 import { describe, it, expect } from 'vitest';
-import { getMondayOfDate } from '../src/stores/bodyGraph';
+import { getMondayOfDate, calculateMedian } from '../src/stores/bodyGraph';
+
+describe('calculateMedian', () => {
+  it('should return 0 if the array is null, undefined, or empty', () => {
+    expect(calculateMedian(null)).toBe(0);
+    expect(calculateMedian(undefined)).toBe(0);
+    expect(calculateMedian([])).toBe(0);
+  });
+
+  it('should calculate the median of an odd-length numeric array', () => {
+    expect(calculateMedian([5])).toBe(5);
+    expect(calculateMedian([3, 1, 2])).toBe(2);
+    expect(calculateMedian([10, 20, 30, 40, 50])).toBe(30);
+  });
+
+  it('should calculate the median of an even-length numeric array', () => {
+    expect(calculateMedian([1, 2])).toBe(1.5);
+    expect(calculateMedian([4, 1, 3, 2])).toBe(2.5);
+    expect(calculateMedian([10, 20, 30, 40])).toBe(25);
+  });
+
+  it('should correctly handle negative and decimal numbers', () => {
+    expect(calculateMedian([-5, -1, -3])).toBe(-3);
+    expect(calculateMedian([1.5, 2.5, 3.5])).toBe(2.5);
+    expect(calculateMedian([-1.5, 1.5])).toBe(0);
+  });
+
+  it('should filter out null, undefined, and NaN values, and calculate the median of the remaining elements', () => {
+    expect(calculateMedian([1, null, 3, undefined, 2])).toBe(2);
+    expect(calculateMedian([1, NaN, 2])).toBe(1.5);
+    expect(calculateMedian([null, undefined, NaN])).toBe(0);
+  });
+});
 
 describe('getMondayOfDate', () => {
   it('should correctly find Monday for standard weekdays', () => {
