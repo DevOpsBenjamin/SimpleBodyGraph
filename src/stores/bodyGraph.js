@@ -92,6 +92,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     isGuestMode: false,
     targetMass: null,
     targetFat: null,
+    paliers: [],
     
     // Index of the month in the groupedMonths list (0 is the newest month)
     selectedMonthIndex: 0,
@@ -296,6 +297,25 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         : null;
     },
 
+    paliersSorted(state) {
+      // Sort paliers in logical order depending on whether the user wants to lose or gain weight
+      // Or just standard numeric order of their mass targets.
+      // Let's sort them ascending by mass (poids) target, but we'll also preserve manual order if needed.
+      // Let's return the list sorted ascending by mass to make the math of "which is next" predictable,
+      // or we can sort them by targetMass ascending if the trend is generally ascending, or descending.
+      // To be completely safe and predictable, let's keep the user's manual ordering of paliers,
+      // but we'll sort them by targetMass ascending if none is specified or just return them as-is.
+      return [...state.paliers];
+    },
+
+    activePalier() {
+      const paliers = this.paliersSorted;
+      if (paliers.length === 0) return null;
+      // The active palier is the first one that is NOT validated
+      const active = paliers.find(p => !p.validated);
+      return active || null;
+    },
+
     stats() {
       const currentLogs = this.logsWithEstimates;
       const count = currentLogs.length;
@@ -429,9 +449,31 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       this.targetMass = localStorage.getItem('bodygraph_target_mass') ? Number(localStorage.getItem('bodygraph_target_mass')) : null;
       this.targetFat = localStorage.getItem('bodygraph_target_fat') ? Number(localStorage.getItem('bodygraph_target_fat')) : null;
 
+      const savedPaliers = localStorage.getItem('bodygraph_paliers');
+      if (savedPaliers) {
+        try {
+          this.paliers = JSON.parse(savedPaliers);
+        } catch (e) {
+          this.paliers = [];
+        }
+      } else {
+        // Fallback or migration for single goal to multiple paliers
+        if (this.targetMass !== null || this.targetFat !== null) {
+          this.paliers = [{
+            id: crypto.randomUUID(),
+            mass: this.targetMass,
+            fat: this.targetFat,
+            validated: false
+          }];
+        } else {
+          this.paliers = [];
+        }
+      }
+
       if (!supabase) {
         await this.loadLogs();
         this.initialized = true;
+        this.syncSingleGoalsFromActivePalier();
         return;
       }
 
@@ -443,6 +485,18 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         if (this.user) {
           this.targetMass = this.user.user_metadata?.target_mass || null;
           this.targetFat = this.user.user_metadata?.target_fat || null;
+          if (this.user.user_metadata?.paliers) {
+            this.paliers = this.user.user_metadata.paliers;
+          } else if (this.targetMass !== null || this.targetFat !== null) {
+            this.paliers = [{
+              id: crypto.randomUUID(),
+              mass: this.targetMass,
+              fat: this.targetFat,
+              validated: false
+            }];
+          } else {
+            this.paliers = [];
+          }
         }
         
         await this.loadLogs();
@@ -454,13 +508,43 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           if (session?.user) {
             this.targetMass = session.user.user_metadata?.target_mass || null;
             this.targetFat = session.user.user_metadata?.target_fat || null;
+            if (session.user.user_metadata?.paliers) {
+              this.paliers = session.user.user_metadata.paliers;
+            } else if (this.targetMass !== null || this.targetFat !== null) {
+              this.paliers = [{
+                id: crypto.randomUUID(),
+                mass: this.targetMass,
+                fat: this.targetFat,
+                validated: false
+              }];
+            } else {
+              this.paliers = [];
+            }
             await this.migrateGuestLogs(session.user.id);
           } else {
             // Revert to local goals
             this.targetMass = localStorage.getItem('bodygraph_target_mass') ? Number(localStorage.getItem('bodygraph_target_mass')) : null;
             this.targetFat = localStorage.getItem('bodygraph_target_fat') ? Number(localStorage.getItem('bodygraph_target_fat')) : null;
+            const saved = localStorage.getItem('bodygraph_paliers');
+            if (saved) {
+              try {
+                this.paliers = JSON.parse(saved);
+              } catch (e) {
+                this.paliers = [];
+              }
+            } else if (this.targetMass !== null || this.targetFat !== null) {
+              this.paliers = [{
+                id: crypto.randomUUID(),
+                mass: this.targetMass,
+                fat: this.targetFat,
+                validated: false
+              }];
+            } else {
+              this.paliers = [];
+            }
           }
           
+          this.syncSingleGoalsFromActivePalier();
           await this.loadLogs();
           this.triggerSync();
         });
@@ -470,6 +554,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         await this.loadLogs();
       } finally {
         this.initialized = true;
+        this.syncSingleGoalsFromActivePalier();
       }
     },
 
@@ -478,16 +563,28 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       this.loadLogs();
     },
 
-    async updateGoals(mass, fat) {
-      this.targetMass = mass ? Number(mass) : null;
-      this.targetFat = fat ? Number(fat) : null;
+    syncSingleGoalsFromActivePalier() {
+      const active = this.activePalier;
+      if (active) {
+        this.targetMass = active.mass !== null ? Number(active.mass) : null;
+        this.targetFat = active.fat !== null ? Number(active.fat) : null;
+      } else {
+        this.targetMass = null;
+        this.targetFat = null;
+      }
+    },
+
+    async updatePaliers(paliersList) {
+      this.paliers = paliersList;
+      this.syncSingleGoalsFromActivePalier();
 
       if (this.user && supabase) {
         try {
           const { data, error } = await supabase.auth.updateUser({
             data: {
               target_mass: this.targetMass,
-              target_fat: this.targetFat
+              target_fat: this.targetFat,
+              paliers: this.paliers
             }
           });
           if (error) throw error;
@@ -497,6 +594,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           throw error;
         }
       } else {
+        localStorage.setItem('bodygraph_paliers', JSON.stringify(this.paliers));
         if (this.targetMass !== null) {
           localStorage.setItem('bodygraph_target_mass', this.targetMass);
         } else {
@@ -508,6 +606,27 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           localStorage.removeItem('bodygraph_target_fat');
         }
       }
+    },
+
+    async updateGoals(mass, fat) {
+      // Legacy support, also creates or updates first palier
+      this.targetMass = mass ? Number(mass) : null;
+      this.targetFat = fat ? Number(fat) : null;
+
+      if (this.paliers.length > 0) {
+        const active = this.paliers[0];
+        active.mass = this.targetMass;
+        active.fat = this.targetFat;
+      } else {
+        this.paliers = [{
+          id: crypto.randomUUID(),
+          mass: this.targetMass,
+          fat: this.targetFat,
+          validated: false
+        }];
+      }
+
+      await this.updatePaliers(this.paliers);
     },
 
     async signInWithEmail(email, password) {
@@ -611,6 +730,54 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     // Save or update a log entry
+    async checkAndAutoValidatePaliers() {
+      // Automatic validation of paliers based on 7d rolling median mass
+      const rollingMedian = this.stats.rollingMedianMass;
+      if (!rollingMedian || this.paliers.length === 0) return;
+
+      let changed = false;
+      const updatedPaliers = this.paliers.map((palier, index) => {
+        if (palier.validated) return palier; // already validated
+
+        // To know whether we are in weight gain or loss trend:
+        // We look at the general trend direction of the paliers or just compare
+        // with previous paliers / initial weight.
+        // Let's determine direction: if palier targets are lower than starting/current weight
+        // it's a loss, if higher it's a gain.
+        // Even simpler: we can compare the palier target to the current 7d rolling median.
+        // But the user specifies:
+        // "si els palier descende perte de masse c quand on passe en dessous du palier en cour
+        // quand les palier montre prise de masse on considere un palier passer quand on est au dessus"
+        // Let's compute overall list direction or compare each palier relative to current/previous targets.
+        // Let's check if the palier mass target is smaller than previous palier's target (or first palier's target).
+        // Let's define direction per palier or list-wide.
+        // List-wide direction: compare last palier with first palier, or first palier with current weight.
+        // Let's look at the sequence of paliers:
+        // If we have index > 0, compare with index - 1. If index == 0, compare with first recorded log mass.
+        let isPrise = false;
+        if (index > 0) {
+          isPrise = Number(palier.mass) > Number(this.paliers[index - 1].mass);
+        } else {
+          const firstLog = this.logsWithEstimates[this.logsWithEstimates.length - 1];
+          const startMass = firstLog ? Number(firstLog.mass) : rollingMedian;
+          isPrise = Number(palier.mass) > startMass;
+        }
+
+        const target = Number(palier.mass);
+        const passed = isPrise ? (rollingMedian >= target) : (rollingMedian <= target);
+
+        if (passed) {
+          changed = true;
+          return { ...palier, validated: true };
+        }
+        return palier;
+      });
+
+      if (changed) {
+        await this.updatePaliers(updatedPaliers);
+      }
+    },
+
     async saveLogEntry({ id, mass, bodyFat, date }) {
       const log = {
         id: id || crypto.randomUUID(),
@@ -623,6 +790,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       try {
         await saveLog(log, this.currentUserId);
         await this.loadLogs();
+        await this.checkAndAutoValidatePaliers();
         this.showAddModal = false;
         this.editingLog = null;
         this.triggerSync();
