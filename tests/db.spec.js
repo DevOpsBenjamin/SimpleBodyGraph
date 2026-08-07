@@ -36,11 +36,11 @@ test.describe('IndexedDB Database Helpers', () => {
       return await window.__db.getAllLogs('guest');
     });
 
-    // Check we have the 23 logs from MOCK_LOGS
-    expect(guestLogs).toHaveLength(23);
+    // Check we have the 28 logs from MOCK_LOGS
+    expect(guestLogs).toHaveLength(28);
     // Verify descending order by checking first and last dates
     expect(guestLogs[0].date).toBe('2026-07-15');
-    expect(guestLogs[22].date).toBe('2026-05-05');
+    expect(guestLogs[27].date).toBe('2025-11-12');
 
     // 2. Add a new log entry to test saveLog additions
     const newLog = { date: '2026-07-20', mass: 99.5, body_fat: 31.5, synced: false };
@@ -55,7 +55,7 @@ test.describe('IndexedDB Database Helpers', () => {
     const updatedGuestLogs = await page.evaluate(async () => {
       return await window.__db.getAllLogs('guest');
     });
-    expect(updatedGuestLogs).toHaveLength(24);
+    expect(updatedGuestLogs).toHaveLength(29);
     expect(updatedGuestLogs[0].date).toBe('2026-07-20');
 
     // 3. Test saving a log for a different user to verify user_id isolation
@@ -70,17 +70,17 @@ test.describe('IndexedDB Database Helpers', () => {
     expect(userLogs).toHaveLength(1);
     expect(userLogs[0].mass).toBe(90);
 
-    // Verify guest logs still has 24 logs
+    // Verify guest logs still has 29 logs
     const finalGuestLogs = await page.evaluate(async () => {
       return await window.__db.getAllLogs('guest');
     });
-    expect(finalGuestLogs).toHaveLength(24);
+    expect(finalGuestLogs).toHaveLength(29);
   });
 
   test('deleteLog removes logs and tracks deletions offline', async ({ page }) => {
     // 1. Verify log exists in the seeded dataset
     let logs = await page.evaluate(async () => await window.__db.getAllLogs('guest'));
-    expect(logs).toHaveLength(23);
+    expect(logs).toHaveLength(28);
 
     // 2. Delete an existing synced log (e.g. 'j3')
     const deletedId = await page.evaluate(async () => {
@@ -88,9 +88,9 @@ test.describe('IndexedDB Database Helpers', () => {
     });
     expect(deletedId).toBe('j3');
 
-    // 3. Verify it is gone from the main store (count becomes 22)
+    // 3. Verify it is gone from the main store (count becomes 27)
     logs = await page.evaluate(async () => await window.__db.getAllLogs('guest'));
-    expect(logs).toHaveLength(22);
+    expect(logs).toHaveLength(27);
     expect(logs.find(l => l.id === 'j3')).toBeUndefined();
 
     // 4. Verify deletion is recorded in pending deletions store
@@ -196,7 +196,7 @@ test.describe('IndexedDB Database Helpers', () => {
     // 1. Verify we have guest logs and measurements initially
     const initialGuestLogs = await page.evaluate(async () => await window.__db.getAllLogs('guest'));
     const initialGuestMs = await page.evaluate(async () => await window.__db.getAllMeasurements('guest'));
-    expect(initialGuestLogs).toHaveLength(23);
+    expect(initialGuestLogs).toHaveLength(28);
     expect(initialGuestMs).toHaveLength(3);
 
     // 2. Run guest migration to a new user
@@ -214,7 +214,7 @@ test.describe('IndexedDB Database Helpers', () => {
     const migratedLogs = await page.evaluate(async () => await window.__db.getAllLogs('user-new-456'));
     const migratedMs = await page.evaluate(async () => await window.__db.getAllMeasurements('user-new-456'));
 
-    expect(migratedLogs).toHaveLength(23);
+    expect(migratedLogs).toHaveLength(28);
     expect(migratedLogs[0].user_id).toBe('user-new-456');
     expect(migratedLogs[0].synced).toBe(false);
 

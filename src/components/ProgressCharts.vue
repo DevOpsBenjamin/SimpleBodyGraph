@@ -14,6 +14,9 @@
   </div>
 
   <div v-else class="space-y-6">
+
+    <!-- DATE RANGE FILTER BAR -->
+    <YearRangeSelector />
     
     <!-- 1. MONTHLY VIEW -->
     <div 
@@ -364,10 +367,11 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
-import { Scale, Plus, ChevronLeft, ChevronRight, Copy, Check } from 'lucide-vue-next';
+import { Scale, Plus, ChevronLeft, ChevronRight, Copy, Check, Calendar } from 'lucide-vue-next';
 import { Chart, registerables } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import { useBodyGraphStore } from '../stores/bodyGraph';
+import YearRangeSelector from './YearRangeSelector.vue';
 
 Chart.register(...registerables);
 
@@ -1398,7 +1402,30 @@ const drawAll = () => {
   }
 };
 
-watch([() => store.logs, () => store.activeTab, () => store.paliers], () => {
+watch(() => store.startYear, (newStart) => {
+  if (store.endYear !== null && newStart > store.endYear) {
+    store.endYear = newStart;
+  }
+});
+
+watch(() => store.endYear, (newEnd) => {
+  if (store.startYear !== null && newEnd < store.startYear) {
+    store.startYear = newEnd;
+  }
+});
+
+watch([() => store.logs, () => store.activeTab, () => store.paliers, () => store.startYear, () => store.endYear], () => {
+  // Clamp indices if they are out of bounds after filtering
+  const maxMonthIndex = store.groupedMonths.length - 1;
+  if (store.selectedMonthIndex > maxMonthIndex) {
+    store.selectedMonthIndex = Math.max(0, maxMonthIndex);
+  }
+
+  const maxIndex = store.groupedWeeks.length - 1;
+  if (store.selectedWeekIndex > maxIndex) {
+    store.selectedWeekIndex = Math.max(0, maxIndex);
+  }
+
   drawAll();
 }, { deep: true });
 
