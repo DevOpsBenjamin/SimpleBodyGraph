@@ -36,7 +36,7 @@ function getSundayOfMonday(mondayStr) {
 }
 
 // Helper to calculate median of a numeric array
-function calculateMedian(arr) {
+export function calculateMedian(arr) {
   if (!arr || arr.length === 0) return 0;
   const sorted = [...arr].filter(v => v !== null && v !== undefined && !isNaN(v)).sort((a, b) => a - b);
   if (sorted.length === 0) return 0;
