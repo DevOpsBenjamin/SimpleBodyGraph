@@ -66,6 +66,27 @@ export function openDB() {
   });
 }
 
+// Generic Bulk Write Helper
+export async function bulkWrite(storeName, { puts = [], deletes = [] }) {
+  if (puts.length === 0 && deletes.length === 0) return;
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, 'readwrite');
+    const store = transaction.objectStore(storeName);
+
+    for (const item of puts) {
+      store.put(item);
+    }
+    for (const id of deletes) {
+      store.delete(id);
+    }
+
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+    transaction.onabort = () => reject(new Error('Transaction aborted'));
+  });
+}
+
 // Database Helper Methods (Isolated by userId)
 export async function getAllLogs(userId = 'guest') {
   const db = await openDB();
@@ -157,14 +178,7 @@ export async function getPendingDeletions(userId = 'guest') {
 }
 
 export async function clearPendingDeletions(ids) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(STORE_DELETIONS, 'readwrite');
-    const store = transaction.objectStore(STORE_DELETIONS);
-    ids.forEach(id => store.delete(id));
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error);
-  });
+  return bulkWrite(STORE_DELETIONS, { deletes: ids });
 }
 
 // ---------------- MEASUREMENTS ----------------
@@ -254,55 +268,33 @@ export async function getPendingMeasurementDeletions(userId = 'guest') {
 }
 
 export async function clearPendingMeasurementDeletions(ids) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(STORE_MEASUREMENTS_DELETIONS, 'readwrite');
-    const store = transaction.objectStore(STORE_MEASUREMENTS_DELETIONS);
-    ids.forEach(id => store.delete(id));
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error);
-  });
+  return bulkWrite(STORE_MEASUREMENTS_DELETIONS, { deletes: ids });
 }
 
 // Migrate local guest logs to authenticated user
 export async function migrateGuestLogsInDB(newUserId) {
   if (!newUserId || newUserId === 'guest') return;
   
-  const db = await openDB();
   const guestLogs = await getAllLogs('guest');
-  if (guestLogs.length === 0) return;
-
-  const transaction = db.transaction(STORE_LOGS, 'readwrite');
-  const store = transaction.objectStore(STORE_LOGS);
-
-  for (const log of guestLogs) {
-    log.user_id = newUserId;
-    log.synced = false; // Trigger upload
-    store.put(log);
+  if (guestLogs.length > 0) {
+    const updatedLogs = guestLogs.map(log => ({
+      ...log,
+      user_id: newUserId,
+      synced: false // Trigger upload
+    }));
+    await bulkWrite(STORE_LOGS, { puts: updatedLogs });
+    console.log(`Migrated ${guestLogs.length} logs from Guest to user ${newUserId}`);
   }
-
-  await new Promise((resolve, reject) => {
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error);
-  });
-  console.log(`Migrated ${guestLogs.length} logs from Guest to user ${newUserId}`);
 
   // Migrate measurements
   const guestMeasurements = await getAllMeasurements('guest');
   if (guestMeasurements.length > 0) {
-    const mTransaction = db.transaction(STORE_MEASUREMENTS, 'readwrite');
-    const mStore = mTransaction.objectStore(STORE_MEASUREMENTS);
-
-    for (const log of guestMeasurements) {
-      log.user_id = newUserId;
-      log.synced = false;
-      mStore.put(log);
-    }
-
-    await new Promise((resolve, reject) => {
-      mTransaction.oncomplete = () => resolve();
-      mTransaction.onerror = () => reject(mTransaction.error);
-    });
+    const updatedMeasurements = guestMeasurements.map(log => ({
+      ...log,
+      user_id: newUserId,
+      synced: false
+    }));
+    await bulkWrite(STORE_MEASUREMENTS, { puts: updatedMeasurements });
     console.log(`Migrated ${guestMeasurements.length} measurements from Guest to user ${newUserId}`);
   }
 }
@@ -317,8 +309,6 @@ export async function syncLogs(userId = 'guest') {
   }
 
   try {
-    const db = await openDB();
-
     // --- 1. Sync Logs ---
 
     // Sync deletions for this user to Supabase
@@ -356,17 +346,11 @@ export async function syncLogs(userId = 'guest') {
 
       if (!pushError) {
         // Mark locally as synced
-        const transaction = db.transaction(STORE_LOGS, 'readwrite');
-        const store = transaction.objectStore(STORE_LOGS);
-        for (const log of unsynced) {
-          log.synced = true;
-          store.put(log);
-        }
-        await new Promise((resolve, reject) => {
-          transaction.oncomplete = () => resolve();
-          transaction.onerror = () => reject(transaction.error);
-          transaction.onabort = () => reject(new Error('Transaction aborted'));
-        });
+        const logsToUpdate = unsynced.map(log => ({
+          ...log,
+          synced: true
+        }));
+        await bulkWrite(STORE_LOGS, { puts: logsToUpdate });
         console.log('Pushed unsynced logs successfully:', unsynced);
       } else {
         console.error('Error pushing unsynced logs to remote:', pushError);
@@ -381,20 +365,16 @@ export async function syncLogs(userId = 'guest') {
       .order('date', { ascending: false });
 
     if (!pullError && remoteLogs) {
-      const transaction = db.transaction(STORE_LOGS, 'readwrite');
-      const store = transaction.objectStore(STORE_LOGS);
-      
-      const currentLocalLogs = await new Promise((resolve) => {
-        const index = store.index('user_id');
-        index.getAll(userId).onsuccess = (e) => resolve(e.target.result || []);
-      });
-
+      const currentLocalLogs = await getAllLogs(userId);
       const unsyncedMap = new Map(unsynced.map(l => [l.id, l]));
+
+      const puts = [];
+      const deletes = [];
 
       // Put all remote logs in local store (if not in local unsynced list)
       for (const rLog of remoteLogs) {
         if (!unsyncedMap.has(rLog.id)) {
-          store.put({
+          puts.push({
             ...rLog,
             synced: true
           });
@@ -405,15 +385,11 @@ export async function syncLogs(userId = 'guest') {
       const remoteIds = new Set(remoteLogs.map(l => l.id));
       for (const lLog of currentLocalLogs) {
         if (lLog.synced && !remoteIds.has(lLog.id) && !unsyncedMap.has(lLog.id)) {
-          store.delete(lLog.id);
+          deletes.push(lLog.id);
         }
       }
 
-      await new Promise((resolve, reject) => {
-        transaction.oncomplete = () => resolve();
-        transaction.onerror = () => reject(transaction.error);
-        transaction.onabort = () => reject(new Error('Transaction aborted'));
-      });
+      await bulkWrite(STORE_LOGS, { puts, deletes });
       console.log('Pulled remote logs successfully.');
     } else if (pullError) {
       console.error('Error pulling remote logs:', pullError);
@@ -458,17 +434,11 @@ export async function syncLogs(userId = 'guest') {
         .upsert(recordsToPush);
 
       if (!mPushError) {
-        const transaction = db.transaction(STORE_MEASUREMENTS, 'readwrite');
-        const store = transaction.objectStore(STORE_MEASUREMENTS);
-        for (const log of unsyncedM) {
-          log.synced = true;
-          store.put(log);
-        }
-        await new Promise((resolve, reject) => {
-          transaction.oncomplete = () => resolve();
-          transaction.onerror = () => reject(transaction.error);
-          transaction.onabort = () => reject(new Error('Transaction aborted'));
-        });
+        const measurementsToUpdate = unsyncedM.map(log => ({
+          ...log,
+          synced: true
+        }));
+        await bulkWrite(STORE_MEASUREMENTS, { puts: measurementsToUpdate });
         console.log('Pushed unsynced measurements successfully:', unsyncedM);
       } else {
         console.error('Error pushing unsynced measurements:', mPushError);
@@ -483,19 +453,15 @@ export async function syncLogs(userId = 'guest') {
       .order('date', { ascending: false });
 
     if (!mPullError && remoteM) {
-      const transaction = db.transaction(STORE_MEASUREMENTS, 'readwrite');
-      const store = transaction.objectStore(STORE_MEASUREMENTS);
-
-      const currentLocalM = await new Promise((resolve) => {
-        const index = store.index('user_id');
-        index.getAll(userId).onsuccess = (e) => resolve(e.target.result || []);
-      });
-
+      const currentLocalM = await getAllMeasurements(userId);
       const unsyncedMMap = new Map(unsyncedM.map(l => [l.id, l]));
+
+      const puts = [];
+      const deletes = [];
 
       for (const rLog of remoteM) {
         if (!unsyncedMMap.has(rLog.id)) {
-          store.put({
+          puts.push({
             ...rLog,
             synced: true
           });
@@ -505,15 +471,11 @@ export async function syncLogs(userId = 'guest') {
       const remoteMIds = new Set(remoteM.map(l => l.id));
       for (const lLog of currentLocalM) {
         if (lLog.synced && !remoteMIds.has(lLog.id) && !unsyncedMMap.has(lLog.id)) {
-          store.delete(lLog.id);
+          deletes.push(lLog.id);
         }
       }
 
-      await new Promise((resolve, reject) => {
-        transaction.oncomplete = () => resolve();
-        transaction.onerror = () => reject(transaction.error);
-        transaction.onabort = () => reject(new Error('Transaction aborted'));
-      });
+      await bulkWrite(STORE_MEASUREMENTS, { puts, deletes });
       console.log('Pulled remote measurements successfully.');
     } else if (mPullError) {
       console.error('Error pulling remote measurements:', mPullError);
