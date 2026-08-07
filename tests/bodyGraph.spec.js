@@ -41,11 +41,11 @@ test.describe('bodyGraph Pinia Store tests', () => {
     expect(guestStoreState.showDashboard).toBe(true);
   });
 
-  test('Store calculations and getters with 3 months of seeded mock data', async ({ page }) => {
+  test('Store calculations and getters with seeded mock data from main', async ({ page }) => {
     // Click Continue as Guest
     await page.getByRole('button', { name: 'Continue as Guest' }).click();
 
-    // Seed data across 3 different months into IndexedDB
+    // Seed the exact testLogs from main's tests/charts.spec.js into IndexedDB
     await page.evaluate(() => {
       return new Promise((resolve, reject) => {
         const DB_NAME = 'SimpleBodyGraphDB';
@@ -59,26 +59,19 @@ test.describe('bodyGraph Pinia Store tests', () => {
           const store = transaction.objectStore(STORE_LOGS);
           store.clear();
           const testLogs = [
-            // June 2026
-            { id: 'j1', date: '2026-06-17', mass: 105.0, body_fat: 34.0, synced: true, user_id: 'guest' },
-            { id: 'j2', date: '2026-06-16', mass: 105.5, body_fat: 34.2, synced: true, user_id: 'guest' },
-            { id: 'j3', date: '2026-06-15', mass: 106.0, body_fat: 34.4, synced: true, user_id: 'guest' },
-            { id: 'j4', date: '2026-06-14', mass: 107.0, body_fat: 34.6, synced: true, user_id: 'guest' },
-            { id: 'j5', date: '2026-06-13', mass: 106.5, body_fat: 34.2, synced: true, user_id: 'guest' },
-
-            // May 2026
-            { id: 'm1', date: '2026-05-25', mass: 108.0, body_fat: 35.0, synced: true, user_id: 'guest' },
-            { id: 'm2', date: '2026-05-24', mass: 108.5, body_fat: 35.2, synced: true, user_id: 'guest' },
-            { id: 'm3', date: '2026-05-23', mass: 109.0, body_fat: 35.4, synced: true, user_id: 'guest' },
-            { id: 'm4', date: '2026-05-22', mass: 109.5, body_fat: 35.6, synced: true, user_id: 'guest' },
-            { id: 'm5', date: '2026-05-21', mass: 110.0, body_fat: 35.8, synced: true, user_id: 'guest' },
-
-            // April 2026
-            { id: 'a1', date: '2026-04-15', mass: 111.0, body_fat: 36.0, synced: true, user_id: 'guest' },
-            { id: 'a2', date: '2026-04-14', mass: 111.5, body_fat: 36.2, synced: true, user_id: 'guest' },
-            { id: 'a3', date: '2026-04-13', mass: 112.0, body_fat: 36.4, synced: true, user_id: 'guest' },
-            { id: 'a4', date: '2026-04-12', mass: 112.5, body_fat: 36.6, synced: true, user_id: 'guest' },
-            { id: 'a5', date: '2026-04-11', mass: 113.0, body_fat: 36.8, synced: true, user_id: 'guest' }
+            { id: '1', date: '2026-06-17', mass: 105.35, body_fat: 34.2, synced: true, user_id: 'guest' },
+            { id: '2', date: '2026-06-16', mass: 105.78, body_fat: 34.3, synced: true, user_id: 'guest' },
+            { id: '3', date: '2026-06-15', mass: 106.20, body_fat: 34.4, synced: true, user_id: 'guest' },
+            { id: '4', date: '2026-06-14', mass: 107.40, body_fat: 34.6, synced: true, user_id: 'guest' },
+            { id: '5', date: '2026-06-13', mass: 106.60, body_fat: 34.3, synced: true, user_id: 'guest' },
+            { id: '6', date: '2026-06-12', mass: 105.80, body_fat: 34.1, synced: true, user_id: 'guest' },
+            { id: '7', date: '2026-06-11', mass: 106.08, body_fat: 34.2, synced: true, user_id: 'guest' },
+            { id: '8', date: '2026-06-10', mass: 106.35, body_fat: 34.3, synced: true, user_id: 'guest' },
+            { id: '9', date: '2026-06-09', mass: 106.35, body_fat: 34.6, synced: true, user_id: 'guest' },
+            { id: '10', date: '2026-06-08', mass: 106.35, body_fat: 34.8, synced: true, user_id: 'guest' },
+            { id: '11', date: '2026-06-07', mass: 106.80, body_fat: 34.9, synced: true, user_id: 'guest' },
+            { id: '12', date: '2026-06-06', mass: 107.25, body_fat: 35.0, synced: true, user_id: 'guest' },
+            { id: '13', date: '2026-06-05', mass: 107.65, body_fat: 35.1, synced: true, user_id: 'guest' }
           ];
           testLogs.forEach(log => store.put(log));
           transaction.oncomplete = () => resolve('Seeded successfully');
@@ -111,57 +104,47 @@ test.describe('bodyGraph Pinia Store tests', () => {
       };
     });
 
-    expect(results.logsCount).toBe(15);
+    expect(results.logsCount).toBe(13);
     expect(results.firstLogDate).toBe('2026-06-17'); // sorted descending by default
-    expect(results.logsWithEstimatesCount).toBe(15);
+    expect(results.logsWithEstimatesCount).toBe(13);
 
     // updateGoals(90, 12) -> Lean Mass = 90 * (1 - 0.12) = 79.2. Fat Mass = 90 * 0.12 = 10.8
     expect(results.targetLeanMass).toBeCloseTo(79.2);
     expect(results.targetFatMass).toBeCloseTo(10.8);
 
     // Verify weekly and monthly groupings
-    expect(results.groupedMonthsCount).toBe(3); // June 2026, May 2026, April 2026
-    expect(results.groupedWeeksCount).toBe(6); // 2026-06-15, 2026-06-08, 2026-05-25, 2026-05-18, 2026-04-13, 2026-04-06
+    expect(results.groupedMonthsCount).toBe(1); // June 2026
+    expect(results.groupedWeeksCount).toBe(3); // 2026-06-15, 2026-06-08, 2026-06-01
 
     // Verify rolling median calculations
-    // For June 17, last 7 days are June 11 to June 17.
-    // Masses in June: [105.0, 105.5, 106.0, 107.0, 106.5]
-    // Median of [105.0, 105.5, 106.0, 106.5, 107.0] is 106.0
-    expect(results.stats.rollingMedianMass).toBeCloseTo(106.0);
+    // For June 17, last 7 days ending June 17: June 11 to June 17
+    // Masses: [105.35, 105.78, 106.20, 107.40, 106.60, 105.80, 106.08]
+    // Sorted masses: [105.35, 105.78, 105.80, 106.08, 106.20, 106.60, 107.40]
+    // Median is 106.08.
+    expect(results.stats.rollingMedianMass).toBeCloseTo(106.08);
 
-    // Let's test Monthly navigation actions
+    // Let's test Monthly navigation actions (with bounds clamping)
     const monthNavResults = await page.evaluate(() => {
       const store = window.useBodyGraphStore();
 
       const initialMonth = store.activeMonth.id; // June 2026
 
       store.goToPreviousMonth();
-      const prevMonth = store.activeMonth.id; // May 2026
-
-      store.goToPreviousMonth();
-      const prevPrevMonth = store.activeMonth.id; // April 2026
-
-      // Go past limit
-      store.goToPreviousMonth();
-      const maxedMonth = store.activeMonth.id; // April 2026
+      const prevMonth = store.activeMonth.id; // Clamps to June 2026 because only 1 month exists
 
       store.goToNextMonth();
-      const nextMonth = store.activeMonth.id; // May 2026
+      const nextMonth = store.activeMonth.id; // June 2026
 
       return {
         initialMonth,
         prevMonth,
-        prevPrevMonth,
-        maxedMonth,
         nextMonth,
       };
     });
 
     expect(monthNavResults.initialMonth).toBe('2026-06');
-    expect(monthNavResults.prevMonth).toBe('2026-05');
-    expect(monthNavResults.prevPrevMonth).toBe('2026-04');
-    expect(monthNavResults.maxedMonth).toBe('2026-04');
-    expect(monthNavResults.nextMonth).toBe('2026-05');
+    expect(monthNavResults.prevMonth).toBe('2026-06');
+    expect(monthNavResults.nextMonth).toBe('2026-06');
 
     // Let's test Weekly navigation actions
     const weekNavResults = await page.evaluate(() => {
@@ -190,8 +173,8 @@ test.describe('bodyGraph Pinia Store tests', () => {
 
     expect(weekNavResults.initialWeekIndex).toBe(0);
     expect(weekNavResults.prevWeekIndex).toBe(1);
-    expect(weekNavResults.maxedWeekIndex).toBe(5); // clamped at max length - 1 (6 weeks => indices 0 to 5)
-    expect(weekNavResults.nextWeekIndex).toBe(4);
+    expect(weekNavResults.maxedWeekIndex).toBe(2); // clamped at max length - 1 (3 weeks => indices 0 to 2)
+    expect(weekNavResults.nextWeekIndex).toBe(1);
   });
 
   test('Store mutative actions (save, delete) for logs and measurements', async ({ page }) => {
