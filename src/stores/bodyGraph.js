@@ -351,16 +351,19 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       const latestDateStr = currentEntry.date;
       const prevWindowEndDateStr = getPreviousWindowEndDate(latestDateStr, 7);
 
-      const rollingMedianMass = getRollingMedianForDate(currentLogs, latestDateStr, 'mass', 7);
-      const rollingMedianFat = getRollingMedianForDate(currentLogs, latestDateStr, 'body_fat', 7);
-      const rollingMedianLeanMass = getRollingMedianForDate(currentLogs, latestDateStr, 'lean_mass', 7);
+      const currentWindowLogs = getRollingLogsForDate(currentLogs, latestDateStr, 7);
+      const prevWindowLogs = getRollingLogsForDate(currentLogs, prevWindowEndDateStr, 7);
+
+      const rollingMedianMass = currentWindowLogs.length > 0 ? calculateMedian(currentWindowLogs.map(l => Number(l.mass))) : null;
+      const rollingMedianFat = currentWindowLogs.length > 0 ? calculateMedian(currentWindowLogs.map(l => Number(l.body_fat))) : null;
+      const rollingMedianLeanMass = currentWindowLogs.length > 0 ? calculateMedian(currentWindowLogs.map(l => Number(l.lean_mass))) : null;
       const rollingMedianFatMass = (rollingMedianMass !== null && rollingMedianFat !== null)
         ? rollingMedianMass * (rollingMedianFat / 100)
         : null;
 
-      const prevRollingMedianMass = getRollingMedianForDate(currentLogs, prevWindowEndDateStr, 'mass', 7);
-      const prevRollingMedianFat = getRollingMedianForDate(currentLogs, prevWindowEndDateStr, 'body_fat', 7);
-      const prevRollingMedianLeanMass = getRollingMedianForDate(currentLogs, prevWindowEndDateStr, 'lean_mass', 7);
+      const prevRollingMedianMass = prevWindowLogs.length > 0 ? calculateMedian(prevWindowLogs.map(l => Number(l.mass))) : null;
+      const prevRollingMedianFat = prevWindowLogs.length > 0 ? calculateMedian(prevWindowLogs.map(l => Number(l.body_fat))) : null;
+      const prevRollingMedianLeanMass = prevWindowLogs.length > 0 ? calculateMedian(prevWindowLogs.map(l => Number(l.lean_mass))) : null;
       const prevRollingMedianFatMass = (prevRollingMedianMass !== null && prevRollingMedianFat !== null)
         ? prevRollingMedianMass * (prevRollingMedianFat / 100)
         : null;
