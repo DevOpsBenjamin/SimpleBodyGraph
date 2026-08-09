@@ -93,6 +93,8 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     targetMass: null,
     targetFat: null,
     paliers: [],
+    startYear: null,
+    endYear: null,
     
     // Index of the month in the groupedMonths list (0 is the newest month)
     selectedMonthIndex: 0,
@@ -104,6 +106,19 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
   }),
 
   getters: {
+    availableYears(state) {
+      if (state.logs.length === 0) return [];
+      const yearsSet = new Set();
+      for (const log of state.logs) {
+        if (log.date) {
+          const yr = new Date(log.date).getFullYear();
+          if (!isNaN(yr)) {
+            yearsSet.add(yr);
+          }
+        }
+      }
+      return Array.from(yearsSet).sort((a, b) => b - a);
+    },
     showDashboard: (state) => {
       return !!state.user || state.isGuestMode;
     },
@@ -148,8 +163,16 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     // Groups logs into weeks (Monday to Sunday) and computes stats
     // Groups logs into months and computes true median stats based on all raw logs
     groupedMonths() {
-      const logsToUse = this.logsWithEstimates;
+      let logsToUse = this.logsWithEstimates;
       if (logsToUse.length === 0) return [];
+
+      // Filter by start and end years if they are set
+      if (this.startYear !== null && this.endYear !== null) {
+        logsToUse = logsToUse.filter(log => {
+          const yr = new Date(log.date).getFullYear();
+          return yr >= this.startYear && yr <= this.endYear;
+        });
+      }
 
       const groups = {};
 
@@ -204,8 +227,16 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     groupedWeeks() {
-      const logsToUse = this.logsWithEstimates;
+      let logsToUse = this.logsWithEstimates;
       if (logsToUse.length === 0) return [];
+
+      // Filter by start and end years if they are set
+      if (this.startYear !== null && this.endYear !== null) {
+        logsToUse = logsToUse.filter(log => {
+          const yr = new Date(log.date).getFullYear();
+          return yr >= this.startYear && yr <= this.endYear;
+        });
+      }
 
       const groups = {};
 
@@ -716,6 +747,17 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       try {
         this.logs = await getAllLogs(this.currentUserId);
         this.measurements = await getAllMeasurements(this.currentUserId);
+
+        // Initialize start and end years if not set or if they are no longer in availableYears
+        const years = this.availableYears;
+        if (years.length > 0) {
+          if (this.startYear === null || !years.includes(this.startYear)) {
+            this.startYear = years[years.length - 1]; // Oldest year
+          }
+          if (this.endYear === null || !years.includes(this.endYear)) {
+            this.endYear = years[0]; // Newest year
+          }
+        }
         
         // Cleanly clamp selected indices after loading logs to keep bounds valid
         const maxMonthIndex = this.groupedMonths.length - 1;

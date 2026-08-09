@@ -68,7 +68,14 @@ const { mockLogs, mockMeasurements } = vi.hoisted(() => {
       { id: 'y2', date: '2026-05-20', mass: 111.20, body_fat: 36.3, synced: true, user_id: 'guest' },
       { id: 'y3', date: '2026-05-15', mass: 111.50, body_fat: 36.4, synced: true, user_id: 'guest' },
       { id: 'y4', date: '2026-05-10', mass: 112.10, body_fat: 36.5, synced: true, user_id: 'guest' },
-      { id: 'y5', date: '2026-05-05', mass: 112.40, body_fat: 36.6, synced: true, user_id: 'guest' }
+      { id: 'y5', date: '2026-05-05', mass: 112.40, body_fat: 36.6, synced: true, user_id: 'guest' },
+
+      // --- Late 2025 (Second year data coverage) ---
+      { id: 'h1', date: '2025-12-15', mass: 114.20, body_fat: 37.2, synced: true, user_id: 'guest' },
+      { id: 'h2', date: '2025-12-10', mass: 114.50, body_fat: 37.4, synced: true, user_id: 'guest' },
+      { id: 'h3', date: '2025-11-28', mass: 115.10, body_fat: 37.6, synced: true, user_id: 'guest' },
+      { id: 'h4', date: '2025-11-20', mass: 115.40, body_fat: 37.8, synced: true, user_id: 'guest' },
+      { id: 'h5', date: '2025-11-12', mass: 116.00, body_fat: 38.0, synced: true, user_id: 'guest' }
     ],
     mockMeasurements: [
       // An unsynced entry for offline/unsynced test coverage
@@ -184,7 +191,7 @@ describe('useBodyGraphStore', () => {
     it('groupedMonths processes and sorts logs into monthly groups correctly', () => {
       const store = useBodyGraphStore();
       const months = store.groupedMonths;
-      expect(months).toHaveLength(3);
+      expect(months).toHaveLength(5);
 
       // July 2026 (newest month should be first)
       expect(months[0].id).toBe('2026-07');
@@ -301,23 +308,31 @@ describe('useBodyGraphStore', () => {
 
     it('goToPreviousMonth/goToNextMonth navigates months bounds safely', () => {
       const store = useBodyGraphStore();
-      expect(store.groupedMonths).toHaveLength(3);
+      const count = store.groupedMonths.length;
+      expect(count).toBe(5);
       expect(store.selectedMonthIndex).toBe(0);
 
       store.goToPreviousMonth();
       expect(store.selectedMonthIndex).toBe(1);
 
-      store.goToPreviousMonth();
-      expect(store.selectedMonthIndex).toBe(2);
+      // Navigate to the end
+      for (let i = 2; i < count; i++) {
+        store.goToPreviousMonth();
+      }
+      const maxIndex = count - 1;
+      expect(store.selectedMonthIndex).toBe(maxIndex);
 
       // Boundary check
       store.goToPreviousMonth();
-      expect(store.selectedMonthIndex).toBe(2);
+      expect(store.selectedMonthIndex).toBe(maxIndex);
 
       store.goToNextMonth();
-      expect(store.selectedMonthIndex).toBe(1);
+      expect(store.selectedMonthIndex).toBe(maxIndex - 1);
 
-      store.goToNextMonth();
+      // Navigate back to 0
+      for (let i = maxIndex - 1; i > 0; i--) {
+        store.goToNextMonth();
+      }
       expect(store.selectedMonthIndex).toBe(0);
 
       // Boundary check
@@ -354,7 +369,7 @@ describe('useBodyGraphStore', () => {
       await store.enableGuestMode();
       expect(store.isGuestMode).toBe(true);
       expect(db.getAllLogs).toHaveBeenCalledWith('guest');
-      expect(store.logs).toHaveLength(23);
+      expect(store.logs).toHaveLength(28);
     });
 
     it('syncSingleGoalsFromActivePalier pulls targets from first unvalidated palier', () => {
@@ -453,7 +468,7 @@ describe('useBodyGraphStore', () => {
       expect(store.isGuestMode).toBe(false);
       expect(supabase.auth.signOut).toHaveBeenCalled();
       expect(db.getAllLogs).toHaveBeenCalledWith('guest');
-      expect(store.logs).toHaveLength(23);
+      expect(store.logs).toHaveLength(28);
     });
 
     it('initAuth sets up targets and sets up supabase auth callbacks', async () => {

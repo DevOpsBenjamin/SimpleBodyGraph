@@ -27,7 +27,14 @@ export const MOCK_LOGS = [
   { id: 'y2', date: '2026-05-20', mass: 111.20, body_fat: 36.3, synced: true, user_id: 'guest' },
   { id: 'y3', date: '2026-05-15', mass: 111.50, body_fat: 36.4, synced: true, user_id: 'guest' },
   { id: 'y4', date: '2026-05-10', mass: 112.10, body_fat: 36.5, synced: true, user_id: 'guest' },
-  { id: 'y5', date: '2026-05-05', mass: 112.40, body_fat: 36.6, synced: true, user_id: 'guest' }
+  { id: 'y5', date: '2026-05-05', mass: 112.40, body_fat: 36.6, synced: true, user_id: 'guest' },
+
+  // --- Late 2025 (Second year data coverage) ---
+  { id: 'h1', date: '2025-12-15', mass: 114.20, body_fat: 37.2, synced: true, user_id: 'guest' },
+  { id: 'h2', date: '2025-12-10', mass: 114.50, body_fat: 37.4, synced: true, user_id: 'guest' },
+  { id: 'h3', date: '2025-11-28', mass: 115.10, body_fat: 37.6, synced: true, user_id: 'guest' },
+  { id: 'h4', date: '2025-11-20', mass: 115.40, body_fat: 37.8, synced: true, user_id: 'guest' },
+  { id: 'h5', date: '2025-11-12', mass: 116.00, body_fat: 38.0, synced: true, user_id: 'guest' }
 ];
 
 export const MOCK_MEASUREMENTS = [
