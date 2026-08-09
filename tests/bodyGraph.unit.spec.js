@@ -58,9 +58,9 @@ describe('getRollingLogsForDate', () => {
 
   it('should correctly select all logs for a larger window (days = 90)', () => {
     // End date is '2026-07-15'. 90-day window covers [2026-04-17, 2026-07-15]
-    // All logs in MOCK_LOGS are between 2026-05-05 and 2026-07-15, so all 23 logs should match.
-    const result = getRollingLogsForDate(MOCK_LOGS, '2026-07-15', 90);
-    expect(result.length).toBe(23);
+    // All logs in MOCK_LOGS are between 2025-11-12 and 2026-07-15, so all 28 logs should match.
+    const result = getRollingLogsForDate(MOCK_LOGS, '2026-07-15', 300);
+    expect(result.length).toBe(28);
   });
 });
 
