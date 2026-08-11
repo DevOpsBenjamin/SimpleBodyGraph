@@ -740,32 +740,35 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       }
     },
 
+    updateYearsAndClamps() {
+      // Initialize start and end years if not set or if they are no longer in availableYears
+      const years = this.availableYears;
+      if (years.length > 0) {
+        if (this.startYear === null || !years.includes(this.startYear)) {
+          this.startYear = years[years.length - 1]; // Oldest year
+        }
+        if (this.endYear === null || !years.includes(this.endYear)) {
+          this.endYear = years[0]; // Newest year
+        }
+      }
+
+      // Cleanly clamp selected indices after loading logs to keep bounds valid
+      const maxMonthIndex = this.groupedMonths.length - 1;
+      if (this.selectedMonthIndex > maxMonthIndex) {
+        this.selectedMonthIndex = Math.max(0, maxMonthIndex);
+      }
+
+      const maxIndex = this.groupedWeeks.length - 1;
+      if (this.selectedWeekIndex > maxIndex) {
+        this.selectedWeekIndex = Math.max(0, maxIndex);
+      }
+    },
+
     async loadLogs() {
       try {
         this.logs = await getAllLogs(this.currentUserId);
         this.measurements = await getAllMeasurements(this.currentUserId);
-
-        // Initialize start and end years if not set or if they are no longer in availableYears
-        const years = this.availableYears;
-        if (years.length > 0) {
-          if (this.startYear === null || !years.includes(this.startYear)) {
-            this.startYear = years[years.length - 1]; // Oldest year
-          }
-          if (this.endYear === null || !years.includes(this.endYear)) {
-            this.endYear = years[0]; // Newest year
-          }
-        }
-        
-        // Cleanly clamp selected indices after loading logs to keep bounds valid
-        const maxMonthIndex = this.groupedMonths.length - 1;
-        if (this.selectedMonthIndex > maxMonthIndex) {
-          this.selectedMonthIndex = Math.max(0, maxMonthIndex);
-        }
-
-        const maxIndex = this.groupedWeeks.length - 1;
-        if (this.selectedWeekIndex > maxIndex) {
-          this.selectedWeekIndex = Math.max(0, maxIndex);
-        }
+        this.updateYearsAndClamps();
       } catch (error) {
         console.error('Store failed to load logs/measurements:', error);
       }
@@ -849,8 +852,22 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
       try {
         await saveLog(log, this.currentUserId);
-        await this.loadLogs();
+
+        // Optimistically update logs in-memory
+        const logWithUserId = { ...log, user_id: this.currentUserId };
+        const existingIndex = this.logs.findIndex(l => l.id === log.id);
+        if (existingIndex !== -1) {
+          this.logs[existingIndex] = logWithUserId;
+        } else {
+          this.logs.push(logWithUserId);
+        }
+
+        // Sort descending by date
+        this.logs.sort((a, b) => b.date.localeCompare(a.date));
+
+        this.updateYearsAndClamps();
         await this.checkAndAutoValidatePaliers();
+
         this.showAddModal = false;
         this.editingLog = null;
         this.triggerSync();
@@ -863,7 +880,11 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     async deleteLogEntry(id) {
       try {
         await deleteLog(id, this.currentUserId);
-        await this.loadLogs();
+
+        // Optimistically delete in-memory
+        this.logs = this.logs.filter(l => l.id !== id);
+
+        this.updateYearsAndClamps();
         this.triggerSync();
       } catch (error) {
         console.error('Store failed to delete log:', error);
@@ -884,7 +905,21 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
       try {
         await saveMeasurement(log, this.currentUserId);
-        await this.loadLogs();
+
+        // Optimistically update measurements in-memory
+        const logWithUserId = { ...log, user_id: this.currentUserId };
+        const existingIndex = this.measurements.findIndex(m => m.id === log.id);
+        if (existingIndex !== -1) {
+          this.measurements[existingIndex] = logWithUserId;
+        } else {
+          this.measurements.push(logWithUserId);
+        }
+
+        // Sort descending by date
+        this.measurements.sort((a, b) => b.date.localeCompare(a.date));
+
+        this.updateYearsAndClamps();
+
         this.showAddMeasurementModal = false;
         this.editingMeasurement = null;
         this.triggerSync();
@@ -897,7 +932,11 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     async deleteMeasurementEntry(id) {
       try {
         await deleteMeasurement(id, this.currentUserId);
-        await this.loadLogs();
+
+        // Optimistically delete in-memory
+        this.measurements = this.measurements.filter(m => m.id !== id);
+
+        this.updateYearsAndClamps();
         this.triggerSync();
       } catch (error) {
         console.error('Store failed to delete measurement:', error);
