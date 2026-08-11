@@ -679,25 +679,7 @@ const updateMonthlyCharts = () => {
                 }
               }
             },
-            tooltip: {
-              backgroundColor: 'rgba(17, 24, 39, 0.95)',
-              titleColor: '#9ca3af',
-              bodyColor: '#ffffff',
-              borderColor: 'rgba(139, 92, 246, 0.3)',
-              borderWidth: 1,
-              padding: 10,
-              displayColors: true,
-              mode: 'index',
-              intersect: false,
-              callbacks: {
-                label: (context) => {
-                  const dsLabel = context.dataset.label;
-                  const val = context.parsed.y;
-                  if (val === null || val === undefined) return '';
-                  return ` ${dsLabel}: ${val.toFixed(2)} kg`;
-                }
-              }
-            },
+            tooltip: { enabled: false },
             goalLine: {
               lines: getGoalLinesForMetric('weight'),
               unit: ' kg'
@@ -777,25 +759,7 @@ const updateMonthlyCharts = () => {
                 }
               }
             },
-            tooltip: {
-              backgroundColor: 'rgba(17, 24, 39, 0.95)',
-              titleColor: '#9ca3af',
-              bodyColor: '#ffffff',
-              borderColor: 'rgba(59, 130, 246, 0.3)',
-              borderWidth: 1,
-              padding: 10,
-              displayColors: true,
-              mode: 'index',
-              intersect: false,
-              callbacks: {
-                label: (context) => {
-                  const dsLabel = context.dataset.label;
-                  const val = context.parsed.y;
-                  if (val === null || val === undefined) return '';
-                  return ` ${dsLabel}: ${val.toFixed(2)} kg`;
-                }
-              }
-            },
+            tooltip: { enabled: false },
             goalLine: {
               lines: getGoalLinesForMetric('lean'),
               unit: ' kg'
@@ -875,25 +839,7 @@ const updateMonthlyCharts = () => {
                 }
               }
             },
-            tooltip: {
-              backgroundColor: 'rgba(17, 24, 39, 0.95)',
-              titleColor: '#9ca3af',
-              bodyColor: '#ffffff',
-              borderColor: 'rgba(16, 185, 129, 0.3)',
-              borderWidth: 1,
-              padding: 10,
-              displayColors: true,
-              mode: 'index',
-              intersect: false,
-              callbacks: {
-                label: (context) => {
-                  const dsLabel = context.dataset.label;
-                  const val = context.parsed.y;
-                  if (val === null || val === undefined) return '';
-                  return ` ${dsLabel}: ${val.toFixed(1)}%`;
-                }
-              }
-            },
+            tooltip: { enabled: false },
             goalLine: {
               lines: getGoalLinesForMetric('fat'),
               unit: '%'
@@ -973,25 +919,7 @@ const updateMonthlyCharts = () => {
                 }
               }
             },
-            tooltip: {
-              backgroundColor: 'rgba(17, 24, 39, 0.95)',
-              titleColor: '#9ca3af',
-              bodyColor: '#ffffff',
-              borderColor: 'rgba(245, 158, 11, 0.3)',
-              borderWidth: 1,
-              padding: 10,
-              displayColors: true,
-              mode: 'index',
-              intersect: false,
-              callbacks: {
-                label: (context) => {
-                  const dsLabel = context.dataset.label;
-                  const val = context.parsed.y;
-                  if (val === null || val === undefined) return '';
-                  return ` ${dsLabel}: ${val.toFixed(2)} kg`;
-                }
-              }
-            },
+            tooltip: { enabled: false },
             goalLine: {
               lines: getGoalLinesForMetric('fat_mass'),
               unit: ' kg'
@@ -1089,25 +1017,7 @@ const updateWeeklyCharts = () => {
                 }
               }
             },
-            tooltip: {
-              backgroundColor: 'rgba(17, 24, 39, 0.95)',
-              titleColor: '#9ca3af',
-              bodyColor: '#ffffff',
-              borderColor: 'rgba(139, 92, 246, 0.3)',
-              borderWidth: 1,
-              padding: 10,
-              displayColors: true,
-              mode: 'index',
-              intersect: false,
-              callbacks: {
-                label: (context) => {
-                  const dsLabel = context.dataset.label;
-                  const val = context.parsed.y;
-                  if (val === null || val === undefined) return '';
-                  return ` ${dsLabel}: ${val.toFixed(2)} kg`;
-                }
-              }
-            },
+            tooltip: { enabled: false },
             goalLine: {
               lines: getGoalLinesForMetric('weight'),
               unit: ' kg'
@@ -1187,25 +1097,7 @@ const updateWeeklyCharts = () => {
                 }
               }
             },
-            tooltip: {
-              backgroundColor: 'rgba(17, 24, 39, 0.95)',
-              titleColor: '#9ca3af',
-              bodyColor: '#ffffff',
-              borderColor: 'rgba(59, 130, 246, 0.3)',
-              borderWidth: 1,
-              padding: 10,
-              displayColors: true,
-              mode: 'index',
-              intersect: false,
-              callbacks: {
-                label: (context) => {
-                  const dsLabel = context.dataset.label;
-                  const val = context.parsed.y;
-                  if (val === null || val === undefined) return '';
-                  return ` ${dsLabel}: ${val.toFixed(2)} kg`;
-                }
-              }
-            },
+            tooltip: { enabled: false },
             goalLine: {
               lines: getGoalLinesForMetric('lean'),
               unit: ' kg'
@@ -1285,25 +1177,7 @@ const updateWeeklyCharts = () => {
                 }
               }
             },
-            tooltip: {
-              backgroundColor: 'rgba(17, 24, 39, 0.95)',
-              titleColor: '#9ca3af',
-              bodyColor: '#ffffff',
-              borderColor: 'rgba(16, 185, 129, 0.3)',
-              borderWidth: 1,
-              padding: 10,
-              displayColors: true,
-              mode: 'index',
-              intersect: false,
-              callbacks: {
-                label: (context) => {
-                  const dsLabel = context.dataset.label;
-                  const val = context.parsed.y;
-                  if (val === null || val === undefined) return '';
-                  return ` ${dsLabel}: ${val.toFixed(1)}%`;
-                }
-              }
-            },
+            tooltip: { enabled: false },
             goalLine: {
               lines: getGoalLinesForMetric('fat'),
               unit: '%'
@@ -1383,25 +1257,7 @@ const updateWeeklyCharts = () => {
                 }
               }
             },
-            tooltip: {
-              backgroundColor: 'rgba(17, 24, 39, 0.95)',
-              titleColor: '#9ca3af',
-              bodyColor: '#ffffff',
-              borderColor: 'rgba(245, 158, 11, 0.3)',
-              borderWidth: 1,
-              padding: 10,
-              displayColors: true,
-              mode: 'index',
-              intersect: false,
-              callbacks: {
-                label: (context) => {
-                  const dsLabel = context.dataset.label;
-                  const val = context.parsed.y;
-                  if (val === null || val === undefined) return '';
-                  return ` ${dsLabel}: ${val.toFixed(2)} kg`;
-                }
-              }
-            },
+            tooltip: { enabled: false },
             goalLine: {
               lines: getGoalLinesForMetric('fat_mass'),
               unit: ' kg'
