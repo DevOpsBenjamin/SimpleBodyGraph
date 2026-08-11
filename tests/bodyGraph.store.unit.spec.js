@@ -516,9 +516,12 @@ describe('useBodyGraphStore', () => {
 
     it('deleteLogEntry removes log and reloads', async () => {
       const store = useBodyGraphStore();
+      // Ensure 'l1' is in store.logs first to test deletion
+      store.logs.push({ id: 'l1', date: '2026-06-15', mass: 80, body_fat: 20 });
+
       await store.deleteLogEntry('l1');
       expect(db.deleteLog).toHaveBeenCalledWith('l1', 'guest');
-      expect(db.getAllLogs).toHaveBeenCalled();
+      expect(store.logs.find(l => l.id === 'l1')).toBeUndefined();
     });
 
     it('saveMeasurementEntry/deleteMeasurementEntry perform correct DB calls', async () => {
