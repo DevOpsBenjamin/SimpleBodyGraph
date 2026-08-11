@@ -773,40 +773,58 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
     // Save or update a log entry
     async checkAndAutoValidatePaliers() {
-      // Automatic validation of paliers based on 7d rolling median mass
-      const rollingMedian = this.stats.rollingMedianMass;
-      if (!rollingMedian || this.paliers.length === 0) return;
+      if (this.paliers.length < 2) return;
+
+      const p1 = this.paliers[0];
+      const p2 = this.paliers[1];
+      const isWeightGain = Number(p2.mass) >= Number(p1.mass);
+      const isFatGain = Number(p2.fat) >= Number(p1.fat);
+
+      // Compute unfiltered weeks with at least 4 logs
+      const logsToUse = this.logsWithEstimates;
+      const groups = {};
+      for (const log of logsToUse) {
+        const mon = getMondayOfDate(log.date);
+        if (!groups[mon]) {
+          groups[mon] = [];
+        }
+        groups[mon].push(log);
+      }
+
+      const validWeeks = [];
+      for (const [mon, weekLogs] of Object.entries(groups)) {
+        if (weekLogs.length >= 4) {
+          const masses = weekLogs.map(l => Number(l.mass));
+          const fats = weekLogs.map(l => Number(l.body_fat));
+          const medianMass = calculateMedian(masses);
+          const medianFat = calculateMedian(fats);
+
+          validWeeks.push({
+            monday: mon,
+            medianMass,
+            medianFat
+          });
+        }
+      }
+
+      if (validWeeks.length === 0) return;
 
       let changed = false;
-      const updatedPaliers = this.paliers.map((palier, index) => {
+      const updatedPaliers = this.paliers.map((palier) => {
         if (palier.validated) return palier; // already validated
 
-        // To know whether we are in weight gain or loss trend:
-        // We look at the general trend direction of the paliers or just compare
-        // with previous paliers / initial weight.
-        // Let's determine direction: if palier targets are lower than starting/current weight
-        // it's a loss, if higher it's a gain.
-        // Even simpler: we can compare the palier target to the current 7d rolling median.
-        // But the user specifies:
-        // "si els palier descende perte de masse c quand on passe en dessous du palier en cour
-        // quand les palier montre prise de masse on considere un palier passer quand on est au dessus"
-        // Let's compute overall list direction or compare each palier relative to current/previous targets.
-        // Let's check if the palier mass target is smaller than previous palier's target (or first palier's target).
-        // Let's define direction per palier or list-wide.
-        // List-wide direction: compare last palier with first palier, or first palier with current weight.
-        // Let's look at the sequence of paliers:
-        // If we have index > 0, compare with index - 1. If index == 0, compare with first recorded log mass.
-        let isPrise = false;
-        if (index > 0) {
-          isPrise = Number(palier.mass) > Number(this.paliers[index - 1].mass);
-        } else {
-          const firstLog = this.logsWithEstimates[this.logsWithEstimates.length - 1];
-          const startMass = firstLog ? Number(firstLog.mass) : rollingMedian;
-          isPrise = Number(palier.mass) > startMass;
-        }
+        const targetMass = Number(palier.mass);
+        const targetFat = Number(palier.fat);
 
-        const target = Number(palier.mass);
-        const passed = isPrise ? (rollingMedian >= target) : (rollingMedian <= target);
+        const passed = validWeeks.some(week => {
+          const wMass = Number(week.medianMass);
+          const wFat = Number(week.medianFat);
+
+          const massPassed = isWeightGain ? (wMass >= targetMass) : (wMass <= targetMass);
+          const fatPassed = isFatGain ? (wFat >= targetFat) : (wFat <= targetFat);
+
+          return massPassed && fatPassed;
+        });
 
         if (passed) {
           changed = true;

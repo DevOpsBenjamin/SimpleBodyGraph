@@ -569,47 +569,55 @@ describe('useBodyGraphStore', () => {
     describe('checkAndAutoValidatePaliers Weight Loss/Gain validation', () => {
       it('validates a palier for weight loss trend', async () => {
         const store = useBodyGraphStore();
-        // Weight loss: initial mass (oldest log) is 112.40, target is 105.00
+        // Trend is loss since palier 2 targets are lower than palier 1 targets
         store.paliers = [
-          { id: 'p1', mass: 105.00, validated: false }
+          { id: 'p1', mass: 115.00, fat: 38.0, validated: false },
+          { id: 'p2', mass: 110.00, fat: 36.0, validated: false }
         ];
 
         const updatePaliersSpy = vi.spyOn(store, 'updatePaliers');
         await store.checkAndAutoValidatePaliers();
 
+        // Since week of June 8 has median weight 106.35 <= 110 and median fat 34.3% <= 36%, both should be validated!
         expect(updatePaliersSpy).toHaveBeenCalledWith([
-          { id: 'p1', mass: 105.00, validated: true }
+          { id: 'p1', mass: 115.00, fat: 38.0, validated: true },
+          { id: 'p2', mass: 110.00, fat: 36.0, validated: true }
         ]);
       });
 
       it('does not validate a palier for weight loss trend if target not reached', async () => {
         const store = useBodyGraphStore();
-        // Weight loss: initial mass is 112.40, target is 95.00 (not reached yet, since rolling median is 100.50)
+        // Targets are 85.00 kg / 20.0%, which is not reached (lowest week median weight is 106.35 kg)
         store.paliers = [
-          { id: 'p1', mass: 95.00, validated: false }
+          { id: 'p1', mass: 115.00, fat: 38.0, validated: false },
+          { id: 'p2', mass: 85.00, fat: 20.0, validated: false }
         ];
 
         const updatePaliersSpy = vi.spyOn(store, 'updatePaliers');
         await store.checkAndAutoValidatePaliers();
 
-        expect(updatePaliersSpy).not.toHaveBeenCalled();
+        // Only p1 gets validated because its target (115/38) is met, but p2 (85/20) is not.
+        expect(updatePaliersSpy).toHaveBeenCalledWith([
+          { id: 'p1', mass: 115.00, fat: 38.0, validated: true },
+          { id: 'p2', mass: 85.00, fat: 20.0, validated: false }
+        ]);
       });
 
       it('validates a palier for weight gain trend', async () => {
         const store = useBodyGraphStore();
-        // Weight gain trend: reverse the logs so weight goes from 100.20 (oldest) up to 112.40 (latest)
-        store.logs = [...mockLogs].reverse();
-
-        // Target is 110.00 (which is > 100.20 start weight)
+        // Trend is gain since palier 2 targets are higher than palier 1 targets
         store.paliers = [
-          { id: 'p1', mass: 110.00, validated: false }
+          { id: 'p1', mass: 100.00, fat: 30.0, validated: false },
+          { id: 'p2', mass: 105.00, fat: 32.0, validated: false }
         ];
 
         const updatePaliersSpy = vi.spyOn(store, 'updatePaliers');
         await store.checkAndAutoValidatePaliers();
 
+        // Since week of June 8 has median weight 106.35 >= 105 and median fat 34.3% >= 32%, both should be validated!
         expect(updatePaliersSpy).toHaveBeenCalledWith([
-          { id: 'p1', mass: 110.00, validated: true }
+          { id: 'p1', mass: 100.00, fat: 30.0, validated: true },
+          { id: 'p2', mass: 105.00, fat: 32.0, validated: true }
         ]);
       });
     });

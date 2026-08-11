@@ -582,6 +582,26 @@ const getGoalLinesForMetric = (metricType) => {
   }).filter(Boolean);
 };
 
+// Helper to calculate Y-axis scaling to show all data points and paliers with a small extra margin
+const getScaleLimits = (dataPointsList, metricType) => {
+  const values = dataPointsList.flatMap(dp => dp.map(item => item.y)).filter(v => v !== null && v !== undefined && !isNaN(v));
+  const goalLines = getGoalLinesForMetric(metricType);
+  const goalValues = goalLines.map(gl => gl.value).filter(v => v !== null && v !== undefined && !isNaN(v));
+
+  const allValues = [...values, ...goalValues];
+  if (allValues.length === 0) return {};
+
+  const minVal = Math.min(...allValues);
+  const maxVal = Math.max(...allValues);
+
+  const margin = (metricType === 'fat') ? 1.5 : 2.0;
+
+  return {
+    min: Math.max(0, minVal - margin),
+    max: maxVal + margin
+  };
+};
+
 // Render Global Monthly Median Trend Charts
 const updateMonthlyCharts = () => {
   if (store.groupedMonths.length === 0) return;
@@ -685,6 +705,7 @@ const updateMonthlyCharts = () => {
           },
           scales: {
             y: {
+              ...getScaleLimits([medianWeights, averageWeights], 'weight'),
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },
@@ -782,6 +803,7 @@ const updateMonthlyCharts = () => {
           },
           scales: {
             y: {
+              ...getScaleLimits([medianLeans, averageLeans], 'lean'),
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },
@@ -879,6 +901,7 @@ const updateMonthlyCharts = () => {
           },
           scales: {
             y: {
+              ...getScaleLimits([medianFats, averageFats], 'fat'),
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },
@@ -976,6 +999,7 @@ const updateMonthlyCharts = () => {
           },
           scales: {
             y: {
+              ...getScaleLimits([medianFatMasses, averageFatMasses], 'fat_mass'),
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },
@@ -1091,6 +1115,7 @@ const updateWeeklyCharts = () => {
           },
           scales: {
             y: {
+              ...getScaleLimits([medianWeights, averageWeights], 'weight'),
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },
@@ -1188,6 +1213,7 @@ const updateWeeklyCharts = () => {
           },
           scales: {
             y: {
+              ...getScaleLimits([medianLeans, averageLeans], 'lean'),
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },
@@ -1285,6 +1311,7 @@ const updateWeeklyCharts = () => {
           },
           scales: {
             y: {
+              ...getScaleLimits([medianFats, averageFats], 'fat'),
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },
@@ -1382,6 +1409,7 @@ const updateWeeklyCharts = () => {
           },
           scales: {
             y: {
+              ...getScaleLimits([medianFatMasses, averageFatMasses], 'fat_mass'),
               grid: { color: 'rgba(75, 85, 99, 0.08)' },
               ticks: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
             },

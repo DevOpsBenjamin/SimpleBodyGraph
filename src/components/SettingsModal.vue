@@ -130,6 +130,14 @@
           </div>
         </div>
 
+        <!-- Tip Note -->
+        <div class="p-3 bg-violet-950/30 border border-violet-800/30 rounded-2xl flex gap-2.5 items-start">
+          <Info class="w-4 h-4 text-violet-400 mt-0.5 flex-shrink-0" />
+          <div class="text-[11px] leading-relaxed text-gray-400">
+            <strong class="text-violet-300">💡 Conseil d'utilisation :</strong> Pour profiter pleinement de toutes les fonctionnalités de suivi et de tendance, nous vous recommandons de configurer au moins <span class="text-white font-semibold">2 paliers</span> (un palier intermédiaire en Palier 1, et votre objectif final en Palier 2). Si votre objectif final est encore éloigné, l'ajout de <span class="text-white font-semibold">3 ou 4 paliers</span> intermédiaires est vivement conseillé pour optimiser vos progrès.
+          </div>
+        </div>
+
         <!-- Feedback Messages -->
         <div v-if="errorMsg" class="text-xs text-rose-400 font-medium bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl">
           {{ errorMsg }}
@@ -163,7 +171,7 @@
 
 <script setup>
 import { ref, watch } from 'vue';
-import { Settings, X, Trash2, Plus, CheckCircle } from 'lucide-vue-next';
+import { Settings, X, Trash2, Plus, CheckCircle, Info } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 
 const store = useBodyGraphStore();
