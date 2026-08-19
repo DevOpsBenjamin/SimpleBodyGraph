@@ -8,7 +8,9 @@ import {
   migrateGuestLogsInDB,
   getAllMeasurements,
   saveMeasurement,
-  deleteMeasurement
+  deleteMeasurement,
+  exportAllData,
+  importAllData
 } from '../db';
 
 // Helper to find the Monday (YYYY-MM-DD) of a given date
@@ -970,6 +972,49 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       } finally {
         this.isSyncing = false;
       }
+    },
+
+    async exportData() {
+      const data = await exportAllData(this.currentUserId, this.paliers);
+      const jsonStr = JSON.stringify(data, null, 2);
+      if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const dateStr = new Date().toISOString().split('T')[0];
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `simplebodygraph_backup_${dateStr}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+      return data;
+    },
+
+    async importData(jsonContent) {
+      let parsed;
+      if (typeof jsonContent === 'string') {
+        try {
+          parsed = JSON.parse(jsonContent);
+        } catch (err) {
+          throw new Error("Le fichier sélectionné n'est pas un JSON valide.");
+        }
+      } else {
+        parsed = jsonContent;
+      }
+
+      const result = await importAllData(parsed, this.currentUserId);
+
+      if (result.paliers && Array.isArray(result.paliers) && result.paliers.length > 0) {
+        await this.updatePaliers(result.paliers);
+      }
+
+      await this.loadLogs();
+      await this.checkAndAutoValidatePaliers();
+      this.triggerSync();
+
+      return result;
     },
 
     setOnlineStatus(status) {

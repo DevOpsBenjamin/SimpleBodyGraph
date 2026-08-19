@@ -96,6 +96,18 @@ vi.mock('../src/db', () => ({
   getAllMeasurements: vi.fn(() => Promise.resolve(mockMeasurements)),
   saveMeasurement: vi.fn(() => Promise.resolve({ id: 'mocked-m' })),
   deleteMeasurement: vi.fn(() => Promise.resolve('mocked-m-id')),
+  exportAllData: vi.fn((userId, paliers) => Promise.resolve({
+    version: 1,
+    exportedAt: '2026-08-19T00:00:00.000Z',
+    paliers: paliers || [],
+    logs: mockLogs,
+    measurements: mockMeasurements
+  })),
+  importAllData: vi.fn((data, userId) => Promise.resolve({
+    importedLogsCount: data.logs?.length || 0,
+    importedMeasurementsCount: data.measurements?.length || 0,
+    paliers: data.paliers || []
+  })),
 }));
 
 // Mock supabase client and auth
@@ -567,6 +579,38 @@ describe('useBodyGraphStore', () => {
       await store.triggerSync();
       expect(store.isSyncing).toBe(false);
       expect(db.syncLogs).toHaveBeenCalledWith('user-real');
+    });
+
+    it('exportData calls exportAllData with current userId and paliers', async () => {
+      const store = useBodyGraphStore();
+      const exportResult = await store.exportData();
+
+      expect(db.exportAllData).toHaveBeenCalledWith('guest', store.paliers);
+      expect(exportResult.version).toBe(1);
+      expect(exportResult.logs).toEqual(mockLogs);
+      expect(exportResult.measurements).toEqual(mockMeasurements);
+    });
+
+    it('importData calls importAllData, updates paliers and reloads logs', async () => {
+      const store = useBodyGraphStore();
+      const updatePaliersSpy = vi.spyOn(store, 'updatePaliers');
+      const loadLogsSpy = vi.spyOn(store, 'loadLogs');
+      const checkPalierSpy = vi.spyOn(store, 'checkAndAutoValidatePaliers');
+
+      const payload = {
+        version: 1,
+        paliers: [{ id: 'p_new', mass: 80, fat: 15, validated: false }],
+        logs: mockLogs,
+        measurements: mockMeasurements
+      };
+
+      const result = await store.importData(JSON.stringify(payload));
+      expect(db.importAllData).toHaveBeenCalledWith(payload, 'guest');
+      expect(updatePaliersSpy).toHaveBeenCalledWith(payload.paliers);
+      expect(loadLogsSpy).toHaveBeenCalled();
+      expect(checkPalierSpy).toHaveBeenCalled();
+      expect(result.importedLogsCount).toBe(28);
+      expect(result.importedMeasurementsCount).toBe(3);
     });
 
     describe('checkAndAutoValidatePaliers Weight Loss/Gain validation', () => {
