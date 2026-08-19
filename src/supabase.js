@@ -7,8 +7,10 @@ let supabase = null;
 
 if (supabaseUrl && supabaseAnonKey) {
   try {
-    supabase = createClient(supabaseUrl, supabaseAnonKey);
-    console.log('Supabase client initialized successfully.');
+    supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      db: { schema: 'app_simple_body_graph' }
+    });
+    console.log('Supabase client initialized successfully with schema app_simple_body_graph.');
   } catch (error) {
     console.error('Failed to initialize Supabase client:', error);
   }
