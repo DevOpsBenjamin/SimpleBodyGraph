@@ -1,0 +1,9 @@
+{
+  "appId": "com.devopsbenjamin.simplebodygraph",
+  "appName": "SimpleBodyGraph",
+  "webDir": "dist",
+  "server": {
+    "url": "https://simplebodygraph.pages.dev",
+    "cleartext": true
+  }
+}

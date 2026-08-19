@@ -8,7 +8,9 @@ import {
   migrateGuestLogsInDB,
   getAllMeasurements,
   saveMeasurement,
-  deleteMeasurement
+  deleteMeasurement,
+  exportAllData,
+  importAllData
 } from '../db';
 
 // Helper to find the Monday (YYYY-MM-DD) of a given date
@@ -743,32 +745,35 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       }
     },
 
+    updateYearsAndClamps() {
+      // Initialize start and end years if not set or if they are no longer in availableYears
+      const years = this.availableYears;
+      if (years.length > 0) {
+        if (this.startYear === null || !years.includes(this.startYear)) {
+          this.startYear = years[years.length - 1]; // Oldest year
+        }
+        if (this.endYear === null || !years.includes(this.endYear)) {
+          this.endYear = years[0]; // Newest year
+        }
+      }
+
+      // Cleanly clamp selected indices after loading logs to keep bounds valid
+      const maxMonthIndex = this.groupedMonths.length - 1;
+      if (this.selectedMonthIndex > maxMonthIndex) {
+        this.selectedMonthIndex = Math.max(0, maxMonthIndex);
+      }
+
+      const maxIndex = this.groupedWeeks.length - 1;
+      if (this.selectedWeekIndex > maxIndex) {
+        this.selectedWeekIndex = Math.max(0, maxIndex);
+      }
+    },
+
     async loadLogs() {
       try {
         this.logs = await getAllLogs(this.currentUserId);
         this.measurements = await getAllMeasurements(this.currentUserId);
-
-        // Initialize start and end years if not set or if they are no longer in availableYears
-        const years = this.availableYears;
-        if (years.length > 0) {
-          if (this.startYear === null || !years.includes(this.startYear)) {
-            this.startYear = years[years.length - 1]; // Oldest year
-          }
-          if (this.endYear === null || !years.includes(this.endYear)) {
-            this.endYear = years[0]; // Newest year
-          }
-        }
-        
-        // Cleanly clamp selected indices after loading logs to keep bounds valid
-        const maxMonthIndex = this.groupedMonths.length - 1;
-        if (this.selectedMonthIndex > maxMonthIndex) {
-          this.selectedMonthIndex = Math.max(0, maxMonthIndex);
-        }
-
-        const maxIndex = this.groupedWeeks.length - 1;
-        if (this.selectedWeekIndex > maxIndex) {
-          this.selectedWeekIndex = Math.max(0, maxIndex);
-        }
+        this.updateYearsAndClamps();
       } catch (error) {
         console.error('Store failed to load logs/measurements:', error);
       }
@@ -776,40 +781,58 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
     // Save or update a log entry
     async checkAndAutoValidatePaliers() {
-      // Automatic validation of paliers based on 7d rolling median mass
-      const rollingMedian = this.stats.rollingMedianMass;
-      if (!rollingMedian || this.paliers.length === 0) return;
+      if (this.paliers.length < 2) return;
+
+      const p1 = this.paliers[0];
+      const p2 = this.paliers[1];
+      const isWeightGain = Number(p2.mass) >= Number(p1.mass);
+      const isFatGain = Number(p2.fat) >= Number(p1.fat);
+
+      // Compute unfiltered weeks with at least 4 logs
+      const logsToUse = this.logsWithEstimates;
+      const groups = {};
+      for (const log of logsToUse) {
+        const mon = getMondayOfDate(log.date);
+        if (!groups[mon]) {
+          groups[mon] = [];
+        }
+        groups[mon].push(log);
+      }
+
+      const validWeeks = [];
+      for (const [mon, weekLogs] of Object.entries(groups)) {
+        if (weekLogs.length >= 4) {
+          const masses = weekLogs.map(l => Number(l.mass));
+          const fats = weekLogs.map(l => Number(l.body_fat));
+          const medianMass = calculateMedian(masses);
+          const medianFat = calculateMedian(fats);
+
+          validWeeks.push({
+            monday: mon,
+            medianMass,
+            medianFat
+          });
+        }
+      }
+
+      if (validWeeks.length === 0) return;
 
       let changed = false;
-      const updatedPaliers = this.paliers.map((palier, index) => {
+      const updatedPaliers = this.paliers.map((palier) => {
         if (palier.validated) return palier; // already validated
 
-        // To know whether we are in weight gain or loss trend:
-        // We look at the general trend direction of the paliers or just compare
-        // with previous paliers / initial weight.
-        // Let's determine direction: if palier targets are lower than starting/current weight
-        // it's a loss, if higher it's a gain.
-        // Even simpler: we can compare the palier target to the current 7d rolling median.
-        // But the user specifies:
-        // "si els palier descende perte de masse c quand on passe en dessous du palier en cour
-        // quand les palier montre prise de masse on considere un palier passer quand on est au dessus"
-        // Let's compute overall list direction or compare each palier relative to current/previous targets.
-        // Let's check if the palier mass target is smaller than previous palier's target (or first palier's target).
-        // Let's define direction per palier or list-wide.
-        // List-wide direction: compare last palier with first palier, or first palier with current weight.
-        // Let's look at the sequence of paliers:
-        // If we have index > 0, compare with index - 1. If index == 0, compare with first recorded log mass.
-        let isPrise = false;
-        if (index > 0) {
-          isPrise = Number(palier.mass) > Number(this.paliers[index - 1].mass);
-        } else {
-          const firstLog = this.logsWithEstimates[this.logsWithEstimates.length - 1];
-          const startMass = firstLog ? Number(firstLog.mass) : rollingMedian;
-          isPrise = Number(palier.mass) > startMass;
-        }
+        const targetMass = Number(palier.mass);
+        const targetFat = Number(palier.fat);
 
-        const target = Number(palier.mass);
-        const passed = isPrise ? (rollingMedian >= target) : (rollingMedian <= target);
+        const passed = validWeeks.some(week => {
+          const wMass = Number(week.medianMass);
+          const wFat = Number(week.medianFat);
+
+          const massPassed = isWeightGain ? (wMass >= targetMass) : (wMass <= targetMass);
+          const fatPassed = isFatGain ? (wFat >= targetFat) : (wFat <= targetFat);
+
+          return massPassed && fatPassed;
+        });
 
         if (passed) {
           changed = true;
@@ -834,8 +857,22 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
       try {
         await saveLog(log, this.currentUserId);
-        await this.loadLogs();
+
+        // Optimistically update logs in-memory
+        const logWithUserId = { ...log, user_id: this.currentUserId };
+        const existingIndex = this.logs.findIndex(l => l.id === log.id);
+        if (existingIndex !== -1) {
+          this.logs[existingIndex] = logWithUserId;
+        } else {
+          this.logs.push(logWithUserId);
+        }
+
+        // Sort descending by date
+        this.logs.sort((a, b) => b.date.localeCompare(a.date));
+
+        this.updateYearsAndClamps();
         await this.checkAndAutoValidatePaliers();
+
         this.showAddModal = false;
         this.editingLog = null;
         this.triggerSync();
@@ -848,7 +885,11 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     async deleteLogEntry(id) {
       try {
         await deleteLog(id, this.currentUserId);
-        await this.loadLogs();
+
+        // Optimistically delete in-memory
+        this.logs = this.logs.filter(l => l.id !== id);
+
+        this.updateYearsAndClamps();
         this.triggerSync();
       } catch (error) {
         console.error('Store failed to delete log:', error);
@@ -869,7 +910,21 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
       try {
         await saveMeasurement(log, this.currentUserId);
-        await this.loadLogs();
+
+        // Optimistically update measurements in-memory
+        const logWithUserId = { ...log, user_id: this.currentUserId };
+        const existingIndex = this.measurements.findIndex(m => m.id === log.id);
+        if (existingIndex !== -1) {
+          this.measurements[existingIndex] = logWithUserId;
+        } else {
+          this.measurements.push(logWithUserId);
+        }
+
+        // Sort descending by date
+        this.measurements.sort((a, b) => b.date.localeCompare(a.date));
+
+        this.updateYearsAndClamps();
+
         this.showAddMeasurementModal = false;
         this.editingMeasurement = null;
         this.triggerSync();
@@ -882,7 +937,11 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     async deleteMeasurementEntry(id) {
       try {
         await deleteMeasurement(id, this.currentUserId);
-        await this.loadLogs();
+
+        // Optimistically delete in-memory
+        this.measurements = this.measurements.filter(m => m.id !== id);
+
+        this.updateYearsAndClamps();
         this.triggerSync();
       } catch (error) {
         console.error('Store failed to delete measurement:', error);
@@ -916,6 +975,49 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       } finally {
         this.isSyncing = false;
       }
+    },
+
+    async exportData() {
+      const data = await exportAllData(this.currentUserId, this.paliers);
+      const jsonStr = JSON.stringify(data, null, 2);
+      if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const dateStr = new Date().toISOString().split('T')[0];
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `simplebodygraph_backup_${dateStr}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+      return data;
+    },
+
+    async importData(jsonContent) {
+      let parsed;
+      if (typeof jsonContent === 'string') {
+        try {
+          parsed = JSON.parse(jsonContent);
+        } catch (err) {
+          throw new Error("Le fichier sélectionné n'est pas un JSON valide.");
+        }
+      } else {
+        parsed = jsonContent;
+      }
+
+      const result = await importAllData(parsed, this.currentUserId);
+
+      if (result.paliers && Array.isArray(result.paliers) && result.paliers.length > 0) {
+        await this.updatePaliers(result.paliers);
+      }
+
+      await this.loadLogs();
+      await this.checkAndAutoValidatePaliers();
+      this.triggerSync();
+
+      return result;
     },
 
     setOnlineStatus(status) {
