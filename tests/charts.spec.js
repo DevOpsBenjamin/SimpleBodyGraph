@@ -29,7 +29,7 @@ test('Seed user data and take screenshot', async ({ page }) => {
 
   // Assert 7d rolling medians are displayed on the top cards (calculated over the last 7 days ending Jul 15)
   await expect(page.locator('text=100.50 kg').first()).toBeVisible(); // Total Mass card
-  await expect(page.locator('text=68.19 kg').first()).toBeVisible(); // Lean Mass card
+  await expect(page.locator('text=32.2').first()).toBeVisible(); // Body Fat % card
   await expect(page.locator('text=32.31 kg').first()).toBeVisible(); // Fat Mass card
 
   // Assert the Hevy Sync Helper list is visible at the bottom
