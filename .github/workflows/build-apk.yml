@@ -7,6 +7,11 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   build-apk:
     name: Build Android APK
@@ -43,14 +48,58 @@ jobs:
       - name: Grant Execute Permission for Gradlew
         run: chmod +x ./android/gradlew
 
-      - name: Build Android Debug APK
+      - name: Build Android Release APK (unsigned)
         run: |
           cd android
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleRelease --stacktrace
 
-      - name: Upload Debug APK Artifact
-        uses: actions/upload-artifact@v4
+      - name: Rename APK
+        run: |
+          mkdir -p apk-output
+          cp android/app/build/outputs/apk/release/app-release-unsigned.apk apk-output/SimpleBodyGraph.apk
+
+      - name: Create or update GitHub Release
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
         with:
-          name: SimpleBodyGraph-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
+          tag_name: latest-apk
+          name: "Latest APK"
+          body: "Android APK auto-build — release unsigned, toujours à jour avec main."
+          prerelease: true
+          files: apk-output/SimpleBodyGraph.apk
+
+      - name: Generate GitHub Pages download page
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          mkdir -p gh-pages
+          cat > gh-pages/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>SimpleBodyGraph — Télécharger l'APK</title>
+            <meta http-equiv="refresh" content="3;url=https://github.com/DevOpsBenjamin/SimpleBodyGraph/releases/latest/download/SimpleBodyGraph.apk" />
+            <style>
+              body { background: #030712; color: #e2e8f0; font-family: sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; flex-direction: column; gap: 24px; text-align: center; padding: 24px; }
+              h1 { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #8b5cf6, #4f46e5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+              p { color: #94a3b8; font-size: 0.9rem; }
+              a { display: inline-block; background: linear-gradient(135deg, #7c3aed, #4338ca); color: white; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 700; font-size: 1rem; }
+            </style>
+          </head>
+          <body>
+            <h1>SimpleBodyGraph</h1>
+            <p>Le téléchargement démarre automatiquement…</p>
+            <a href="https://github.com/DevOpsBenjamin/SimpleBodyGraph/releases/latest/download/SimpleBodyGraph.apk">
+              📥 Télécharger l'APK
+            </a>
+          </body>
+          </html>
+          EOF
+
+      - name: Deploy GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./gh-pages

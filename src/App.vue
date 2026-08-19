@@ -4,6 +4,31 @@
     <div class="absolute top-0 left-1/4 -translate-x-1/2 w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[120px] pointer-events-none animate-pulse-slow"></div>
     <div class="absolute bottom-10 right-1/4 translate-x-1/2 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none"></div>
 
+    <!-- Android APK Download Banner -->
+    <div
+      v-if="isAndroid && !apkBannerDismissed"
+      class="fixed top-0 left-0 right-0 z-50 flex items-center gap-3 px-4 py-3 bg-gray-900/95 border-b border-violet-500/30 backdrop-blur-md"
+    >
+      <span class="text-xl">📱</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-xs font-semibold text-white leading-tight">Une app native est disponible !</p>
+        <p class="text-[10px] text-gray-400">Installe l'APK pour une meilleure expérience</p>
+      </div>
+      <a
+        href="https://devopsbenjamin.github.io/SimpleBodyGraph/"
+        class="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white transition-colors"
+      >
+        Télécharger
+      </a>
+      <button
+        @click="apkBannerDismissed = true"
+        class="shrink-0 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+
     <!-- 1. AUTH INITIALIZATION LOADING SCREEN -->
     <div v-if="!store.initialized" class="flex-grow flex flex-col items-center justify-center p-4 relative z-10 animate-pulse">
       <div class="w-12 h-12 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center shadow-lg shadow-violet-500/10">
@@ -131,7 +156,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { Plus } from 'lucide-vue-next';
 import { useBodyGraphStore } from './stores/bodyGraph';
 
@@ -148,6 +173,10 @@ import AuthModal from './components/AuthModal.vue';
 import SettingsModal from './components/SettingsModal.vue';
 
 const store = useBodyGraphStore();
+
+// Android APK banner — only shown on Android browsers (not inside the Capacitor app)
+const isAndroid = /android/i.test(navigator.userAgent) && !window.Capacitor;
+const apkBannerDismissed = ref(false);
 
 onMounted(async () => {
   // Initialize user session and load appropriate IndexedDB profile
