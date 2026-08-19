@@ -1,0 +1,110 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, feature/capacitor ]
+    paths:
+      - 'android/**'
+      - 'capacitor.config.json'
+      - 'package.json'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Setup Java (JDK 21)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Web Frontend
+        run: npm run build
+
+      - name: Sync Capacitor Android
+        run: npx cap sync android
+
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x ./android/gradlew
+
+      - name: Build Android Release APK (unsigned)
+        run: |
+          cd android
+          ./gradlew assembleRelease --stacktrace
+
+      - name: Rename APK
+        run: |
+          mkdir -p apk-output
+          cp android/app/build/outputs/apk/release/app-release-unsigned.apk apk-output/SimpleBodyGraph.apk
+
+      - name: Create or update GitHub Release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-apk
+          name: "Latest APK"
+          body: "Android APK auto-build — release unsigned, toujours à jour avec main."
+          prerelease: true
+          files: apk-output/SimpleBodyGraph.apk
+
+      - name: Generate GitHub Pages download page
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p gh-pages
+          cat > gh-pages/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>SimpleBodyGraph — Télécharger l'APK</title>
+            <meta http-equiv="refresh" content="3;url=https://github.com/DevOpsBenjamin/SimpleBodyGraph/releases/latest/download/SimpleBodyGraph.apk" />
+            <style>
+              body { background: #030712; color: #e2e8f0; font-family: sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; flex-direction: column; gap: 24px; text-align: center; padding: 24px; }
+              h1 { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #8b5cf6, #4f46e5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+              p { color: #94a3b8; font-size: 0.9rem; }
+              a { display: inline-block; background: linear-gradient(135deg, #7c3aed, #4338ca); color: white; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 700; font-size: 1rem; }
+            </style>
+          </head>
+          <body>
+            <h1>SimpleBodyGraph</h1>
+            <p>Le téléchargement démarre automatiquement…</p>
+            <a href="https://github.com/DevOpsBenjamin/SimpleBodyGraph/releases/latest/download/SimpleBodyGraph.apk">
+              📥 Télécharger l'APK
+            </a>
+          </body>
+          </html>
+          EOF
+
+      - name: Deploy GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./gh-pages

@@ -1,24 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="violet-glow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#8b5cf6" />
-      <stop offset="100%" stop-color="#4f46e5" />
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#6366f1"/>
     </linearGradient>
-    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0f172a" />
-      <stop offset="100%" stop-color="#030712" />
-    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
+
   <!-- Background -->
-  <rect width="512" height="512" rx="128" fill="url(#bg-grad)" />
-  <!-- Border -->
-  <rect x="8" y="8" width="496" height="496" rx="120" fill="none" stroke="url(#violet-glow)" stroke-width="6" opacity="0.4" />
-  
-  <!-- Graph Path -->
-  <path d="M 120,380 C 160,340 180,240 240,260 C 300,280 340,160 400,140" fill="none" stroke="url(#violet-glow)" stroke-width="32" stroke-linecap="round" stroke-linejoin="round" filter="drop-shadow(0 0 16px rgba(139, 92, 246, 0.6))" />
-  
-  <!-- Glowing Nodes -->
-  <circle cx="120" cy="380" r="24" fill="#ffffff" filter="drop-shadow(0 0 12px rgba(139, 92, 246, 0.8))" />
-  <circle cx="240" cy="260" r="24" fill="#ffffff" filter="drop-shadow(0 0 12px rgba(139, 92, 246, 0.8))" />
-  <circle cx="400" cy="140" r="24" fill="#ffffff" filter="drop-shadow(0 0 12px rgba(79, 70, 229, 0.8))" />
+  <rect width="512" height="512" rx="110" fill="#0f172a"/>
+
+  <!-- Body/bust outline -->
+  <g fill="none" stroke="url(#g1)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+    <!-- Head -->
+    <circle cx="256" cy="148" r="52"/>
+    <!-- Shoulders/torso -->
+    <path d="M 100,420 C 100,330 160,290 200,280 L 200,250 C 200,215 220,200 256,200 C 292,200 312,215 312,250 L 312,280 C 352,290 412,330 412,420"/>
+  </g>
+
+  <!-- Bar chart inside torso -->
+  <g fill="none" stroke="#6366f1" stroke-width="12" stroke-linecap="round" filter="url(#glow)">
+    <!-- bar 1 (left, short) -->
+    <line x1="196" y1="400" x2="196" y2="360"/>
+    <!-- bar 2 (center, medium) -->
+    <line x1="256" y1="400" x2="256" y2="330"/>
+    <!-- bar 3 (right, tall) -->
+    <line x1="316" y1="400" x2="316" y2="295"/>
+  </g>
 </svg>
