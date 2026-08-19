@@ -3,8 +3,11 @@ name: Build Android APK
 on:
   push:
     branches: [ main, feature/capacitor ]
-  pull_request:
-    branches: [ main ]
+    paths:
+      - 'android/**'
+      - 'capacitor.config.json'
+      - 'package.json'
+      - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
 permissions:
@@ -59,7 +62,7 @@ jobs:
           cp android/app/build/outputs/apk/release/app-release-unsigned.apk apk-output/SimpleBodyGraph.apk
 
       - name: Create or update GitHub Release
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest-apk
@@ -69,7 +72,7 @@ jobs:
           files: apk-output/SimpleBodyGraph.apk
 
       - name: Generate GitHub Pages download page
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main'
         run: |
           mkdir -p gh-pages
           cat > gh-pages/index.html << 'EOF'
@@ -98,7 +101,7 @@ jobs:
           EOF
 
       - name: Deploy GitHub Pages
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
