@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SimpleBodyGraph</string>
+    <string name="title_activity_main">SimpleBodyGraph</string>
+    <string name="package_name">com.devopsbenjamin.simplebodygraph</string>
+    <string name="custom_url_scheme">com.devopsbenjamin.simplebodygraph</string>
+</resources>

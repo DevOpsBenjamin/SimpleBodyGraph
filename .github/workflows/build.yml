@@ -18,7 +18,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: 22
+        node-version: 24
         cache: 'npm'
 
     - name: Install Dependencies
@@ -41,7 +41,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: 22
+        node-version: 24
         cache: 'npm'
 
     - name: Install Dependencies
@@ -50,8 +50,20 @@ jobs:
     - name: Run Build
       run: npm run build
 
+    - name: Cache Playwright browsers
+      uses: actions/cache@v4
+      id: playwright-cache
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-chromium-${{ hashFiles('package-lock.json') }}
+
     - name: Install Playwright Chromium & Dependencies
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
       run: npx playwright install --with-deps chromium
+
+    - name: Install Playwright system deps only (cache hit)
+      if: steps.playwright-cache.outputs.cache-hit == 'true'
+      run: npx playwright install-deps chromium
 
     - name: Run Playwright E2E Tests
       run: npx playwright test
@@ -89,7 +101,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: 22
+        node-version: 24
         cache: 'npm'
 
     - name: Install Dependencies
