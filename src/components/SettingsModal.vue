@@ -138,6 +138,45 @@
           </div>
         </div>
 
+        <!-- Backup & Migration Section -->
+        <div class="space-y-3 pt-3 border-t border-gray-800/80">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-violet-400 uppercase tracking-wider">Sauvegarde & Migration</span>
+          </div>
+          <p class="text-[11px] text-gray-400 leading-relaxed">
+            Exportez vos pesées, mensurations et paliers au format JSON pour sauvegarder vos données ou les migrer.
+          </p>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              @click="handleExport"
+              :disabled="exportLoading"
+              class="py-2.5 px-3 rounded-xl bg-gray-800 hover:bg-gray-750 active:scale-[0.98] text-gray-200 hover:text-white transition-all duration-200 text-xs font-semibold cursor-pointer border border-gray-700/50 flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed font-sans"
+            >
+              <Download class="w-3.5 h-3.5 text-violet-400" />
+              <span>{{ exportLoading ? 'Export...' : 'Exporter (JSON)' }}</span>
+            </button>
+
+            <button
+              type="button"
+              @click="triggerFileInput"
+              :disabled="importLoading"
+              class="py-2.5 px-3 rounded-xl bg-gray-800 hover:bg-gray-750 active:scale-[0.98] text-gray-200 hover:text-white transition-all duration-200 text-xs font-semibold cursor-pointer border border-gray-700/50 flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed font-sans"
+            >
+              <Upload class="w-3.5 h-3.5 text-violet-400" />
+              <span>{{ importLoading ? 'Import...' : 'Importer (JSON)' }}</span>
+            </button>
+            <input
+              ref="fileInputRef"
+              type="file"
+              accept=".json,application/json"
+              class="hidden"
+              @change="handleFileImport"
+            />
+          </div>
+        </div>
+
         <!-- Feedback Messages -->
         <div v-if="errorMsg" class="text-xs text-rose-400 font-medium bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl">
           {{ errorMsg }}
@@ -171,7 +210,7 @@
 
 <script setup>
 import { ref, watch } from 'vue';
-import { Settings, X, Trash2, Plus, CheckCircle, Info } from 'lucide-vue-next';
+import { Settings, X, Trash2, Plus, CheckCircle, Info, Download, Upload } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 
 const store = useBodyGraphStore();
@@ -263,6 +302,68 @@ const handleSave = async () => {
 const clearGoals = async () => {
   paliers.value = [];
   await handleSave();
+};
+
+const fileInputRef = ref(null);
+const exportLoading = ref(false);
+const importLoading = ref(false);
+
+const handleExport = async () => {
+  exportLoading.value = true;
+  errorMsg.value = '';
+  successMsg.value = '';
+  try {
+    const data = await store.exportData();
+    const totalLogs = data.logs?.length || 0;
+    const totalM = data.measurements?.length || 0;
+    successMsg.value = `Export réussi (${totalLogs} pesées, ${totalM} mensurations) !`;
+  } catch (err) {
+    errorMsg.value = "Échec de l'export : " + (err.message || err);
+  } finally {
+    exportLoading.value = false;
+  }
+};
+
+const triggerFileInput = () => {
+  if (fileInputRef.value) {
+    fileInputRef.value.value = '';
+    fileInputRef.value.click();
+  }
+};
+
+const handleFileImport = async (event) => {
+  const file = event.target?.files?.[0];
+  if (!file) return;
+
+  importLoading.value = true;
+  errorMsg.value = '';
+  successMsg.value = '';
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const content = e.target.result;
+      const res = await store.importData(content);
+      successMsg.value = `Import réussi : ${res.importedLogsCount} pesées, ${res.importedMeasurementsCount} mensurations restaurées !`;
+
+      // Update local paliers in modal state
+      paliers.value = store.paliers.map(p => ({
+        id: p.id || crypto.randomUUID(),
+        mass: p.mass !== null && p.mass !== undefined ? p.mass : '',
+        fat: p.fat !== null && p.fat !== undefined ? p.fat : '',
+        validated: !!p.validated
+      }));
+    } catch (err) {
+      errorMsg.value = "Échec de l'import : " + (err.message || err);
+    } finally {
+      importLoading.value = false;
+    }
+  };
+  reader.onerror = () => {
+    errorMsg.value = 'Erreur lors de la lecture du fichier.';
+    importLoading.value = false;
+  };
+  reader.readAsText(file);
 };
 </script>
 

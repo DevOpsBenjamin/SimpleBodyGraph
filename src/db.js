@@ -269,6 +269,85 @@ export async function bulkWrite(storeName, { puts = [], deletes = [] }) {
   });
 }
 
+// Export all data for backup / migration
+export async function exportAllData(userId = 'guest', paliers = []) {
+  const logs = await getAllLogs(userId);
+  const measurements = await getAllMeasurements(userId);
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    paliers: paliers || [],
+    logs: logs.map(l => ({
+      id: l.id,
+      date: l.date,
+      mass: Number(l.mass),
+      body_fat: Number(l.body_fat)
+    })),
+    measurements: measurements.map(m => ({
+      id: m.id,
+      date: m.date,
+      waist: m.waist !== null && m.waist !== '' && m.waist !== undefined ? Number(m.waist) : null,
+      chest: m.chest !== null && m.chest !== '' && m.chest !== undefined ? Number(m.chest) : null,
+      arms: m.arms !== null && m.arms !== '' && m.arms !== undefined ? Number(m.arms) : null,
+      thighs: m.thighs !== null && m.thighs !== '' && m.thighs !== undefined ? Number(m.thighs) : null
+    }))
+  };
+}
+
+// Import all data from backup JSON payload
+export async function importAllData(data, userId = 'guest') {
+  if (!data || typeof data !== 'object') {
+    throw new Error('Format de fichier invalide');
+  }
+
+  const logsToImport = Array.isArray(data.logs) ? data.logs : [];
+  const measurementsToImport = Array.isArray(data.measurements) ? data.measurements : [];
+  const paliersToImport = Array.isArray(data.paliers) ? data.paliers : [];
+
+  const validLogs = [];
+  for (const log of logsToImport) {
+    if (log && log.date && !isNaN(Number(log.mass)) && !isNaN(Number(log.body_fat))) {
+      validLogs.push({
+        id: log.id || crypto.randomUUID(),
+        date: log.date,
+        mass: Number(log.mass),
+        body_fat: Number(log.body_fat),
+        user_id: userId,
+        synced: false
+      });
+    }
+  }
+
+  const validMeasurements = [];
+  for (const m of measurementsToImport) {
+    if (m && m.date) {
+      validMeasurements.push({
+        id: m.id || crypto.randomUUID(),
+        date: m.date,
+        waist: m.waist !== null && m.waist !== '' && m.waist !== undefined ? Number(m.waist) : null,
+        chest: m.chest !== null && m.chest !== '' && m.chest !== undefined ? Number(m.chest) : null,
+        arms: m.arms !== null && m.arms !== '' && m.arms !== undefined ? Number(m.arms) : null,
+        thighs: m.thighs !== null && m.thighs !== '' && m.thighs !== undefined ? Number(m.thighs) : null,
+        user_id: userId,
+        synced: false
+      });
+    }
+  }
+
+  if (validLogs.length > 0) {
+    await bulkWrite(STORE_LOGS, { puts: validLogs });
+  }
+  if (validMeasurements.length > 0) {
+    await bulkWrite(STORE_MEASUREMENTS, { puts: validMeasurements });
+  }
+
+  return {
+    importedLogsCount: validLogs.length,
+    importedMeasurementsCount: validMeasurements.length,
+    paliers: paliersToImport
+  };
+}
+
 // Migrate local guest logs to authenticated user
 export async function migrateGuestLogsInDB(newUserId) {
   if (!newUserId || newUserId === 'guest') return;
@@ -518,6 +597,8 @@ if (typeof window !== 'undefined') {
     clearPendingMeasurementDeletions,
     migrateGuestLogsInDB,
     syncLogs,
-    bulkWrite
+    bulkWrite,
+    exportAllData,
+    importAllData
   };
 }

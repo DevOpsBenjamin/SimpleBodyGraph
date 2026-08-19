@@ -38,6 +38,8 @@ vi.mock('../src/db', () => ({
   getAllMeasurements: vi.fn(() => Promise.resolve([])),
   saveMeasurement: vi.fn(() => Promise.resolve({ id: 'mocked-m' })),
   deleteMeasurement: vi.fn(() => Promise.resolve('mocked-m-id')),
+  exportAllData: vi.fn(() => Promise.resolve({ version: 1, logs: [], measurements: [], paliers: [] })),
+  importAllData: vi.fn(() => Promise.resolve({ importedLogsCount: 0, importedMeasurementsCount: 0, paliers: [] })),
 }));
 
 import { useBodyGraphStore } from '../src/stores/bodyGraph';

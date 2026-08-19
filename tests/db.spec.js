@@ -223,6 +223,44 @@ test.describe('IndexedDB Database Helpers', () => {
     expect(migratedMs[0].synced).toBe(false);
   });
 
+  test('exportAllData and importAllData correctly export and restore dataset', async ({ page }) => {
+    // 1. Export seeded dataset
+    const exported = await page.evaluate(async () => {
+      return await window.__db.exportAllData('guest', [{ id: 'p1', mass: 100, fat: 28, validated: false }]);
+    });
+
+    expect(exported.version).toBe(1);
+    expect(exported.paliers).toHaveLength(1);
+    expect(exported.logs).toHaveLength(28);
+    expect(exported.measurements).toHaveLength(3);
+    expect(exported.logs[0].date).toBe('2026-07-15');
+
+    // 2. Import into a new user ID (simulating restore / new database)
+    const importResult = await page.evaluate(async (data) => {
+      return await window.__db.importAllData(data, 'user-restored');
+    }, exported);
+
+    expect(importResult.importedLogsCount).toBe(28);
+    expect(importResult.importedMeasurementsCount).toBe(3);
+    expect(importResult.paliers).toHaveLength(1);
+
+    // 3. Verify the restored user has all logs and measurements marked with synced: false
+    const restoredLogs = await page.evaluate(async () => {
+      return await window.__db.getAllLogs('user-restored');
+    });
+    const restoredMs = await page.evaluate(async () => {
+      return await window.__db.getAllMeasurements('user-restored');
+    });
+
+    expect(restoredLogs).toHaveLength(28);
+    expect(restoredLogs[0].user_id).toBe('user-restored');
+    expect(restoredLogs[0].synced).toBe(false);
+
+    expect(restoredMs).toHaveLength(3);
+    expect(restoredMs[0].user_id).toBe('user-restored');
+    expect(restoredMs[0].synced).toBe(false);
+  });
+
   test('benchmark: bulkWrite performance compared to other approaches', async ({ page }) => {
     const results = await page.evaluate(async () => {
       const logsToInsert = Array.from({ length: 300 }, (_, i) => ({
