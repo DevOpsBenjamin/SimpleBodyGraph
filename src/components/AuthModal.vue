@@ -11,17 +11,22 @@
 
     <!-- Modal Card -->
     <div 
+      ref="modalCardRef"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="auth-modal-title"
       class="w-full sm:max-w-md bg-gray-900 border-t sm:border border-gray-800 rounded-t-3xl sm:rounded-3xl p-6 relative z-10 shadow-2xl shadow-black max-h-[90vh] overflow-y-auto transform translate-y-0 transition-all duration-300"
     >
       <!-- Modal Header -->
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+        <h2 id="auth-modal-title" class="text-xl font-bold text-white flex items-center gap-2">
           <Cloud class="w-5 h-5 text-violet-400" />
           Cloud Backup & Sync
         </h2>
         <button 
           @click="closeModal"
           class="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer"
+          aria-label="Fermer la fenêtre"
         >
           <X class="w-5 h-5" />
         </button>
@@ -168,10 +173,18 @@ import { ref } from 'vue';
 import { Cloud, X, Mail, Lock, ArrowLeft, CheckCircle2 } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 import { useToast } from '../composables/useToast';
+import { useModalAccessibility } from '../composables/useModalAccessibility';
 
 const store = useBodyGraphStore();
 const toast = useToast();
 const loading = ref(false);
+const modalCardRef = ref(null);
+
+useModalAccessibility({
+  isOpen: () => store.showAuthModal,
+  modalRef: modalCardRef,
+  onClose: () => closeModal()
+});
 
 // Form views state
 const showEmailForm = ref(false);
