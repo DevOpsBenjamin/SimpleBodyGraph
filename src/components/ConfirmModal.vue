@@ -1,6 +1,11 @@
 <template>
   <div 
     v-if="confirmState.isOpen"
+    ref="modalCardRef"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="confirm-dialog-title"
+    aria-describedby="confirm-dialog-desc"
     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in"
     @click.self="handleCancel"
   >
@@ -21,14 +26,14 @@
         </div>
 
         <div>
-          <h3 class="text-sm font-bold text-white leading-tight">
+          <h3 id="confirm-dialog-title" class="text-sm font-bold text-white leading-tight">
             {{ confirmState.title }}
           </h3>
         </div>
       </div>
 
       <!-- Message -->
-      <p class="text-xs text-gray-300 leading-relaxed mb-6 whitespace-pre-line">
+      <p id="confirm-dialog-desc" class="text-xs text-gray-300 leading-relaxed mb-6 whitespace-pre-line">
         {{ confirmState.message }}
       </p>
 
@@ -60,24 +65,18 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted } from 'vue';
+import { ref } from 'vue';
 import { AlertTriangle, Trash2, Info } from 'lucide-vue-next';
 import { useConfirm } from '../composables/useConfirm';
+import { useModalAccessibility } from '../composables/useModalAccessibility';
 
 const { confirmState, handleConfirm, handleCancel } = useConfirm();
+const modalCardRef = ref(null);
 
-const handleKeyDown = (e) => {
-  if (confirmState.isOpen && e.key === 'Escape') {
-    handleCancel();
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyDown);
+useModalAccessibility({
+  isOpen: () => confirmState.isOpen,
+  modalRef: modalCardRef,
+  onClose: () => handleCancel()
 });
 </script>
 

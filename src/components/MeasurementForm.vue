@@ -11,11 +11,15 @@
 
     <!-- Modal Card -->
     <div
+      ref="modalCardRef"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="measurement-modal-title"
       class="w-full sm:max-w-md bg-gray-900 border-t sm:border border-gray-800 rounded-t-3xl sm:rounded-3xl p-6 relative z-10 shadow-2xl shadow-black max-h-[90vh] overflow-y-auto transform translate-y-0 transition-transform duration-300"
     >
       <!-- Modal Header -->
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+        <h2 id="measurement-modal-title" class="text-xl font-bold text-white flex items-center gap-2">
           <svg class="w-5 h-5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21.54 15H17a2 2 0 0 0-2 2v4.54"></path>
             <path d="M7 3.34V5a3 3 0 0 0 3 3h0a2 2 0 0 1 2 2v0a2 2 0 0 0 2 2h0a2 2 0 0 1 2 2v0a2 2 0 0 0 2 2h0a2 2 0 0 1 2 2v0a2 2 0 0 0 2 2h.46"></path>
@@ -27,6 +31,7 @@
         <button
           @click="closeModal"
           class="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer"
+          aria-label="Fermer la fenêtre"
         >
           <X class="w-5 h-5" />
         </button>
@@ -133,13 +138,21 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue';
+import { ref, reactive, watch } from 'vue';
 import { X } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 import { useToast } from '../composables/useToast';
+import { useModalAccessibility } from '../composables/useModalAccessibility';
 
 const store = useBodyGraphStore();
 const toast = useToast();
+const modalCardRef = ref(null);
+
+useModalAccessibility({
+  isOpen: () => store.showAddMeasurementModal,
+  modalRef: modalCardRef,
+  onClose: () => closeModal()
+});
 
 const form = reactive({
   date: '',

@@ -11,17 +11,22 @@
 
     <!-- Modal Card -->
     <div 
+      ref="modalCardRef"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settings-modal-title"
       class="w-full sm:max-w-lg bg-gray-900 border-t sm:border border-gray-800 rounded-t-3xl sm:rounded-3xl p-6 relative z-10 shadow-2xl shadow-black max-h-[90vh] overflow-y-auto transform translate-y-0 transition-all duration-300 animate-fade-in font-sans text-gray-100"
     >
       <!-- Modal Header -->
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+        <h2 id="settings-modal-title" class="text-xl font-bold text-white flex items-center gap-2">
           <Settings class="w-5 h-5 text-violet-400" />
           Configuration des Paliers
         </h2>
         <button 
           @click="closeModal"
           class="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-750 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer"
+          aria-label="Fermer la fenêtre"
         >
           <X class="w-5 h-5" />
         </button>
@@ -212,8 +217,16 @@
 import { ref, watch } from 'vue';
 import { Settings, X, Trash2, Plus, CheckCircle, Info, Download, Upload } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
+import { useModalAccessibility } from '../composables/useModalAccessibility';
 
 const store = useBodyGraphStore();
+const modalCardRef = ref(null);
+
+useModalAccessibility({
+  isOpen: () => store.showSettingsModal,
+  modalRef: modalCardRef,
+  onClose: () => closeModal()
+});
 
 const paliers = ref([]);
 const loading = ref(false);
