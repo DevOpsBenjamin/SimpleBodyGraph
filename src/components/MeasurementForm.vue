@@ -136,8 +136,10 @@
 import { reactive, watch } from 'vue';
 import { X } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
+import { useToast } from '../composables/useToast';
 
 const store = useBodyGraphStore();
+const toast = useToast();
 
 const form = reactive({
   date: '',
@@ -186,7 +188,7 @@ watch(() => store.showAddMeasurementModal, (newVal) => {
 
 const handleSubmit = async () => {
   if (!form.waist && !form.chest && !form.arms && !form.thighs) {
-    alert('Please enter at least one measurement.');
+    toast.warning('Veuillez renseigner au moins une mesure.');
     return;
   }
   try {
@@ -198,8 +200,9 @@ const handleSubmit = async () => {
       arms: form.arms,
       thighs: form.thighs
     });
+    toast.success('Mensurations enregistrées avec succès.');
   } catch (error) {
-    alert('Failed to save measurements: ' + error.message);
+    toast.error("Échec de l'enregistrement : " + error.message);
   }
 };
 </script>

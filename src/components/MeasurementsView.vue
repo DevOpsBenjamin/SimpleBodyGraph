@@ -110,10 +110,14 @@
 import { ref, onMounted, watch, onBeforeUnmount, nextTick } from 'vue';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 import { Chart, registerables } from 'chart.js';
+import { useConfirm } from '../composables/useConfirm';
+import { useToast } from '../composables/useToast';
 
 Chart.register(...registerables);
 
 const store = useBodyGraphStore();
+const { confirm } = useConfirm();
+const toast = useToast();
 const measurementChartRef = ref(null);
 let measurementChartInstance = null;
 
@@ -131,11 +135,20 @@ const formatDay = (dateStr) => {
 };
 
 const handleDelete = async (id) => {
-  if (confirm('Are you sure you want to delete these measurements?')) {
+  const confirmed = await confirm({
+    title: 'Supprimer les mensurations',
+    message: 'Êtes-vous sûr de vouloir supprimer ces mensurations ?',
+    confirmText: 'Supprimer',
+    cancelText: 'Annuler',
+    variant: 'danger'
+  });
+
+  if (confirmed) {
     try {
       await store.deleteMeasurementEntry(id);
+      toast.success('Mensurations supprimées avec succès.');
     } catch (error) {
-      alert('Failed to delete measurements: ' + error.message);
+      toast.error('Échec de la suppression : ' + error.message);
     }
   }
 };

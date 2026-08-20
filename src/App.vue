@@ -152,6 +152,10 @@
       <!-- Settings modal overlay -->
       <SettingsModal />
     </template>
+
+    <!-- Global Modals and Notifications -->
+    <ConfirmModal />
+    <ToastContainer />
   </div>
 </template>
 
@@ -171,6 +175,8 @@ import MeasurementForm from './components/MeasurementForm.vue';
 import MeasurementsView from './components/MeasurementsView.vue';
 import AuthModal from './components/AuthModal.vue';
 import SettingsModal from './components/SettingsModal.vue';
+import ConfirmModal from './components/ConfirmModal.vue';
+import ToastContainer from './components/ToastContainer.vue';
 
 const store = useBodyGraphStore();
 

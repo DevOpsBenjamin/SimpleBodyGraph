@@ -167,8 +167,10 @@
 import { ref } from 'vue';
 import { Cloud, X, Mail, Lock, ArrowLeft, CheckCircle2 } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
+import { useToast } from '../composables/useToast';
 
 const store = useBodyGraphStore();
+const toast = useToast();
 const loading = ref(false);
 
 // Form views state
@@ -192,7 +194,7 @@ const handleGoogleSignIn = async () => {
     await store.signInWithGoogle();
     closeModal();
   } catch (error) {
-    alert('Failed to initialize Google Sign In: ' + error.message);
+    toast.error("Échec de l'initialisation Google Sign In : " + error.message);
   } finally {
     loading.value = false;
   }
@@ -213,7 +215,7 @@ const handleEmailAuth = async () => {
       closeModal();
     }
   } catch (error) {
-    alert(`Authentication failed: ${error.message}`);
+    toast.error(`Échec de l'authentification : ${error.message}`);
   } finally {
     loading.value = false;
   }
