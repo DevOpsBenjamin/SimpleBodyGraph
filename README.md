@@ -51,6 +51,20 @@ Deploy the statically compiled assets in `dist/` to Cloudflare Pages, Vercel, or
 npm run build
 ```
 
+### 5. Running Tests
+* **Unit Tests** (Vitest):
+  ```bash
+  npm run test:unit
+  ```
+* **E2E & IndexedDB Tests** (Playwright with automatic pre-build):
+  ```bash
+  npm run test:e2e
+  ```
+* **Run All Tests**:
+  ```bash
+  npm run test:all
+  ```
+
 ---
 
 ## 📊 Supabase Database Schema
