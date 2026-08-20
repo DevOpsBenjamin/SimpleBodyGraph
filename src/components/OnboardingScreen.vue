@@ -208,8 +208,10 @@
 import { ref } from 'vue';
 import { Mail, Lock, ArrowLeft, ShieldCheck, CheckCircle2, ArrowRight } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
+import { useToast } from '../composables/useToast';
 
 const store = useBodyGraphStore();
+const toast = useToast();
 const loading = ref(false);
 const loadingGoogle = ref(false);
 
@@ -226,7 +228,7 @@ const handleGoogleSignIn = async () => {
   try {
     await store.signInWithGoogle();
   } catch (error) {
-    alert('Failed to initialize Google Sign In: ' + error.message);
+    toast.error("Échec de l'initialisation Google Sign In : " + error.message);
   } finally {
     loading.value = false;
     loadingGoogle.value = false;
@@ -250,7 +252,7 @@ const handleEmailAuth = async () => {
       await store.signInWithEmail(email.value, password.value);
     }
   } catch (error) {
-    alert(`Authentication failed: ${error.message}`);
+    toast.error(`Échec de l'authentification : ${error.message}`);
   } finally {
     loading.value = false;
   }

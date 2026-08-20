@@ -125,24 +125,37 @@
 <script setup>
 import { RefreshCw, LogOut, Cloud, AlertTriangle, Settings, Database } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
+import { useConfirm } from '../composables/useConfirm';
+import { useToast } from '../composables/useToast';
 
 const store = useBodyGraphStore();
+const { confirm } = useConfirm();
+const toast = useToast();
 
 const showSyncErrorDetails = () => {
   if (store.syncError) {
     const errorDetails = typeof store.syncError === 'object'
       ? JSON.stringify(store.syncError, null, 2)
       : store.syncError;
-    alert(`Supabase Sync Error:\n\n${errorDetails}\n\nHint: Verify that your database tables exist and your Supabase credentials/policies are correctly configured.`);
+    toast.error(`Erreur de synchronisation :\n${errorDetails}`, 6000);
   }
 };
 
 const handleLogout = async () => {
-  if (confirm('Are you sure you want to log out? Your cloud data will remain saved, and you will return to Guest profile.')) {
+  const confirmed = await confirm({
+    title: 'Déconnexion',
+    message: 'Êtes-vous sûr de vouloir vous déconnecter ? Vos données cloud restent enregistrées et vous reviendrez au profil Invité.',
+    confirmText: 'Se déconnecter',
+    cancelText: 'Annuler',
+    variant: 'warning'
+  });
+
+  if (confirmed) {
     try {
       await store.logout();
+      toast.info('Vous êtes maintenant déconnecté.');
     } catch (error) {
-      alert('Logout failed: ' + error.message);
+      toast.error('Échec de la déconnexion : ' + error.message);
     }
   }
 };

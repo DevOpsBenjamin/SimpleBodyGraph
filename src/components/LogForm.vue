@@ -106,8 +106,10 @@
 import { reactive, watch } from 'vue';
 import { X } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
+import { useToast } from '../composables/useToast';
 
 const store = useBodyGraphStore();
+const toast = useToast();
 
 const form = reactive({
   date: '',
@@ -153,8 +155,9 @@ const handleSubmit = async () => {
       bodyFat: form.body_fat,
       date: form.date
     });
+    toast.success('Pesée enregistrée avec succès.');
   } catch (error) {
-    alert('Failed to save log entry: ' + error.message);
+    toast.error("Échec de l'enregistrement : " + error.message);
   }
 };
 </script>

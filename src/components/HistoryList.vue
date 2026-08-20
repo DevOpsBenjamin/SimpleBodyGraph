@@ -93,8 +93,12 @@
 <script setup>
 import { Calendar, Trash2, Plus, Cloud as CloudCheck, CloudLightning, Edit3 } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
+import { useConfirm } from '../composables/useConfirm';
+import { useToast } from '../composables/useToast';
 
 const store = useBodyGraphStore();
+const { confirm } = useConfirm();
+const toast = useToast();
 
 // Date formatting helpers
 const formatMonth = (dateStr) => {
@@ -110,11 +114,20 @@ const formatDay = (dateStr) => {
 };
 
 const handleDelete = async (id) => {
-  if (confirm('Are you sure you want to delete this log entry?')) {
+  const confirmed = await confirm({
+    title: 'Supprimer la pesée',
+    message: 'Êtes-vous sûr de vouloir supprimer cette entrée ? Cette action est irréversible.',
+    confirmText: 'Supprimer',
+    cancelText: 'Annuler',
+    variant: 'danger'
+  });
+
+  if (confirmed) {
     try {
       await store.deleteLogEntry(id);
+      toast.success('Pesée supprimée avec succès.');
     } catch (error) {
-      alert('Failed to delete log entry: ' + error.message);
+      toast.error('Échec de la suppression : ' + error.message);
     }
   }
 };
