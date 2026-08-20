@@ -79,11 +79,13 @@ const theme = computed(() => {
 
 const renderChart = () => {
   if (!canvasRef.value) return;
-  if (props.medianData.length === 0 && props.averageData.length === 0) return;
-
-  if (chartInstance) {
-    chartInstance.destroy();
-    chartInstance = null;
+  if (props.medianData.length === 0 && props.averageData.length === 0) {
+    if (chartInstance) {
+      chartInstance.data.datasets[0].data = [];
+      chartInstance.data.datasets[1].data = [];
+      chartInstance.update();
+    }
+    return;
   }
 
   const ctx = canvasRef.value.getContext('2d');
@@ -103,6 +105,38 @@ const renderChart = () => {
     props.paliers, 
     props.activePalier
   );
+
+  const goalLines = getGoalLinesForMetric(props.metricType, props.paliers, props.activePalier);
+
+  if (chartInstance) {
+    chartInstance.data.datasets[0].label = props.medianLabel;
+    chartInstance.data.datasets[0].data = props.medianData;
+    chartInstance.data.datasets[0].borderColor = strokeGrad;
+    chartInstance.data.datasets[0].pointBorderColor = t.pointBorder;
+    chartInstance.data.datasets[0].backgroundColor = fillGrad;
+
+    chartInstance.data.datasets[1].label = props.averageLabel;
+    chartInstance.data.datasets[1].data = props.averageData;
+    chartInstance.data.datasets[1].borderColor = t.avgBorder;
+    chartInstance.data.datasets[1].pointBorderColor = t.avgBorder;
+
+    chartInstance.options.plugins.goalLine = {
+      lines: goalLines,
+      unit: props.unit
+    };
+
+    if (scaleLimits.min !== undefined) {
+      chartInstance.options.scales.y.min = scaleLimits.min;
+      chartInstance.options.scales.y.max = scaleLimits.max;
+    } else {
+      delete chartInstance.options.scales.y.min;
+      delete chartInstance.options.scales.y.max;
+    }
+    chartInstance.options.scales.x = props.timeScaleOptions;
+
+    chartInstance.update();
+    return;
+  }
 
   chartInstance = new Chart(ctx, {
     type: 'line',
@@ -154,7 +188,7 @@ const renderChart = () => {
         },
         tooltip: { enabled: false },
         goalLine: {
-          lines: getGoalLinesForMetric(props.metricType, props.paliers, props.activePalier),
+          lines: goalLines,
           unit: props.unit
         }
       },

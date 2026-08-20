@@ -109,7 +109,9 @@
 <script setup>
 import { ref, onMounted, watch, onBeforeUnmount, nextTick } from 'vue';
 import { useBodyGraphStore } from '../stores/bodyGraph';
-import Chart from 'chart.js/auto';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 const store = useBodyGraphStore();
 const measurementChartRef = ref(null);
@@ -142,15 +144,17 @@ const renderChart = async () => {
   await nextTick();
   if (!measurementChartRef.value) return;
 
-  const ctx = measurementChartRef.value.getContext('2d');
-  if (measurementChartInstance) {
-    measurementChartInstance.destroy();
-  }
-
   // Use sorted measurements ascending for chronological chart plotting
   const chronologicalLogs = [...store.measurements].sort((a, b) => a.date.localeCompare(b.date));
 
-  if (chronologicalLogs.length === 0) return;
+  if (chronologicalLogs.length === 0) {
+    if (measurementChartInstance) {
+      measurementChartInstance.data.labels = [];
+      measurementChartInstance.data.datasets.forEach(d => d.data = []);
+      measurementChartInstance.update();
+    }
+    return;
+  }
 
   const labels = chronologicalLogs.map(log => {
     const d = new Date(log.date);
@@ -162,6 +166,17 @@ const renderChart = async () => {
   const armsData = chronologicalLogs.map(log => log.arms || null);
   const thighsData = chronologicalLogs.map(log => log.thighs || null);
 
+  if (measurementChartInstance) {
+    measurementChartInstance.data.labels = labels;
+    measurementChartInstance.data.datasets[0].data = waistData;
+    measurementChartInstance.data.datasets[1].data = chestData;
+    measurementChartInstance.data.datasets[2].data = armsData;
+    measurementChartInstance.data.datasets[3].data = thighsData;
+    measurementChartInstance.update();
+    return;
+  }
+
+  const ctx = measurementChartRef.value.getContext('2d');
   measurementChartInstance = new Chart(ctx, {
     type: 'line',
     data: {
