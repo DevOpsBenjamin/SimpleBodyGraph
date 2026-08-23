@@ -559,6 +559,16 @@
         </div>
       </div>
     </div>
+
+    <!-- Assistant d'Appairage Interactif BLE -->
+    <ScalePairingModal
+      ref="pairingModalRef"
+      :is-open="isPairingModalOpen"
+      :device="selectedDeviceForPairing"
+      @close="closePairingModal"
+      @paired="onDeviceSuccessfullyPaired"
+      @retry="startPairingWorkflow"
+    />
   </div>
 </template>
 
@@ -570,6 +580,8 @@ import {
 } from 'lucide-vue-next';
 import { useBodyGraphStore, calculateAge } from '../stores/bodyGraph';
 import { BleService } from '../services/ble/bleService';
+import { ScaleManager } from '../services/ble/scaleManager';
+import ScalePairingModal from './ScalePairingModal.vue';
 
 const store = useBodyGraphStore();
 
@@ -619,6 +631,11 @@ const isScanning = ref(false);
 const discoveredDevices = ref([]);
 const bleErrorMsg = ref('');
 const isNativePlatform = computed(() => BleService.isNative());
+
+// Pairing Modal state
+const pairingModalRef = ref(null);
+const isPairingModalOpen = ref(false);
+const selectedDeviceForPairing = ref(null);
 
 // Feedback
 const errorMsg = ref('');
@@ -826,21 +843,58 @@ const toggleScan = async () => {
   }
 };
 
-const handlePairDevice = async (device) => {
-  try {
-    await store.savePairedDevice({
-      deviceId: device.deviceId,
-      name: device.name || 'Balance HUAWEI Scale 3',
-      mac: device.deviceId,
-      type: 'huawei_scale_3'
-    });
-    successMsg.value = `Balance "${device.name}" associée avec succès !`;
-    setTimeout(() => {
-      successMsg.value = '';
-    }, 2500);
-  } catch (err) {
-    errorMsg.value = "Échec de l'association : " + (err.message || err);
+const handlePairDevice = (device) => {
+  selectedDeviceForPairing.value = device;
+  isPairingModalOpen.value = true;
+  if (isScanning.value) {
+    BleService.stopScan();
+    isScanning.value = false;
   }
+  startPairingWorkflow(device);
+};
+
+const startPairingWorkflow = async (device) => {
+  if (!device) return;
+  pairingModalRef.value?.startPairingSession();
+
+  const profileData = {
+    gender: store.profile?.gender || 'male',
+    age: calculateAge(store.profile?.birthDate) || 30,
+    heightCm: store.profile?.height || 175,
+    lastWeightKg: store.latestLog?.mass || null
+  };
+
+  try {
+    await ScaleManager.pairDevice(device, profileData, {
+      onStep: (stepInfo) => {
+        pairingModalRef.value?.updateStep(stepInfo);
+      },
+      onRequestMac: async (defaultMac) => {
+        return await pairingModalRef.value?.requestMacInput(defaultMac);
+      },
+      onSuccess: async (pairedData) => {
+        await store.savePairedDevice(pairedData);
+        pairingModalRef.value?.setSuccess(pairedData);
+      },
+      onError: (err) => {
+        pairingModalRef.value?.setError(err);
+      }
+    });
+  } catch (err) {
+    pairingModalRef.value?.setError(err);
+  }
+};
+
+const closePairingModal = () => {
+  isPairingModalOpen.value = false;
+  selectedDeviceForPairing.value = null;
+};
+
+const onDeviceSuccessfullyPaired = (device) => {
+  successMsg.value = `Balance "${device?.name || 'HUAWEI Scale 3'}" associée avec succès !`;
+  setTimeout(() => {
+    successMsg.value = '';
+  }, 2500);
 };
 
 const handleRemoveDevice = async (deviceId) => {

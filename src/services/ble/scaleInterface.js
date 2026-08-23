@@ -91,4 +91,20 @@ export class BaseScaleDriver {
   async startMeasurement(callbacks) {
     throw new Error('Driver must implement startMeasurement(callbacks)');
   }
+
+  /**
+   * Assistant d'appairage initial (Mode 1 / Flash & pesée de référence)
+   * @param {{ deviceId: string; name?: string; mac?: string }} device
+   * @param {ScaleUserProfile} profile
+   * @param {Object} callbacks
+   * @param {function(Object): void} [callbacks.onStep]
+   * @param {function(string): Promise<string>} [callbacks.onRequestMac]
+   * @param {function(Object): void} [callbacks.onSuccess]
+   * @param {function(Error): void} [callbacks.onError]
+   * @returns {Promise<Object>}
+   */
+  async pair(device, profile, callbacks) {
+    throw new Error('Driver must implement pair(device, profile, callbacks)');
+  }
 }
+

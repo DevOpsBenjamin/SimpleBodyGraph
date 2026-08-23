@@ -27,7 +27,7 @@
           {{ store.editingLog ? 'Edit Log Entry' : 'Log Body Metrics' }}
         </h2>
         <button 
-          @click="closeModal"
+          @click="closeModal" 
           class="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer"
           aria-label="Fermer la fenêtre"
         >
@@ -43,7 +43,7 @@
           <input 
             id="log-date"
             type="date" 
-            v-model="form.date"
+            v-model="form.date" 
             required
             class="w-full px-4 py-3 rounded-xl glass-input text-sm text-white"
           />
@@ -57,11 +57,11 @@
             <input 
               id="log-mass"
               type="number" 
-              v-model.number="form.mass"
-              placeholder="e.g. 78.50"
-              step="0.01"
-              min="20"
-              max="300"
+              v-model.number="form.mass" 
+              placeholder="e.g. 78.50" 
+              step="0.01" 
+              min="20" 
+              max="300" 
               required
               class="w-full px-4 py-3 rounded-xl glass-input text-sm text-white"
             />
@@ -73,18 +73,16 @@
             <input 
               id="log-fat"
               type="number" 
-              v-model.number="form.body_fat"
-              placeholder="e.g. 14.2"
-              step="0.1"
-              min="1"
-              max="70"
+              v-model.number="form.body_fat" 
+              placeholder="e.g. 14.2" 
+              step="0.1" 
+              min="1" 
+              max="70" 
               required
               class="w-full px-4 py-3 rounded-xl glass-input text-sm text-white"
             />
           </div>
         </div>
-
-
 
         <!-- Submit Button -->
         <div class="pt-4 flex gap-3">
@@ -96,7 +94,7 @@
             Cancel
           </button>
           <button 
-            type="submit"
+            type="submit" 
             class="flex-1 py-3 text-sm font-semibold rounded-xl bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white shadow-lg shadow-violet-600/20 hover:shadow-violet-600/30 transition-all duration-200 cursor-pointer"
           >
             Save Entry
