@@ -564,9 +564,15 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
               birthDate: this.user.user_metadata.profile.birthDate ?? null,
               height: this.user.user_metadata.profile.height ? Number(this.user.user_metadata.profile.height) : null
             };
+            localStorage.setItem('bodygraph_profile', JSON.stringify(this.profile));
+          } else if (this.profile.gender || this.profile.birthDate || this.profile.height) {
+            // Upload local guest profile to cloud on initial session discovery
+            await supabase.auth.updateUser({ data: { profile: this.profile } });
           }
+
           if (this.user.user_metadata?.paliers) {
             this.paliers = this.user.user_metadata.paliers;
+            localStorage.setItem('bodygraph_paliers', JSON.stringify(this.paliers));
           } else if (this.targetMass !== null || this.targetFat !== null) {
             this.paliers = [{
               id: crypto.randomUUID(),
@@ -594,9 +600,14 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
                 birthDate: session.user.user_metadata.profile.birthDate ?? null,
                 height: session.user.user_metadata.profile.height ? Number(session.user.user_metadata.profile.height) : null
               };
+              localStorage.setItem('bodygraph_profile', JSON.stringify(this.profile));
+            } else if (this.profile.gender || this.profile.birthDate || this.profile.height) {
+              await supabase.auth.updateUser({ data: { profile: this.profile } });
             }
+
             if (session.user.user_metadata?.paliers) {
               this.paliers = session.user.user_metadata.paliers;
+              localStorage.setItem('bodygraph_paliers', JSON.stringify(this.paliers));
             } else if (this.targetMass !== null || this.targetFat !== null) {
               this.paliers = [{
                 id: crypto.randomUUID(),
@@ -685,6 +696,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           : null
       };
 
+      // Always save to localStorage (offline-first)
+      localStorage.setItem('bodygraph_profile', JSON.stringify(this.profile));
+
+      // Sync to Supabase user_metadata if logged in
       if (this.user && supabase) {
         try {
           const { data, error } = await supabase.auth.updateUser({
@@ -698,8 +713,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           console.error('Failed to update profile in supabase:', error);
           throw error;
         }
-      } else {
-        localStorage.setItem('bodygraph_profile', JSON.stringify(this.profile));
       }
     },
 
@@ -707,6 +720,20 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       this.paliers = paliersList;
       this.syncSingleGoalsFromActivePalier();
 
+      // Always persist to localStorage
+      localStorage.setItem('bodygraph_paliers', JSON.stringify(this.paliers));
+      if (this.targetMass !== null) {
+        localStorage.setItem('bodygraph_target_mass', this.targetMass);
+      } else {
+        localStorage.removeItem('bodygraph_target_mass');
+      }
+      if (this.targetFat !== null) {
+        localStorage.setItem('bodygraph_target_fat', this.targetFat);
+      } else {
+        localStorage.removeItem('bodygraph_target_fat');
+      }
+
+      // Sync to Supabase if logged in
       if (this.user && supabase) {
         try {
           const { data, error } = await supabase.auth.updateUser({
@@ -721,18 +748,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         } catch (error) {
           console.error('Failed to update goals in supabase:', error);
           throw error;
-        }
-      } else {
-        localStorage.setItem('bodygraph_paliers', JSON.stringify(this.paliers));
-        if (this.targetMass !== null) {
-          localStorage.setItem('bodygraph_target_mass', this.targetMass);
-        } else {
-          localStorage.removeItem('bodygraph_target_mass');
-        }
-        if (this.targetFat !== null) {
-          localStorage.setItem('bodygraph_target_fat', this.targetFat);
-        } else {
-          localStorage.removeItem('bodygraph_target_fat');
         }
       }
     },

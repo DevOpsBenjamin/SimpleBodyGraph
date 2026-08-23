@@ -246,7 +246,7 @@
             <div class="p-3.5 bg-indigo-950/30 border border-indigo-800/30 rounded-2xl flex gap-3 items-start">
               <Sparkles class="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" />
               <div class="text-[11px] leading-relaxed text-gray-400">
-                <strong class="text-indigo-300">ℹ️ Informations optionnelles :</strong> Ces données sont <span class="text-white font-semibold">entièrement facultatives</span> et conservées en local. Elles sont requises uniquement si vous synchronisez une balance Bluetooth afin de calculer précisément votre % de masse grasse et vos impédances 8 électrodes.
+                <strong class="text-indigo-300">ℹ️ Informations facultatives :</strong> Ces données sont <span class="text-white font-semibold">facultatives</span> et utilisées uniquement pour les calculs de composition corporelle (masse grasse, impédances) lors des pesées avec une balance connectée Bluetooth. Si vous êtes connecté, elles sont automatiquement sauvegardées sur votre compte pour être synchronisées sur tous vos appareils.
               </div>
             </div>
 
