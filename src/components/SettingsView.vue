@@ -832,6 +832,7 @@ const toggleScan = async () => {
 
   try {
     await BleService.startScan((dev) => {
+      if (!dev || !dev.name || !dev.name.trim() || dev.name === 'Appareil Bluetooth inconnu') return;
       const exists = discoveredDevices.value.some(d => d.deviceId === dev.deviceId);
       if (!exists) {
         discoveredDevices.value.push(dev);
