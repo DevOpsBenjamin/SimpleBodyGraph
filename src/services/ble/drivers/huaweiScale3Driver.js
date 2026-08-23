@@ -1,5 +1,4 @@
 import { BaseScaleDriver } from '../scaleInterface';
-import { ScaleManager } from '../scaleManager';
 import {
   deriveRootKey,
   generateAuthTokens,
@@ -59,18 +58,24 @@ export class HuaweiScale3Driver extends BaseScaleDriver {
   }
 
   /**
-   * Vérifie si le nom publicitaire correspond aux modèles Huawei Scale 3
+   * Vérifie si le nom publicitaire ou l'identifiant correspond aux modèles Huawei Scale 3 / Pro
+   * @param {{ name?: string; localName?: string; type?: string }} advertisement
+   * @returns {boolean}
    */
   supportsDevice(advertisement) {
     if (!advertisement) return false;
-    const name = (advertisement.name || '').toLowerCase();
+    if (advertisement.type === this.id) return true;
+    const name = (advertisement.name || advertisement.localName || '').toLowerCase().trim();
     return (
       name.includes('haigeble') ||
       name.includes('scale 3') ||
       name.includes('scale3') ||
+      name.includes('scale_3') ||
+      name.includes('scale-3') ||
       name.includes('hag-b19') ||
       name.includes('hem-b19') ||
-      name.includes('huawei scale')
+      name.includes('huawei') ||
+      name.includes('honor')
     );
   }
 
@@ -357,6 +362,5 @@ export class HuaweiScale3Driver extends BaseScaleDriver {
   }
 }
 
-// Enregistrement par défaut dans le ScaleManager
 export const huaweiScale3Driver = new HuaweiScale3Driver();
-ScaleManager.registerDriver(huaweiScale3Driver);
+
