@@ -106,19 +106,9 @@ export const BleService = {
         }
       );
     } else {
-      // Web / Browser mode fallback (mock detection for testing)
-      isScanning = true;
-      console.log('Web mode: Starting simulated BLE scan...');
-      setTimeout(() => {
-        if (isScanning && typeof onDeviceFound === 'function') {
-          onDeviceFound({
-            deviceId: '50:FB:19:F8:0C:21',
-            name: 'HaigeBLE (HUAWEI Scale 3)',
-            rssi: -58,
-            isSimulation: true
-          });
-        }
-      }, 1200);
+      // Web / Browser mode: BLE hardware scan is restricted
+      isScanning = false;
+      throw new Error("Pour des raisons de compatibilité matérielle (écoute des paquets publicitaires passifs, négociation MTU et protocole propriétaire), la détection et la connexion aux balances connectées nécessitent l'application native Android (APK).");
     }
   },
 
