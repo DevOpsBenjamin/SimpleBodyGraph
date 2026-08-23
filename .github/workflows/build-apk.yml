@@ -77,7 +77,8 @@ jobs:
           tag_name: latest-apk
           name: "SimpleBodyGraph v${{ steps.get_version.outputs.version_name }} (build ${{ steps.get_version.outputs.version_code }})"
           body: "Android APK v${{ steps.get_version.outputs.version_name }} (build ${{ steps.get_version.outputs.version_code }}) — Release officielle avec support Bluetooth Low Energy (BLE)."
-          prerelease: true
+          prerelease: false
+          make_latest: true
           files: apk-output/SimpleBodyGraph.apk
 
       - name: Generate GitHub Pages download page
