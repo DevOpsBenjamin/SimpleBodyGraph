@@ -44,12 +44,13 @@ test('Seed user data and take screenshot', async ({ page }) => {
   await page.screenshot({ path: screenshotPath, fullPage: true });
   console.log('Screenshot captured at:', screenshotPath);
 
-  // Open settings modal to verify the newly added Conseil d'utilisation
+  // Open settings modal to verify the newly added Settings & tabs
   await page.locator('button[title="Settings & Goals"]').click();
   await page.waitForTimeout(500);
 
-  // Assert target header is visible
-  await expect(page.locator('text=Configuration des Paliers').first()).toBeVisible();
+  // Assert target header and tabs are visible
+  await expect(page.locator('text=Paramètres & Configuration').first()).toBeVisible();
+  await expect(page.locator('text=Profil (BIA)').first()).toBeVisible();
 
   // Take screenshot of the settings modal
   const settingsScreenshotPath = 'settings_render.png';

@@ -226,11 +226,16 @@ test.describe('IndexedDB Database Helpers', () => {
   test('exportAllData and importAllData correctly export and restore dataset', async ({ page }) => {
     // 1. Export seeded dataset
     const exported = await page.evaluate(async () => {
-      return await window.__db.exportAllData('guest', [{ id: 'p1', mass: 100, fat: 28, validated: false }]);
+      return await window.__db.exportAllData(
+        'guest', 
+        [{ id: 'p1', mass: 100, fat: 28, validated: false }],
+        { gender: 'male', birthDate: '1992-05-14', height: 178 }
+      );
     });
 
-    expect(exported.version).toBe(1);
+    expect(exported.version).toBe(2);
     expect(exported.paliers).toHaveLength(1);
+    expect(exported.profile).toEqual({ gender: 'male', birthDate: '1992-05-14', height: 178 });
     expect(exported.logs).toHaveLength(28);
     expect(exported.measurements).toHaveLength(3);
     expect(exported.logs[0].date).toBe('2026-07-15');
@@ -243,6 +248,7 @@ test.describe('IndexedDB Database Helpers', () => {
     expect(importResult.importedLogsCount).toBe(28);
     expect(importResult.importedMeasurementsCount).toBe(3);
     expect(importResult.paliers).toHaveLength(1);
+    expect(importResult.profile).toEqual({ gender: 'male', birthDate: '1992-05-14', height: 178 });
 
     // 3. Verify the restored user has all logs and measurements marked with synced: false
     const restoredLogs = await page.evaluate(async () => {

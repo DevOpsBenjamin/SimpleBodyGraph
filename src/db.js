@@ -270,13 +270,14 @@ export async function bulkWrite(storeName, { puts = [], deletes = [] }) {
 }
 
 // Export all data for backup / migration
-export async function exportAllData(userId = 'guest', paliers = []) {
+export async function exportAllData(userId = 'guest', paliers = [], profile = null) {
   const logs = await getAllLogs(userId);
   const measurements = await getAllMeasurements(userId);
   return {
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     paliers: paliers || [],
+    profile: profile || null,
     logs: logs.map(l => ({
       id: l.id,
       date: l.date,
@@ -303,6 +304,7 @@ export async function importAllData(data, userId = 'guest') {
   const logsToImport = Array.isArray(data.logs) ? data.logs : [];
   const measurementsToImport = Array.isArray(data.measurements) ? data.measurements : [];
   const paliersToImport = Array.isArray(data.paliers) ? data.paliers : [];
+  const profileToImport = (data.profile && typeof data.profile === 'object') ? data.profile : null;
 
   const validLogs = [];
   for (const log of logsToImport) {
@@ -344,7 +346,8 @@ export async function importAllData(data, userId = 'guest') {
   return {
     importedLogsCount: validLogs.length,
     importedMeasurementsCount: validMeasurements.length,
-    paliers: paliersToImport
+    paliers: paliersToImport,
+    profile: profileToImport
   };
 }
 
