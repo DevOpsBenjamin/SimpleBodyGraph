@@ -114,6 +114,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       birthDate: null, // 'YYYY-MM-DD' | null
       height: null     // number in cm | null
     },
+    pairedDevices: [], // [{ id, deviceId, name, type, mac, pairedAt }]
     startYear: null,
     endYear: null,
     
@@ -522,6 +523,15 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         }
       }
 
+      const savedDevices = localStorage.getItem('bodygraph_devices');
+      if (savedDevices) {
+        try {
+          this.pairedDevices = JSON.parse(savedDevices);
+        } catch (e) {
+          this.pairedDevices = [];
+        }
+      }
+
       const savedPaliers = localStorage.getItem('bodygraph_paliers');
       if (savedPaliers) {
         try {
@@ -570,6 +580,13 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
             await supabase.auth.updateUser({ data: { profile: this.profile } });
           }
 
+          if (this.user.user_metadata?.paired_devices) {
+            this.pairedDevices = this.user.user_metadata.paired_devices;
+            localStorage.setItem('bodygraph_devices', JSON.stringify(this.pairedDevices));
+          } else if (this.pairedDevices.length > 0) {
+            await supabase.auth.updateUser({ data: { paired_devices: this.pairedDevices } });
+          }
+
           if (this.user.user_metadata?.paliers) {
             this.paliers = this.user.user_metadata.paliers;
             localStorage.setItem('bodygraph_paliers', JSON.stringify(this.paliers));
@@ -605,6 +622,13 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
               await supabase.auth.updateUser({ data: { profile: this.profile } });
             }
 
+            if (session.user.user_metadata?.paired_devices) {
+              this.pairedDevices = session.user.user_metadata.paired_devices;
+              localStorage.setItem('bodygraph_devices', JSON.stringify(this.pairedDevices));
+            } else if (this.pairedDevices.length > 0) {
+              await supabase.auth.updateUser({ data: { paired_devices: this.pairedDevices } });
+            }
+
             if (session.user.user_metadata?.paliers) {
               this.paliers = session.user.user_metadata.paliers;
               localStorage.setItem('bodygraph_paliers', JSON.stringify(this.paliers));
@@ -637,6 +661,16 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
               }
             } else {
               this.profile = { gender: null, birthDate: null, height: null };
+            }
+            const savedD = localStorage.getItem('bodygraph_devices');
+            if (savedD) {
+              try {
+                this.pairedDevices = JSON.parse(savedD);
+              } catch (e) {
+                this.pairedDevices = [];
+              }
+            } else {
+              this.pairedDevices = [];
             }
             const saved = localStorage.getItem('bodygraph_paliers');
             if (saved) {
@@ -699,7 +733,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       // Always save to localStorage (offline-first)
       localStorage.setItem('bodygraph_profile', JSON.stringify(this.profile));
 
-      // Sync to Supabase user_metadata if logged in
       if (this.user && supabase) {
         try {
           const { data, error } = await supabase.auth.updateUser({
@@ -712,6 +745,60 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         } catch (error) {
           console.error('Failed to update profile in supabase:', error);
           throw error;
+        }
+      }
+    },
+
+    async savePairedDevice(device) {
+      const existingIndex = this.pairedDevices.findIndex(d => d.deviceId === device.deviceId);
+      const newDevice = {
+        id: device.id || crypto.randomUUID(),
+        deviceId: device.deviceId,
+        name: device.name || 'Balance Bluetooth',
+        type: device.type || 'huawei_scale_3',
+        mac: device.mac || device.deviceId,
+        pairedAt: device.pairedAt || new Date().toISOString()
+      };
+
+      if (existingIndex !== -1) {
+        this.pairedDevices[existingIndex] = newDevice;
+      } else {
+        this.pairedDevices.push(newDevice);
+      }
+
+      localStorage.setItem('bodygraph_devices', JSON.stringify(this.pairedDevices));
+
+      if (this.user && supabase) {
+        try {
+          const { data, error } = await supabase.auth.updateUser({
+            data: {
+              paired_devices: this.pairedDevices
+            }
+          });
+          if (error) throw error;
+          this.user = data.user;
+        } catch (err) {
+          console.warn('Failed to sync paired devices to supabase:', err);
+        }
+      }
+      return newDevice;
+    },
+
+    async removePairedDevice(deviceId) {
+      this.pairedDevices = this.pairedDevices.filter(d => d.deviceId !== deviceId && d.id !== deviceId);
+      localStorage.setItem('bodygraph_devices', JSON.stringify(this.pairedDevices));
+
+      if (this.user && supabase) {
+        try {
+          const { data, error } = await supabase.auth.updateUser({
+            data: {
+              paired_devices: this.pairedDevices
+            }
+          });
+          if (error) throw error;
+          this.user = data.user;
+        } catch (err) {
+          console.warn('Failed to sync paired devices removal to supabase:', err);
         }
       }
     },

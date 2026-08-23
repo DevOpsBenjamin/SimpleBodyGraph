@@ -348,46 +348,136 @@
         </div>
 
         <!-- ======================================================== -->
-        <!-- TAB 3 : BLUETOOTH SCALES (MODULAR ARCHITECTURE READY)    -->
+        <!-- TAB 3 : BLUETOOTH SCALES & LIVE SCAN                     -->
         <!-- ======================================================== -->
         <div v-show="activeSubTab === 'devices'" class="space-y-5 animate-fade-in">
-          <div>
-            <span class="text-xs font-bold text-violet-400 uppercase tracking-wider block">Balances Connectées (BLE)</span>
-            <p class="text-[11px] text-gray-400 mt-0.5">Gérez vos périphériques de pesée et lancez vos acquisitions directes.</p>
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-violet-400 uppercase tracking-wider block">Balances Connectées (BLE)</span>
+              <p class="text-[11px] text-gray-400 mt-0.5">Scannez et associez votre balance Bluetooth pour vos pesées directes.</p>
+            </div>
+
+            <!-- Native / Web Badge -->
+            <div 
+              :class="[
+                'px-2.5 py-1 rounded-xl text-[10px] font-bold border flex items-center gap-1.5 select-none',
+                isNativePlatform 
+                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                  : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300'
+              ]"
+            >
+              <Smartphone class="w-3 h-3" />
+              <span>{{ isNativePlatform ? 'APK Natif BLE' : 'Web / Simulation' }}</span>
+            </div>
           </div>
 
-          <!-- Feature status badge -->
-          <div class="p-4 bg-gray-950/80 border border-gray-800 rounded-2xl space-y-3">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center">
-                  <Bluetooth class="w-4 h-4 text-violet-400" />
+          <!-- Paired Devices List -->
+          <div class="space-y-3">
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Balances enregistrées</span>
+            
+            <div v-if="store.pairedDevices.length === 0" class="p-4 bg-gray-950/40 border border-dashed border-gray-800 rounded-2xl text-center space-y-1">
+              <Scale class="w-5 h-5 text-gray-600 mx-auto mb-1" />
+              <p class="text-xs text-gray-400 font-medium">Aucune balance associée</p>
+              <p class="text-[10px] text-gray-600">Lancez la recherche ci-dessous pour détecter et appairer votre balance.</p>
+            </div>
+
+            <div v-else class="space-y-2.5">
+              <div 
+                v-for="device in store.pairedDevices" 
+                :key="device.id || device.deviceId"
+                class="p-3.5 bg-gray-950/80 border border-violet-500/30 rounded-2xl flex items-center justify-between shadow-lg shadow-violet-500/5"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400">
+                    <Scale class="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-bold text-white leading-tight flex items-center gap-2">
+                      {{ device.name }}
+                      <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Associée</span>
+                    </h4>
+                    <p class="text-[10px] text-gray-400 font-mono mt-0.5">MAC : {{ device.mac || device.deviceId }}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 class="text-xs font-bold text-white leading-tight">HUAWEI Scale 3 / Scale 3 Pro</h4>
-                  <p class="text-[10px] text-gray-400">Pilote autonome validé (HaigeBLE / HAG-B19 / HEM-B19)</p>
-                </div>
+
+                <button
+                  type="button"
+                  @click="handleRemoveDevice(device.deviceId)"
+                  class="p-2 rounded-xl hover:bg-rose-500/10 text-gray-500 hover:text-rose-400 transition-colors cursor-pointer"
+                  title="Dissocier cette balance"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </button>
               </div>
-              <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
-                Support Prêt
-              </span>
-            </div>
-
-            <p class="text-[11px] text-gray-400 leading-relaxed">
-              L'architecture modulaire permet l'appairage direct en 1 clic via l'application native Android pour récupérer votre poids, % de masse grasse, rythme cardiaque et impédances 8 électrodes sans manipulation manuelle.
-            </p>
-
-            <div class="pt-2 border-t border-gray-900 flex items-center justify-between">
-              <span class="text-[10px] text-gray-500 font-medium">Capacitor BLE Plugin</span>
-              <span class="text-[10px] text-violet-400 font-semibold">Issue #67 en cours</span>
             </div>
           </div>
 
-          <!-- Extra Device info -->
-          <div class="text-center py-6 text-xs text-gray-500 border border-dashed border-gray-800 rounded-2xl space-y-1">
-            <Scale class="w-6 h-6 text-gray-600 mx-auto mb-1.5" />
-            <p class="font-medium text-gray-400">Prêt pour l'appairage en 1 clic</p>
-            <p class="text-[10px] text-gray-600">Le bouton d'association rapide sera disponible dès l'activation du driver BLE.</p>
+          <!-- Scan Action Box -->
+          <div class="p-4 bg-gray-950/80 border border-gray-800 rounded-2xl space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="text-xs font-bold text-white">Recherche d'appareils à proximité</h4>
+                <p class="text-[10px] text-gray-400">Allumez votre balance ou montez brièvement dessus pour la réveiller.</p>
+              </div>
+
+              <button
+                type="button"
+                @click="toggleScan"
+                :class="[
+                  'py-2 px-3.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer flex items-center gap-2',
+                  isScanning
+                    ? 'bg-rose-600/20 text-rose-300 border border-rose-500/30 hover:bg-rose-600/30'
+                    : 'bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-500/15'
+                ]"
+              >
+                <RefreshCw v-if="isScanning" class="w-3.5 h-3.5 animate-spin" />
+                <Search v-else class="w-3.5 h-3.5" />
+                <span>{{ isScanning ? 'Arrêter' : 'Rechercher (BLE)' }}</span>
+              </button>
+            </div>
+
+            <!-- Scan feedback error -->
+            <div v-if="bleErrorMsg" class="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl">
+              {{ bleErrorMsg }}
+            </div>
+
+            <!-- Scanning active animation indicator -->
+            <div v-if="isScanning && discoveredDevices.length === 0" class="py-4 text-center space-y-2">
+              <div class="w-6 h-6 border-2 border-violet-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p class="text-xs text-violet-300 font-medium">Recherche Bluetooth en cours...</p>
+              <p class="text-[10px] text-gray-500">Posez le pied sur la balance pour activer son émetteur BLE</p>
+            </div>
+
+            <!-- Discovered Devices List -->
+            <div v-if="discoveredDevices.length > 0" class="space-y-2 pt-2 border-t border-gray-900">
+              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Appareils trouvés ({{ discoveredDevices.length }})</span>
+              
+              <div 
+                v-for="dev in discoveredDevices" 
+                :key="dev.deviceId"
+                class="p-3 bg-gray-900 border border-gray-800 hover:border-violet-500/30 rounded-xl flex items-center justify-between transition-all"
+              >
+                <div class="flex items-center gap-2.5">
+                  <Bluetooth class="w-4 h-4 text-violet-400" />
+                  <div>
+                    <p class="text-xs font-bold text-white">{{ dev.name }}</p>
+                    <p class="text-[10px] text-gray-400 font-mono">{{ dev.deviceId }} <span v-if="dev.rssi" class="text-gray-500">({{ dev.rssi }} dBm)</span></p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  v-if="!isDevicePaired(dev.deviceId)"
+                  @click="handlePairDevice(dev)"
+                  class="py-1.5 px-3 rounded-lg bg-violet-600/25 hover:bg-violet-600/40 text-violet-200 border border-violet-500/30 text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  Associer
+                </button>
+                <span v-else class="text-[10px] text-emerald-400 font-semibold px-2 py-1 bg-emerald-500/10 rounded-lg">
+                  Déjà associée
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -455,10 +545,11 @@
 import { ref, computed, watch } from 'vue';
 import { 
   Settings, X, Trash2, Plus, CheckCircle, Info, Download, Upload, 
-  Target, User, Scale, Database, Sparkles, Bluetooth 
+  Target, User, Scale, Database, Sparkles, Bluetooth, Search, RefreshCw, Smartphone 
 } from 'lucide-vue-next';
 import { useBodyGraphStore, calculateAge } from '../stores/bodyGraph';
 import { useModalAccessibility } from '../composables/useModalAccessibility';
+import { BleService } from '../services/ble/bleService';
 
 const store = useBodyGraphStore();
 const modalCardRef = ref(null);
@@ -487,6 +578,69 @@ const calculatedAge = computed(() => {
   return calculateAge(profileForm.value.birthDate);
 });
 
+// State for BLE Devices
+const isScanning = ref(false);
+const discoveredDevices = ref([]);
+const bleErrorMsg = ref('');
+const isNativePlatform = computed(() => BleService.isNative());
+
+const isDevicePaired = (deviceId) => {
+  return store.pairedDevices.some(d => d.deviceId === deviceId || d.mac === deviceId);
+};
+
+const toggleScan = async () => {
+  bleErrorMsg.value = '';
+  if (isScanning.value) {
+    await BleService.stopScan();
+    isScanning.value = false;
+    return;
+  }
+
+  discoveredDevices.value = [];
+  isScanning.value = true;
+
+  try {
+    await BleService.startScan((dev) => {
+      const exists = discoveredDevices.value.some(d => d.deviceId === dev.deviceId);
+      if (!exists) {
+        discoveredDevices.value.push(dev);
+      }
+    });
+  } catch (err) {
+    isScanning.value = false;
+    bleErrorMsg.value = err.message || 'Échec de la recherche Bluetooth.';
+  }
+};
+
+const handlePairDevice = async (device) => {
+  try {
+    await store.savePairedDevice({
+      deviceId: device.deviceId,
+      name: device.name || 'Balance HUAWEI Scale 3',
+      mac: device.deviceId,
+      type: 'huawei_scale_3'
+    });
+    successMsg.value = `Balance "${device.name}" associée avec succès !`;
+    setTimeout(() => {
+      successMsg.value = '';
+    }, 2500);
+  } catch (err) {
+    errorMsg.value = "Échec de l'association : " + (err.message || err);
+  }
+};
+
+const handleRemoveDevice = async (deviceId) => {
+  try {
+    await store.removePairedDevice(deviceId);
+    successMsg.value = 'Balance dissociée.';
+    setTimeout(() => {
+      successMsg.value = '';
+    }, 2000);
+  } catch (err) {
+    errorMsg.value = 'Échec de la suppression : ' + (err.message || err);
+  }
+};
+
 // General Feedback
 const errorMsg = ref('');
 const successMsg = ref('');
@@ -507,8 +661,16 @@ watch(() => store.showSettingsModal, (isOpen) => {
       height: store.profile?.height !== null && store.profile?.height !== undefined ? store.profile.height : ''
     };
 
+    discoveredDevices.value = [];
+    isScanning.value = false;
+    bleErrorMsg.value = '';
     errorMsg.value = '';
     successMsg.value = '';
+  } else {
+    if (isScanning.value) {
+      BleService.stopScan();
+      isScanning.value = false;
+    }
   }
 });
 
