@@ -220,24 +220,38 @@
     <!-- ======================================================== -->
     <div v-show="activeSubTab === 'profile'" class="space-y-6">
       <div class="glass-card p-5 sm:p-6 rounded-2xl space-y-5 border border-gray-800/80">
-        <div>
-          <h3 class="text-sm font-bold text-violet-400 uppercase tracking-wider">Profil Corporel (Bio-Impédance BIA)</h3>
-          <p class="text-xs text-gray-400 mt-1">Données requises pour le calcul précis de votre masse grasse et impédances sur balance connectée.</p>
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-violet-400 uppercase tracking-wider">Profil Corporel (Bio-Impédance BIA)</h3>
+            <p class="text-xs text-gray-400 mt-1">Données requises pour le calcul précis de votre masse grasse et impédances sur balance connectée.</p>
+          </div>
+          <span 
+            :class="[
+              'text-[10px] px-2.5 py-1 rounded-xl font-bold border select-none',
+              isProfileActive
+                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                : 'bg-gray-800/60 border-gray-700 text-gray-400'
+            ]"
+          >
+            {{ isProfileActive ? '🟢 Profil Actif' : '⚪ Profil Inactif' }}
+          </span>
         </div>
 
         <!-- Educational Alert -->
         <div class="p-4 bg-indigo-950/30 border border-indigo-800/30 rounded-2xl flex gap-3 items-start">
           <Sparkles class="w-5 h-5 text-indigo-400 mt-0.5 flex-shrink-0" />
           <div class="text-xs leading-relaxed text-gray-300">
-            <strong class="text-indigo-300">ℹ️ Informations facultatives :</strong> Ces données sont <span class="text-white font-semibold">facultatives</span> et utilisées uniquement pour les calculs de composition corporelle (masse grasse, impédances) lors des pesées avec une balance connectée Bluetooth. Si vous êtes connecté, elles sont automatiquement synchronisées sur votre compte cloud.
+            <strong class="text-indigo-300">⚠️ Règle du calcul BIA :</strong> Les calculs de composition corporelle (masse grasse, impédances) nécessitent <span class="text-white font-semibold">l'ensemble des 3 informations (Sexe, Âge et Taille)</span>. Si vous ne souhaitez pas les renseigner, le profil reste désactivé.
           </div>
         </div>
 
         <form @submit.prevent="handleSaveProfile" class="space-y-5">
           <!-- Sexe Selection -->
           <div class="space-y-2">
-            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Sexe biologique</label>
-            <div class="grid grid-cols-3 gap-3">
+            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider">
+              Sexe biologique <span class="text-rose-400">*</span>
+            </label>
+            <div class="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 @click="profileForm.gender = 'male'"
@@ -265,19 +279,6 @@
                 <span class="text-base">👩</span>
                 <span>Femme</span>
               </button>
-
-              <button
-                type="button"
-                @click="profileForm.gender = null"
-                :class="[
-                  'py-3 px-3 rounded-xl border text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer',
-                  profileForm.gender === null
-                    ? 'bg-gray-800 border-gray-600 text-gray-200'
-                    : 'bg-gray-950/60 border-gray-800 text-gray-500 hover:text-gray-400'
-                ]"
-              >
-                <span>Non renseigné</span>
-              </button>
             </div>
           </div>
 
@@ -285,7 +286,9 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-2">
               <div class="flex items-center justify-between">
-                <label for="profile-birthdate" class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Date de naissance</label>
+                <label for="profile-birthdate" class="block text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Date de naissance <span class="text-rose-400">*</span>
+                </label>
                 <span v-if="calculatedAge !== null" class="text-xs font-bold text-violet-400 bg-violet-600/15 border border-violet-500/20 px-2.5 py-0.5 rounded-lg">
                   {{ calculatedAge }} ans
                 </span>
@@ -293,6 +296,7 @@
               <input
                 id="profile-birthdate"
                 type="date"
+                required
                 v-model="profileForm.birthDate"
                 class="w-full px-3.5 py-2.5 rounded-xl bg-gray-950 border border-gray-800 focus:border-violet-500/50 text-xs text-white"
               />
@@ -300,7 +304,9 @@
 
             <!-- Height (cm) -->
             <div class="space-y-2">
-              <label for="profile-height" class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Taille (en cm)</label>
+              <label for="profile-height" class="block text-xs font-bold text-gray-400 uppercase tracking-wider">
+                Taille (en cm) <span class="text-rose-400">*</span>
+              </label>
               <div class="relative">
                 <input
                   id="profile-height"
@@ -308,6 +314,7 @@
                   min="50"
                   max="250"
                   step="1"
+                  required
                   placeholder="ex: 175"
                   v-model="profileForm.height"
                   class="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-gray-950 border border-gray-800 focus:border-violet-500/50 text-xs text-white"
@@ -319,11 +326,27 @@
             </div>
           </div>
 
-          <div class="pt-2">
+          <div class="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              type="button"
+              v-if="isProfileActive || profileForm.gender || profileForm.birthDate || profileForm.height"
+              @click="handleResetProfile"
+              :disabled="profileLoading"
+              class="py-3 px-4 rounded-xl bg-gray-900 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/30 text-gray-400 border border-gray-800 text-xs font-semibold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <Trash2 class="w-4 h-4" />
+              <span>Effacer / Réinitialiser</span>
+            </button>
+
             <button 
               type="submit"
-              :disabled="profileLoading"
-              class="w-full py-3 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 active:scale-[0.98] text-white font-semibold text-xs transition-all duration-200 cursor-pointer shadow-lg shadow-violet-500/20 flex items-center justify-center gap-1.5 disabled:opacity-50"
+              :disabled="profileLoading || !isProfileComplete"
+              :class="[
+                'flex-1 py-3 px-4 rounded-xl font-semibold text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer',
+                isProfileComplete
+                  ? 'bg-violet-600 hover:bg-violet-500 active:scale-[0.98] text-white shadow-lg shadow-violet-500/20'
+                  : 'bg-gray-800/80 text-gray-500 cursor-not-allowed border border-gray-700/50'
+              ]"
             >
               {{ profileLoading ? 'Enregistrement...' : 'Sauvegarder le Profil BIA' }}
             </button>
@@ -568,6 +591,29 @@ const calculatedAge = computed(() => {
   return calculateAge(profileForm.value.birthDate);
 });
 
+const isProfileComplete = computed(() => {
+  const h = Number(profileForm.value.height);
+  return (
+    (profileForm.value.gender === 'male' || profileForm.value.gender === 'female') &&
+    !!profileForm.value.birthDate &&
+    calculatedAge.value !== null &&
+    calculatedAge.value >= 5 &&
+    calculatedAge.value <= 120 &&
+    !isNaN(h) &&
+    h >= 50 &&
+    h <= 250
+  );
+});
+
+const isProfileActive = computed(() => {
+  return (
+    (store.profile?.gender === 'male' || store.profile?.gender === 'female') &&
+    !!store.profile?.birthDate &&
+    store.profile?.height !== null &&
+    store.profile?.height !== undefined
+  );
+});
+
 // BLE state
 const isScanning = ref(false);
 const discoveredDevices = ref([]);
@@ -688,8 +734,20 @@ const handleSaveProfile = async () => {
   successMsg.value = '';
 
   try {
-    const hVal = profileForm.value.height === '' ? null : Number(profileForm.value.height);
-    if (hVal !== null && (isNaN(hVal) || hVal < 50 || hVal > 250)) {
+    if (!profileForm.value.gender || (profileForm.value.gender !== 'male' && profileForm.value.gender !== 'female')) {
+      errorMsg.value = 'Veuillez sélectionner votre sexe biologique (Homme ou Femme).';
+      profileLoading.value = false;
+      return;
+    }
+
+    if (!profileForm.value.birthDate || calculatedAge.value === null || calculatedAge.value < 5 || calculatedAge.value > 120) {
+      errorMsg.value = 'Veuillez renseigner une date de naissance valide.';
+      profileLoading.value = false;
+      return;
+    }
+
+    const hVal = Number(profileForm.value.height);
+    if (!profileForm.value.height || isNaN(hVal) || hVal < 50 || hVal > 250) {
       errorMsg.value = 'Veuillez saisir une taille valide (entre 50 et 250 cm).';
       profileLoading.value = false;
       return;
@@ -697,7 +755,7 @@ const handleSaveProfile = async () => {
 
     await store.updateProfile({
       gender: profileForm.value.gender,
-      birthDate: profileForm.value.birthDate || null,
+      birthDate: profileForm.value.birthDate,
       height: hVal
     });
 
@@ -707,6 +765,33 @@ const handleSaveProfile = async () => {
     }, 2500);
   } catch (error) {
     errorMsg.value = 'Échec de la sauvegarde du profil : ' + error.message;
+  } finally {
+    profileLoading.value = false;
+  }
+};
+
+const handleResetProfile = async () => {
+  profileLoading.value = true;
+  errorMsg.value = '';
+  successMsg.value = '';
+
+  try {
+    profileForm.value = {
+      gender: null,
+      birthDate: '',
+      height: ''
+    };
+    await store.updateProfile({
+      gender: null,
+      birthDate: null,
+      height: null
+    });
+    successMsg.value = 'Profil BIA effacé et désactivé.';
+    setTimeout(() => {
+      successMsg.value = '';
+    }, 2500);
+  } catch (error) {
+    errorMsg.value = 'Échec de la réinitialisation : ' + error.message;
   } finally {
     profileLoading.value = false;
   }
