@@ -757,6 +757,30 @@ describe('useBodyGraphStore', () => {
         await store.importData(payload);
         expect(updateProfileSpy).toHaveBeenCalledWith({ gender: 'female', birthDate: '1998-03-15', height: 168 });
       });
+
+      it('manages paired BLE devices and persists them locally and in supabase', async () => {
+        const store = useBodyGraphStore();
+        store.user = { id: 'user-123', user_metadata: {} };
+
+        await store.savePairedDevice({
+          deviceId: '50:FB:19:F8:0C:21',
+          name: 'HUAWEI Scale 3',
+          type: 'huawei_scale_3'
+        });
+
+        expect(store.pairedDevices).toHaveLength(1);
+        expect(store.pairedDevices[0].deviceId).toBe('50:FB:19:F8:0C:21');
+        expect(store.pairedDevices[0].name).toBe('HUAWEI Scale 3');
+        expect(localStorage.setItem).toHaveBeenCalledWith('bodygraph_devices', expect.any(String));
+        expect(supabase.auth.updateUser).toHaveBeenCalledWith({
+          data: {
+            paired_devices: store.pairedDevices
+          }
+        });
+
+        await store.removePairedDevice('50:FB:19:F8:0C:21');
+        expect(store.pairedDevices).toHaveLength(0);
+      });
     });
   });
 });
