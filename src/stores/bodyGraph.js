@@ -98,6 +98,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     session: null,
     isOnline: navigator.onLine,
     isSyncing: false,
+    activeView: 'dashboard', // 'dashboard' | 'settings'
     activeTab: 'monthly',
     showAddModal: false,
     showAddMeasurementModal: false,

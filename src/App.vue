@@ -48,99 +48,105 @@
     <!-- 2. ONBOARDING SCREEN -->
     <OnboardingScreen v-else-if="!store.showDashboard" />
 
-    <!-- 3. MAIN DASHBOARD APPLICATION -->
+    <!-- 3. MAIN APPLICATION (DASHBOARD OR SETTINGS) -->
     <template v-else>
       <!-- Header component -->
       <HeaderSection />
 
-      <!-- Main Content -->
-      <main class="flex-grow max-w-6xl w-full mx-auto p-4 sm:p-6 pb-24 z-10">
-        
-        <!-- Stats summary cards -->
-        <StatsOverview />
+      <!-- Settings Full Page View -->
+      <SettingsView v-if="store.activeView === 'settings'" />
 
-        <!-- Tab navigation controller -->
-        <section class="mb-6">
-          <div class="flex p-1 rounded-xl bg-gray-900/80 border border-gray-800/60 max-w-md">
-            <button 
-              @click="store.activeTab = 'monthly'"
-              :class="[
-                'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
-                store.activeTab === 'monthly'
-                  ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md' 
-                  : 'text-gray-400 hover:text-gray-200'
-              ]"
-            >
-              Tendance (Mensuel)
-            </button>
-            <button 
-              @click="store.activeTab = 'weekly'"
-              :class="[
-                'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
-                store.activeTab === 'weekly'
-                  ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md' 
-                  : 'text-gray-400 hover:text-gray-200'
-              ]"
-            >
-              Tendance (Semaine)
-            </button>
-            <button 
-              @click="store.activeTab = 'history'"
-              :class="[
-                'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
-                store.activeTab === 'history' 
-                  ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md' 
-                  : 'text-gray-400 hover:text-gray-200'
-              ]"
-            >
-              Logs History
-            </button>
-            <button
-              @click="store.activeTab = 'measurements'"
-              :class="[
-                'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
-                store.activeTab === 'measurements'
-                  ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md'
-                  : 'text-gray-400 hover:text-gray-200'
-              ]"
-            >
-              Measurements
-            </button>
-          </div>
-        </section>
+      <!-- Dashboard View -->
+      <template v-else>
+        <!-- Main Content -->
+        <main class="flex-grow max-w-6xl w-full mx-auto p-4 sm:p-6 pb-24 z-10">
+          
+          <!-- Stats summary cards -->
+          <StatsOverview />
 
-        <!-- Tabs content panel -->
-        <section>
-          <!-- Charts view -->
-          <ProgressCharts v-show="store.activeTab === 'monthly' || store.activeTab === 'weekly'" />
+          <!-- Tab navigation controller -->
+          <section class="mb-6">
+            <div class="flex p-1 rounded-xl bg-gray-900/80 border border-gray-800/60 max-w-md">
+              <button 
+                @click="store.activeTab = 'monthly'"
+                :class="[
+                  'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
+                  store.activeTab === 'monthly'
+                    ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md' 
+                    : 'text-gray-400 hover:text-gray-200'
+                ]"
+              >
+                Tendance (Mensuel)
+              </button>
+              <button 
+                @click="store.activeTab = 'weekly'"
+                :class="[
+                  'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
+                  store.activeTab === 'weekly'
+                    ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md' 
+                    : 'text-gray-400 hover:text-gray-200'
+                ]"
+              >
+                Tendance (Semaine)
+              </button>
+              <button 
+                @click="store.activeTab = 'history'"
+                :class="[
+                  'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
+                  store.activeTab === 'history' 
+                    ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md' 
+                    : 'text-gray-400 hover:text-gray-200'
+                ]"
+              >
+                Logs History
+              </button>
+              <button
+                @click="store.activeTab = 'measurements'"
+                :class="[
+                  'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
+                  store.activeTab === 'measurements'
+                    ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md'
+                    : 'text-gray-400 hover:text-gray-200'
+                ]"
+              >
+                Measurements
+              </button>
+            </div>
+          </section>
 
-          <!-- History entries list -->
-          <HistoryList v-show="store.activeTab === 'history'" />
+          <!-- Tabs content panel -->
+          <section>
+            <!-- Charts view -->
+            <ProgressCharts v-show="store.activeTab === 'monthly' || store.activeTab === 'weekly'" />
 
-          <!-- Measurements view -->
-          <MeasurementsView v-show="store.activeTab === 'measurements'" />
-        </section>
-      </main>
+            <!-- History entries list -->
+            <HistoryList v-show="store.activeTab === 'history'" />
 
-      <!-- FAB Buttons -->
-      <div class="fixed bottom-6 right-6 z-20 flex flex-col gap-3">
-        <button
-          v-if="store.activeTab === 'measurements'"
-          @click="store.showAddMeasurementModal = true"
-          class="w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30 hover:scale-105 transition-all duration-300 select-none cursor-pointer"
-          title="Add Measurement"
-        >
-          <Plus class="w-8 h-8" />
-        </button>
-        <button 
-          v-else
-          @click="store.showAddModal = true"
-          class="w-14 h-14 rounded-full bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white flex items-center justify-center shadow-lg shadow-violet-600/30 hover:scale-105 transition-all duration-300 select-none cursor-pointer"
-          title="Add Log Entry"
-        >
-          <Plus class="w-8 h-8" />
-        </button>
-      </div>
+            <!-- Measurements view -->
+            <MeasurementsView v-show="store.activeTab === 'measurements'" />
+          </section>
+        </main>
+
+        <!-- FAB Buttons -->
+        <div class="fixed bottom-6 right-6 z-20 flex flex-col gap-3">
+          <button
+            v-if="store.activeTab === 'measurements'"
+            @click="store.showAddMeasurementModal = true"
+            class="w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30 hover:scale-105 transition-all duration-300 select-none cursor-pointer"
+            title="Add Measurement"
+          >
+            <Plus class="w-8 h-8" />
+          </button>
+          <button 
+            v-else
+            @click="store.showAddModal = true"
+            class="w-14 h-14 rounded-full bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white flex items-center justify-center shadow-lg shadow-violet-600/30 hover:scale-105 transition-all duration-300 select-none cursor-pointer"
+            title="Add Log Entry"
+          >
+            <Plus class="w-8 h-8" />
+          </button>
+        </div>
+      </template>
 
       <!-- Modal Form overlays -->
       <LogForm />
@@ -148,9 +154,6 @@
 
       <!-- Auth modal overlay -->
       <AuthModal />
-
-      <!-- Settings modal overlay -->
-      <SettingsModal />
     </template>
 
     <!-- Global Modals and Notifications -->
@@ -173,8 +176,8 @@ import HistoryList from './components/HistoryList.vue';
 import LogForm from './components/LogForm.vue';
 import MeasurementForm from './components/MeasurementForm.vue';
 import MeasurementsView from './components/MeasurementsView.vue';
+import SettingsView from './components/SettingsView.vue';
 import AuthModal from './components/AuthModal.vue';
-import SettingsModal from './components/SettingsModal.vue';
 import ConfirmModal from './components/ConfirmModal.vue';
 import ToastContainer from './components/ToastContainer.vue';
 
