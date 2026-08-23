@@ -96,17 +96,19 @@ vi.mock('../src/db', () => ({
   getAllMeasurements: vi.fn(() => Promise.resolve(mockMeasurements)),
   saveMeasurement: vi.fn(() => Promise.resolve({ id: 'mocked-m' })),
   deleteMeasurement: vi.fn(() => Promise.resolve('mocked-m-id')),
-  exportAllData: vi.fn((userId, paliers) => Promise.resolve({
-    version: 1,
+  exportAllData: vi.fn((userId, paliers, profile) => Promise.resolve({
+    version: 2,
     exportedAt: '2026-08-19T00:00:00.000Z',
     paliers: paliers || [],
+    profile: profile || null,
     logs: mockLogs,
     measurements: mockMeasurements
   })),
   importAllData: vi.fn((data, userId) => Promise.resolve({
     importedLogsCount: data.logs?.length || 0,
     importedMeasurementsCount: data.measurements?.length || 0,
-    paliers: data.paliers || []
+    paliers: data.paliers || [],
+    profile: data.profile || null
   })),
 }));
 
@@ -129,7 +131,7 @@ vi.mock('../src/supabase', () => ({
   }
 }));
 
-import { useBodyGraphStore } from '../src/stores/bodyGraph';
+import { useBodyGraphStore, calculateAge } from '../src/stores/bodyGraph';
 import { supabase } from '../src/supabase';
 import * as db from '../src/db';
 
@@ -581,12 +583,12 @@ describe('useBodyGraphStore', () => {
       expect(db.syncLogs).toHaveBeenCalledWith('user-real');
     });
 
-    it('exportData calls exportAllData with current userId and paliers', async () => {
+    it('exportData calls exportAllData with current userId, paliers, and profile', async () => {
       const store = useBodyGraphStore();
       const exportResult = await store.exportData();
 
-      expect(db.exportAllData).toHaveBeenCalledWith('guest', store.paliers);
-      expect(exportResult.version).toBe(1);
+      expect(db.exportAllData).toHaveBeenCalledWith('guest', store.paliers, store.profile);
+      expect(exportResult.version).toBe(2);
       expect(exportResult.logs).toEqual(mockLogs);
       expect(exportResult.measurements).toEqual(mockMeasurements);
     });
@@ -666,6 +668,94 @@ describe('useBodyGraphStore', () => {
           { id: 'p1', mass: 100.00, fat: 30.0, validated: true },
           { id: 'p2', mass: 105.00, fat: 32.0, validated: true }
         ]);
+      });
+    });
+
+    describe('Profile & BIA Configuration', () => {
+      it('calculates age correctly via calculateAge helper', () => {
+        expect(calculateAge(null)).toBeNull();
+        expect(calculateAge('')).toBeNull();
+        expect(calculateAge('invalid-date')).toBeNull();
+
+        // Dynamically compute expected age
+        const today = new Date();
+        const birthDate20YearsAgo = new Date(today.getFullYear() - 20, today.getMonth(), today.getDate());
+        const dateStr = birthDate20YearsAgo.toISOString().split('T')[0];
+        expect(calculateAge(dateStr)).toBe(20);
+      });
+
+      it('computes userAge getter dynamically from store state', () => {
+        const store = useBodyGraphStore();
+        expect(store.userAge).toBeNull();
+
+        const today = new Date();
+        const birth = new Date(today.getFullYear() - 30, today.getMonth(), today.getDate()).toISOString().split('T')[0];
+        store.profile.birthDate = birth;
+        expect(store.userAge).toBe(30);
+      });
+
+      it('updates profile and persists to localStorage in local mode', async () => {
+        const store = useBodyGraphStore();
+        store.user = null;
+
+        await store.updateProfile({
+          gender: 'male',
+          birthDate: '1992-05-14',
+          height: 178
+        });
+
+        expect(store.profile).toEqual({
+          gender: 'male',
+          birthDate: '1992-05-14',
+          height: 178
+        });
+        expect(localStorage.setItem).toHaveBeenCalledWith(
+          'bodygraph_profile',
+          JSON.stringify({ gender: 'male', birthDate: '1992-05-14', height: 178 })
+        );
+      });
+
+      it('updates profile and persists to supabase when user is authenticated', async () => {
+        const store = useBodyGraphStore();
+        store.user = { id: 'user-123', user_metadata: {} };
+
+        await store.updateProfile({
+          gender: 'female',
+          birthDate: '1995-10-20',
+          height: '165'
+        });
+
+        expect(supabase.auth.updateUser).toHaveBeenCalledWith({
+          data: {
+            profile: {
+              gender: 'female',
+              birthDate: '1995-10-20',
+              height: 165
+            }
+          }
+        });
+        expect(store.profile.gender).toBe('female');
+        expect(store.profile.height).toBe(165);
+      });
+
+      it('exports and imports profile in JSON backup', async () => {
+        const store = useBodyGraphStore();
+        store.profile = { gender: 'male', birthDate: '1990-01-01', height: 180 };
+
+        const exported = await store.exportData();
+        expect(db.exportAllData).toHaveBeenCalledWith('guest', store.paliers, store.profile);
+
+        const updateProfileSpy = vi.spyOn(store, 'updateProfile');
+        const payload = {
+          version: 2,
+          paliers: [],
+          profile: { gender: 'female', birthDate: '1998-03-15', height: 168 },
+          logs: [],
+          measurements: []
+        };
+
+        await store.importData(payload);
+        expect(updateProfileSpy).toHaveBeenCalledWith({ gender: 'female', birthDate: '1998-03-15', height: 168 });
       });
     });
   });

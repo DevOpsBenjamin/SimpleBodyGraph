@@ -68,6 +68,20 @@ function getRollingMedianForDate(logs, refDateStr, field, days = 7) {
   return calculateMedian(values);
 }
 
+// Helper to calculate age in years from birthDate (YYYY-MM-DD)
+export function calculateAge(birthDateStr) {
+  if (!birthDateStr) return null;
+  const birth = new Date(birthDateStr);
+  if (isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age >= 0 ? age : null;
+}
+
 // Helper to get previous window end date (refDate offset by offsetDays)
 function getPreviousWindowEndDate(refDateStr, offsetDays = 7) {
   const refDate = new Date(refDateStr);
@@ -95,6 +109,11 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     targetMass: null,
     targetFat: null,
     paliers: [],
+    profile: {
+      gender: null,    // 'male' | 'female' | null
+      birthDate: null, // 'YYYY-MM-DD' | null
+      height: null     // number in cm | null
+    },
     startYear: null,
     endYear: null,
     
@@ -108,6 +127,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
   }),
 
   getters: {
+    userAge(state) {
+      return calculateAge(state.profile.birthDate);
+    },
+
     availableYears(state) {
       if (state.logs.length === 0) return [];
       const yearsSet = new Set();
@@ -481,9 +504,23 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
     // Initialize Auth Session & listeners
     async initAuth() {
-      // Load local goals first (guest / fallback)
+      // Load local goals & profile first (guest / fallback)
       this.targetMass = localStorage.getItem('bodygraph_target_mass') ? Number(localStorage.getItem('bodygraph_target_mass')) : null;
       this.targetFat = localStorage.getItem('bodygraph_target_fat') ? Number(localStorage.getItem('bodygraph_target_fat')) : null;
+
+      const savedProfile = localStorage.getItem('bodygraph_profile');
+      if (savedProfile) {
+        try {
+          const parsed = JSON.parse(savedProfile);
+          this.profile = {
+            gender: parsed?.gender ?? null,
+            birthDate: parsed?.birthDate ?? null,
+            height: parsed?.height ? Number(parsed.height) : null
+          };
+        } catch (e) {
+          this.profile = { gender: null, birthDate: null, height: null };
+        }
+      }
 
       const savedPaliers = localStorage.getItem('bodygraph_paliers');
       if (savedPaliers) {
@@ -521,6 +558,13 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         if (this.user) {
           this.targetMass = this.user.user_metadata?.target_mass || null;
           this.targetFat = this.user.user_metadata?.target_fat || null;
+          if (this.user.user_metadata?.profile) {
+            this.profile = {
+              gender: this.user.user_metadata.profile.gender ?? null,
+              birthDate: this.user.user_metadata.profile.birthDate ?? null,
+              height: this.user.user_metadata.profile.height ? Number(this.user.user_metadata.profile.height) : null
+            };
+          }
           if (this.user.user_metadata?.paliers) {
             this.paliers = this.user.user_metadata.paliers;
           } else if (this.targetMass !== null || this.targetFat !== null) {
@@ -544,6 +588,13 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           if (session?.user) {
             this.targetMass = session.user.user_metadata?.target_mass || null;
             this.targetFat = session.user.user_metadata?.target_fat || null;
+            if (session.user.user_metadata?.profile) {
+              this.profile = {
+                gender: session.user.user_metadata.profile.gender ?? null,
+                birthDate: session.user.user_metadata.profile.birthDate ?? null,
+                height: session.user.user_metadata.profile.height ? Number(session.user.user_metadata.profile.height) : null
+              };
+            }
             if (session.user.user_metadata?.paliers) {
               this.paliers = session.user.user_metadata.paliers;
             } else if (this.targetMass !== null || this.targetFat !== null) {
@@ -558,9 +609,24 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
             }
             await this.migrateGuestLogs(session.user.id);
           } else {
-            // Revert to local goals
+            // Revert to local goals & profile
             this.targetMass = localStorage.getItem('bodygraph_target_mass') ? Number(localStorage.getItem('bodygraph_target_mass')) : null;
             this.targetFat = localStorage.getItem('bodygraph_target_fat') ? Number(localStorage.getItem('bodygraph_target_fat')) : null;
+            const savedP = localStorage.getItem('bodygraph_profile');
+            if (savedP) {
+              try {
+                const parsed = JSON.parse(savedP);
+                this.profile = {
+                  gender: parsed?.gender ?? null,
+                  birthDate: parsed?.birthDate ?? null,
+                  height: parsed?.height ? Number(parsed.height) : null
+                };
+              } catch (e) {
+                this.profile = { gender: null, birthDate: null, height: null };
+              }
+            } else {
+              this.profile = { gender: null, birthDate: null, height: null };
+            }
             const saved = localStorage.getItem('bodygraph_paliers');
             if (saved) {
               try {
@@ -607,6 +673,33 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       } else {
         this.targetMass = null;
         this.targetFat = null;
+      }
+    },
+
+    async updateProfile(profileData) {
+      this.profile = {
+        gender: profileData?.gender ?? null,
+        birthDate: profileData?.birthDate ?? null,
+        height: profileData?.height !== null && profileData?.height !== undefined && profileData?.height !== ''
+          ? Number(profileData.height)
+          : null
+      };
+
+      if (this.user && supabase) {
+        try {
+          const { data, error } = await supabase.auth.updateUser({
+            data: {
+              profile: this.profile
+            }
+          });
+          if (error) throw error;
+          this.user = data.user;
+        } catch (error) {
+          console.error('Failed to update profile in supabase:', error);
+          throw error;
+        }
+      } else {
+        localStorage.setItem('bodygraph_profile', JSON.stringify(this.profile));
       }
     },
 
@@ -978,7 +1071,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async exportData() {
-      const data = await exportAllData(this.currentUserId, this.paliers);
+      const data = await exportAllData(this.currentUserId, this.paliers, this.profile);
       const jsonStr = JSON.stringify(data, null, 2);
       if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -1011,6 +1104,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
       if (result.paliers && Array.isArray(result.paliers) && result.paliers.length > 0) {
         await this.updatePaliers(result.paliers);
+      }
+
+      if (result.profile && typeof result.profile === 'object') {
+        await this.updateProfile(result.profile);
       }
 
       await this.loadLogs();
