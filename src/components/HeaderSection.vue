@@ -109,10 +109,15 @@
           </div>
         </template>
 
-        <!-- Settings button (Goal Configuration) -->
+        <!-- Settings button (Goal Configuration & Page View) -->
         <button 
-          @click="store.showSettingsModal = true"
-          class="p-2 rounded-xl glass-card text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all duration-200 cursor-pointer"
+          @click="store.activeView = store.activeView === 'settings' ? 'dashboard' : 'settings'"
+          :class="[
+            'p-2 rounded-xl transition-all duration-200 cursor-pointer',
+            store.activeView === 'settings'
+              ? 'bg-violet-600/30 text-violet-300 border border-violet-500/40 shadow-md shadow-violet-500/20'
+              : 'glass-card text-gray-400 hover:text-white hover:bg-gray-800/50'
+          ]"
           title="Settings & Goals"
         >
           <Settings class="w-4 h-4" />

@@ -57,7 +57,7 @@
       </div>
       <button 
         v-else 
-        @click="store.showSettingsModal = true"
+        @click="store.activeView = 'settings'"
         class="mt-2 pt-2 border-t border-dashed border-violet-500/10 text-[10px] text-violet-400/80 hover:text-violet-300 font-medium cursor-pointer w-full text-left transition-colors duration-150 font-sans"
       >
         + Configurer les paliers
