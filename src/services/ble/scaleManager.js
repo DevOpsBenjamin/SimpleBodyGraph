@@ -83,7 +83,43 @@ class ScaleManagerClass {
       }
       await driver.sendUserProfile(profile);
 
-      await driver.startMeasurement(callbacks);
+      return await driver.startMeasurement(callbacks);
+    } catch (error) {
+      try {
+        await driver.disconnect();
+      } catch (e) {
+        // ignore disconnect error
+      }
+      if (callbacks && typeof callbacks.onError === 'function') {
+        callbacks.onError(error);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Lance l'assistant d'appairage interactif avec le driver approprié
+   * @param {{ deviceId: string; name?: string; type?: string; mac?: string }} device
+   * @param {import('./scaleInterface').ScaleUserProfile} profile
+   * @param {Object} callbacks
+   * @returns {Promise<Object>}
+   */
+  async pairDevice(device, profile, callbacks) {
+    const driver = (device.type && this.getDriver(device.type)) || this.getDriverForDevice(device);
+    if (!driver) {
+      const err = new Error(`Aucun pilote compatible trouvé pour l'appareil ${device.name || device.deviceId}`);
+      if (callbacks && typeof callbacks.onError === 'function') {
+        callbacks.onError(err);
+      }
+      throw err;
+    }
+
+    try {
+      const result = await driver.pair(device, profile, callbacks);
+      if (callbacks && typeof callbacks.onSuccess === 'function') {
+        callbacks.onSuccess(result);
+      }
+      return result;
     } catch (error) {
       try {
         await driver.disconnect();
@@ -99,3 +135,4 @@ class ScaleManagerClass {
 }
 
 export const ScaleManager = new ScaleManagerClass();
+

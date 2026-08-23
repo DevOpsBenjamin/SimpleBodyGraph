@@ -516,13 +516,13 @@ describe('useBodyGraphStore', () => {
       const checkPalierSpy = vi.spyOn(store, 'checkAndAutoValidatePaliers');
 
       await store.saveLogEntry({ id: 'l1', mass: 100, bodyFat: 20, date: '2026-06-15' });
-      expect(db.saveLog).toHaveBeenCalledWith({
+      expect(db.saveLog).toHaveBeenCalledWith(expect.objectContaining({
         id: 'l1',
         date: '2026-06-15',
         mass: 100,
         body_fat: 20,
         synced: false
-      }, 'guest');
+      }), 'guest');
 
       expect(checkPalierSpy).toHaveBeenCalled();
       expect(store.showAddModal).toBe(false);

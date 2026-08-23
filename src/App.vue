@@ -137,20 +137,42 @@
           >
             <Plus class="w-8 h-8" />
           </button>
-          <button 
-            v-else
-            @click="store.showAddModal = true"
-            class="w-14 h-14 rounded-full bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white flex items-center justify-center shadow-lg shadow-violet-600/30 hover:scale-105 transition-all duration-300 select-none cursor-pointer"
-            title="Add Log Entry"
-          >
-            <Plus class="w-8 h-8" />
-          </button>
+          <template v-else>
+            <!-- Live Bluetooth Weigh-In Button (if paired scale exists) -->
+            <button
+              v-if="store.pairedDevices.length > 0"
+              @click="store.showLiveWeighInModal = true"
+              class="w-14 h-14 rounded-full bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white flex items-center justify-center shadow-lg shadow-violet-600/40 hover:scale-105 transition-all duration-300 select-none cursor-pointer relative"
+              title="Pesée Bluetooth en direct"
+            >
+              <Scale class="w-7 h-7 text-white" />
+              <span class="absolute top-0 right-0 w-4 h-4 rounded-full bg-emerald-500 border-2 border-gray-950 flex items-center justify-center">
+                <Bluetooth class="w-2.5 h-2.5 text-white" />
+              </span>
+            </button>
+
+            <!-- Manual Log Entry Button -->
+            <button 
+              @click="store.showAddModal = true"
+              :class="[
+                'w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 select-none cursor-pointer',
+                store.pairedDevices.length > 0
+                  ? 'bg-gray-900 hover:bg-gray-800 active:bg-gray-700 text-violet-400 border border-gray-800 hover:scale-105'
+                  : 'bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white shadow-violet-600/30 hover:scale-105'
+              ]"
+              title="Add Log Entry"
+              aria-label="Add Log Entry"
+            >
+              <Plus class="w-8 h-8" />
+            </button>
+          </template>
         </div>
       </template>
 
       <!-- Modal Form overlays -->
       <LogForm />
       <MeasurementForm />
+      <ScaleWeighInModal />
 
       <!-- Auth modal overlay -->
       <AuthModal />
@@ -164,7 +186,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { Plus } from 'lucide-vue-next';
+import { Plus, Scale, Bluetooth } from 'lucide-vue-next';
 import { useBodyGraphStore } from './stores/bodyGraph';
 
 // Import subcomponents
@@ -177,6 +199,7 @@ import LogForm from './components/LogForm.vue';
 import MeasurementForm from './components/MeasurementForm.vue';
 import MeasurementsView from './components/MeasurementsView.vue';
 import SettingsView from './components/SettingsView.vue';
+import ScaleWeighInModal from './components/ScaleWeighInModal.vue';
 import AuthModal from './components/AuthModal.vue';
 import ConfirmModal from './components/ConfirmModal.vue';
 import ToastContainer from './components/ToastContainer.vue';

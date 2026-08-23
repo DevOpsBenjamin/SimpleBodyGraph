@@ -56,6 +56,47 @@ describe('Scale Driver Architecture & ScaleManager', () => {
     expect(onStateChange).toHaveBeenCalledWith('ready_for_step_on', expect.any(String));
   });
 
+  it('HuaweiScale3Driver executes complete Mode 2 routine measurement sequence', async () => {
+    const driver = new HuaweiScale3Driver();
+    const states = [];
+    const onStateChange = vi.fn((s, msg) => states.push(s));
+    const onLiveWeight = vi.fn();
+    const onComplete = vi.fn();
+    const onError = vi.fn();
+
+    await driver.sendUserProfile({
+      gender: 'male',
+      age: 29,
+      heightCm: 175,
+      lastWeightKg: 80.0
+    });
+
+    const measurement = await driver.startMeasurement({
+      onStateChange,
+      onLiveWeight,
+      onComplete,
+      onError
+    });
+
+    expect(measurement).toBeDefined();
+    expect(measurement.weightKg).toBe(80.0);
+    expect(measurement.fatPercentage).toBe(21.5);
+    expect(measurement.heartRateBpm).toBe(70);
+    expect(measurement.impedances.feet.length).toBe(6);
+    expect(measurement.impedances.hands.length).toBe(6);
+    expect(measurement.timestamp).toBeDefined();
+
+    expect(states).toContain('connecting');
+    expect(states).toContain('authenticating');
+    expect(states).toContain('ready_for_step_on');
+    expect(states).toContain('measuring_impedance');
+    expect(states).toContain('complete');
+
+    expect(onLiveWeight).toHaveBeenCalledWith(80.0);
+    expect(onComplete).toHaveBeenCalledWith(measurement);
+    expect(onError).not.toHaveBeenCalled();
+  });
+
   it('ScaleManager handles unsupported device errors gracefully', async () => {
     const onError = vi.fn();
 
