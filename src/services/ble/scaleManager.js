@@ -1,9 +1,22 @@
 import { BaseScaleDriver } from './scaleInterface';
+import { HuaweiScale3Driver } from './drivers/huaweiScale3Driver';
 
 class ScaleManagerClass {
   constructor() {
     /** @type {Map<string, BaseScaleDriver>} */
     this.drivers = new Map();
+    this.initDefaultDrivers();
+  }
+
+  /**
+   * Initialise les pilotes standards supportés nativement
+   */
+  initDefaultDrivers() {
+    try {
+      this.registerDriver(new HuaweiScale3Driver());
+    } catch (err) {
+      console.warn('Failed to register default HuaweiScale3Driver:', err);
+    }
   }
 
   /**
@@ -28,7 +41,7 @@ class ScaleManagerClass {
 
   /**
    * Détermine le driver adapté pour un appareil découvert lors du scan BLE
-   * @param {{ name?: string; deviceId: string; manufacturerData?: any }} device
+   * @param {{ name?: string; localName?: string; deviceId: string; type?: string; manufacturerData?: any }} device
    * @returns {BaseScaleDriver|null}
    */
   getDriverForDevice(device) {
@@ -42,6 +55,15 @@ class ScaleManagerClass {
       }
     }
     return null;
+  }
+
+  /**
+   * Vérifie si un appareil est pris en charge par l'un des pilotes enregistrés
+   * @param {{ name?: string; localName?: string; deviceId: string; type?: string }} device
+   * @returns {boolean}
+   */
+  isDeviceSupported(device) {
+    return this.getDriverForDevice(device) !== null;
   }
 
   /**

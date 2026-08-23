@@ -490,19 +490,44 @@
                   <Bluetooth class="w-4.5 h-4.5" />
                 </div>
                 <div>
-                  <p class="text-xs font-bold text-white">{{ dev.name }}</p>
-                  <p class="text-[10px] text-gray-400 font-mono">{{ dev.deviceId }} <span v-if="dev.rssi" class="text-gray-500">({{ dev.rssi }} dBm)</span></p>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <p class="text-xs font-bold text-white">{{ dev.name }}</p>
+                    <span 
+                      v-if="getDeviceDriver(dev)"
+                      class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold"
+                    >
+                      Compatible
+                    </span>
+                    <span 
+                      v-else
+                      class="text-[9px] px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700 select-none"
+                    >
+                      Non supporté
+                    </span>
+                  </div>
+                  <p class="text-[10px] text-gray-400 font-mono mt-0.5">{{ dev.deviceId }} <span v-if="dev.rssi" class="text-gray-500">({{ dev.rssi }} dBm)</span></p>
                 </div>
               </div>
 
-              <button
-                type="button"
-                v-if="!isDevicePaired(dev.deviceId)"
-                @click="handlePairDevice(dev)"
-                class="py-2 px-3.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold transition-colors cursor-pointer shadow-md shadow-violet-500/10"
-              >
-                Associer
-              </button>
+              <template v-if="!isDevicePaired(dev.deviceId)">
+                <button
+                  type="button"
+                  v-if="getDeviceDriver(dev)"
+                  @click="handlePairDevice(dev)"
+                  class="py-2 px-3.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold transition-colors cursor-pointer shadow-md shadow-violet-500/10"
+                >
+                  Associer
+                </button>
+                <button
+                  type="button"
+                  v-else
+                  disabled
+                  class="py-2 px-3.5 rounded-xl bg-gray-800/80 border border-gray-700/50 text-gray-500 text-xs font-semibold cursor-not-allowed select-none"
+                  title="Pilote non disponible pour ce modèle"
+                >
+                  Non supporté
+                </button>
+              </template>
               <span v-else class="text-xs text-emerald-400 font-semibold px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
                 Déjà associée
               </span>
@@ -815,6 +840,11 @@ const handleResetProfile = async () => {
 };
 
 // BLE Handlers
+const getDeviceDriver = (device) => {
+  if (!device) return null;
+  return ScaleManager.getDriverForDevice(device);
+};
+
 const isDevicePaired = (deviceId) => {
   return store.pairedDevices.some(d => d.deviceId === deviceId || d.mac === deviceId);
 };

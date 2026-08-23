@@ -17,27 +17,37 @@ describe('Scale Driver Architecture & ScaleManager', () => {
     await expect(driver.startMeasurement({})).rejects.toThrow('Driver must implement startMeasurement(callbacks)');
   });
 
-  it('HuaweiScale3Driver identifies supported scale model names', () => {
+  it('HuaweiScale3Driver identifies supported scale model names (case-insensitive)', () => {
     const driver = new HuaweiScale3Driver();
     expect(driver.id).toBe('huawei_scale_3');
     expect(driver.name).toBe('HUAWEI Scale 3 / Scale 3 Pro');
 
     expect(driver.supportsDevice({ name: 'HaigeBLE' })).toBe(true);
+    expect(driver.supportsDevice({ name: 'haigeble' })).toBe(true);
     expect(driver.supportsDevice({ name: 'HUAWEI Scale 3 Pro' })).toBe(true);
+    expect(driver.supportsDevice({ name: 'Scale 3 Pro' })).toBe(true);
+    expect(driver.supportsDevice({ name: 'scale 3 pro' })).toBe(true);
+    expect(driver.supportsDevice({ name: 'SCALE 3' })).toBe(true);
+    expect(driver.supportsDevice({ name: 'Scale-3' })).toBe(true);
+    expect(driver.supportsDevice({ name: 'Scale_3' })).toBe(true);
     expect(driver.supportsDevice({ name: 'HAG-B19' })).toBe(true);
     expect(driver.supportsDevice({ name: 'HEM-B19' })).toBe(true);
+    expect(driver.supportsDevice({ name: 'Honor Smart Scale' })).toBe(true);
+    expect(driver.supportsDevice({ type: 'huawei_scale_3' })).toBe(true);
     expect(driver.supportsDevice({ name: 'Xiaomi Scale 2' })).toBe(false);
     expect(driver.supportsDevice(null)).toBe(false);
   });
 
-  it('ScaleManager finds matching driver for discovered devices', () => {
+  it('ScaleManager auto-registers HuaweiScale3Driver and checks device compatibility', () => {
     const driver = ScaleManager.getDriverForDevice({
       deviceId: '50:FB:19:F8:0C:21',
-      name: 'HaigeBLE'
+      name: 'Scale 3 Pro'
     });
 
     expect(driver).toBeDefined();
     expect(driver.id).toBe('huawei_scale_3');
+    expect(ScaleManager.isDeviceSupported({ deviceId: '50:FB:19:F8:0C:21', name: 'Scale 3 Pro' })).toBe(true);
+    expect(ScaleManager.isDeviceSupported({ deviceId: 'AA:BB:CC:DD:EE:FF', name: 'Random Headphones' })).toBe(false);
   });
 
   it('ScaleManager orchestrates measurement lifecycle with driver', async () => {
