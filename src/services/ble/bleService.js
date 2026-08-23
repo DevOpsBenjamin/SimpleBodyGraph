@@ -89,7 +89,12 @@ export const BleService = {
         (result) => {
           if (!result || !result.device) return;
           const dev = result.device;
-          const name = result.localName || dev.name || 'Appareil Bluetooth inconnu';
+          const rawName = result.localName || dev.name;
+          // Ignorer les périphériques qui ne transmettent pas de nom (évite les listes polluées d'appareils inconnus)
+          if (!rawName || typeof rawName !== 'string' || !rawName.trim()) {
+            return;
+          }
+          const name = rawName.trim();
           const id = dev.deviceId;
 
           if (!seenDevices.has(id)) {
