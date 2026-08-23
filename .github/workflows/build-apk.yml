@@ -4,9 +4,7 @@ on:
   push:
     branches: [ main, feature/capacitor ]
     paths:
-      - 'android/**'
-      - 'capacitor.config.json'
-      - 'package.json'
+      - 'android/app/build.gradle'
       - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
@@ -25,6 +23,15 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Extract App Version
+        id: get_version
+        run: |
+          VERSION_NAME=$(grep 'versionName' android/app/build.gradle | head -n 1 | awk -F '"' '{print $2}')
+          VERSION_CODE=$(grep 'versionCode' android/app/build.gradle | head -n 1 | awk '{print $2}')
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+          echo "Building SimpleBodyGraph v$VERSION_NAME (build $VERSION_CODE)"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -68,8 +75,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest-apk
-          name: "Latest APK"
-          body: "Android APK auto-build — release unsigned, toujours à jour avec main."
+          name: "SimpleBodyGraph v${{ steps.get_version.outputs.version_name }} (build ${{ steps.get_version.outputs.version_code }})"
+          body: "Android APK v${{ steps.get_version.outputs.version_name }} (build ${{ steps.get_version.outputs.version_code }}) — Release officielle avec support Bluetooth Low Energy (BLE)."
           prerelease: true
           files: apk-output/SimpleBodyGraph.apk
 
@@ -84,7 +91,7 @@ jobs:
             <meta charset="UTF-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <title>SimpleBodyGraph — Télécharger l'APK</title>
-            <meta http-equiv="refresh" content="3;url=https://github.com/DevOpsBenjamin/SimpleBodyGraph/releases/latest/download/SimpleBodyGraph.apk" />
+            <meta http-equiv="refresh" content="3;url=https://github.com/DevOpsBenjamin/SimpleBodyGraph/releases/download/latest-apk/SimpleBodyGraph.apk" />
             <style>
               body { background: #030712; color: #e2e8f0; font-family: sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; flex-direction: column; gap: 24px; text-align: center; padding: 24px; }
               h1 { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #8b5cf6, #4f46e5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -95,7 +102,7 @@ jobs:
           <body>
             <h1>SimpleBodyGraph</h1>
             <p>Le téléchargement démarre automatiquement…</p>
-            <a href="https://github.com/DevOpsBenjamin/SimpleBodyGraph/releases/latest/download/SimpleBodyGraph.apk">
+            <a href="https://github.com/DevOpsBenjamin/SimpleBodyGraph/releases/download/latest-apk/SimpleBodyGraph.apk">
               📥 Télécharger l'APK
             </a>
           </body>
