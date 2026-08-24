@@ -12,15 +12,26 @@ test('Capture mobile UI screens for design review', async ({ page }) => {
   const localOutputDir = path.resolve('screenshots_mobile');
   const artifactDir = '/Users/devops.benjamin/.gemini/antigravity-cli/brain/fda733a7-9922-497d-9a4d-3925be20d124';
 
-  [localOutputDir, artifactDir].forEach(dir => {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  });
+  if (!fs.existsSync(localOutputDir)) fs.mkdirSync(localOutputDir, { recursive: true });
+  try {
+    if (fs.existsSync(path.dirname(artifactDir)) && !fs.existsSync(artifactDir)) {
+      fs.mkdirSync(artifactDir, { recursive: true });
+    }
+  } catch {
+    // Ignored in CI
+  }
 
   const saveScreen = async (filename) => {
     const p1 = path.join(localOutputDir, filename);
-    const p2 = path.join(artifactDir, filename);
     await page.screenshot({ path: p1 });
-    fs.copyFileSync(p1, p2);
+    try {
+      if (fs.existsSync(artifactDir)) {
+        const p2 = path.join(artifactDir, filename);
+        fs.copyFileSync(p1, p2);
+      }
+    } catch {
+      // Ignored in CI
+    }
     console.log(`Saved screenshot: ${filename}`);
   };
 
