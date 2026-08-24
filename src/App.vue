@@ -53,74 +53,92 @@
       <!-- Header component -->
       <HeaderSection />
 
+      <!-- Desktop Tab navigation controller (hidden on mobile, visible on both dashboard and settings) -->
+      <section class="max-w-6xl w-full mx-auto px-4 sm:px-6 pt-4 hidden sm:block z-10">
+        <div class="flex p-1.5 rounded-2xl bg-gray-900/80 border border-gray-800/80 max-w-xl shadow-inner">
+          <button 
+            @click="store.activeView = 'dashboard'; store.activeTab = 'monthly'"
+            :class="[
+              'flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5',
+              store.activeView === 'dashboard' && store.activeTab === 'monthly'
+                ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+            ]"
+            title="Tendance mensuelle"
+            aria-label="Mois"
+          >
+            <TrendingUp class="w-3.5 h-3.5" />
+            <span>Mois</span>
+          </button>
+          <button 
+            @click="store.activeView = 'dashboard'; store.activeTab = 'weekly'"
+            :class="[
+              'flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5',
+              store.activeView === 'dashboard' && store.activeTab === 'weekly'
+                ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+            ]"
+            title="Tendance hebdomadaire"
+            aria-label="Semaine"
+          >
+            <CalendarDays class="w-3.5 h-3.5" />
+            <span>Semaine</span>
+          </button>
+          <button 
+            @click="store.activeView = 'dashboard'; store.activeTab = 'history'"
+            :class="[
+              'flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5',
+              store.activeView === 'dashboard' && store.activeTab === 'history' 
+                ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+            ]"
+            title="Historique des logs"
+            aria-label="Logs"
+          >
+            <History class="w-3.5 h-3.5" />
+            <span>Logs</span>
+          </button>
+          <button
+            @click="store.activeView = 'dashboard'; store.activeTab = 'measurements'"
+            :class="[
+              'flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5',
+              store.activeView === 'dashboard' && store.activeTab === 'measurements'
+                ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+            ]"
+            title="Mensurations ruban"
+            aria-label="Mesures"
+          >
+            <Ruler class="w-3.5 h-3.5" />
+            <span>Mesures</span>
+          </button>
+          <button
+            @click="store.activeView = 'settings'"
+            :class="[
+              'flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5',
+              store.activeView === 'settings'
+                ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+            ]"
+            title="Settings & Goals"
+            aria-label="Paramètres"
+          >
+            <Settings class="w-3.5 h-3.5" />
+            <span>Paramètres</span>
+          </button>
+        </div>
+      </section>
+
       <!-- Settings Full Page View -->
       <SettingsView v-if="store.activeView === 'settings'" />
 
       <!-- Dashboard View -->
       <template v-else>
         <!-- Main Content -->
-        <main class="flex-grow max-w-6xl w-full mx-auto p-4 sm:p-6 pb-24 z-10">
+        <main class="flex-grow max-w-6xl w-full mx-auto p-4 sm:p-6 pb-28 z-10">
           
           <!-- Stats summary cards -->
           <StatsOverview />
-
-          <!-- Desktop Tab navigation controller (hidden on mobile) -->
-          <section class="mb-6 hidden sm:block">
-            <div class="flex p-1.5 rounded-2xl bg-gray-900/80 border border-gray-800/80 max-w-lg shadow-inner">
-              <button 
-                @click="store.activeTab = 'monthly'"
-                :class="[
-                  'flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5',
-                  store.activeTab === 'monthly'
-                    ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
-                ]"
-                aria-label="Tendance (Mensuel)"
-              >
-                <TrendingUp class="w-3.5 h-3.5" />
-                <span>Tendance (Mensuel)</span>
-              </button>
-              <button 
-                @click="store.activeTab = 'weekly'"
-                :class="[
-                  'flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5',
-                  store.activeTab === 'weekly'
-                    ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
-                ]"
-                aria-label="Tendance (Semaine)"
-              >
-                <CalendarDays class="w-3.5 h-3.5" />
-                <span>Tendance (Semaine)</span>
-              </button>
-              <button 
-                @click="store.activeTab = 'history'"
-                :class="[
-                  'flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5',
-                  store.activeTab === 'history' 
-                    ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
-                ]"
-                aria-label="Logs History"
-              >
-                <History class="w-3.5 h-3.5" />
-                <span>Logs History</span>
-              </button>
-              <button
-                @click="store.activeTab = 'measurements'"
-                :class="[
-                  'flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5',
-                  store.activeTab === 'measurements'
-                    ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
-                ]"
-                aria-label="Measurements"
-              >
-                <Ruler class="w-3.5 h-3.5" />
-                <span>Measurements</span>
-              </button>
-            </div>
-          </section>
 
           <!-- Tabs content panel -->
           <section>
@@ -215,74 +233,89 @@
             <Plus class="w-7 h-7 transition-transform duration-200" />
           </button>
         </div>
-
-        <!-- Mobile Bottom Navigation Bar -->
-        <nav 
-          v-if="store.activeView !== 'settings'" 
-          class="fixed bottom-0 left-0 right-0 z-40 bg-gray-950/90 backdrop-blur-xl border-t border-gray-800/80 px-2 py-1.5 sm:hidden flex items-center justify-around shadow-2xl shadow-black"
-          aria-label="Navigation mobile"
-        >
-          <button
-            @click="store.activeTab = 'monthly'"
-            :class="[
-              'flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer min-w-[64px]',
-              store.activeTab === 'monthly'
-                ? 'text-violet-400 font-bold scale-105'
-                : 'text-gray-400 hover:text-gray-200'
-            ]"
-            aria-label="Tendance (Mensuel)"
-          >
-            <TrendingUp class="w-5 h-5" />
-            <span class="text-[10px] tracking-tight">Mois</span>
-            <span v-if="store.activeTab === 'monthly'" class="w-1 h-1 rounded-full bg-violet-400"></span>
-          </button>
-
-          <button
-            @click="store.activeTab = 'weekly'"
-            :class="[
-              'flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer min-w-[64px]',
-              store.activeTab === 'weekly'
-                ? 'text-violet-400 font-bold scale-105'
-                : 'text-gray-400 hover:text-gray-200'
-            ]"
-            aria-label="Tendance (Semaine)"
-          >
-            <CalendarDays class="w-5 h-5" />
-            <span class="text-[10px] tracking-tight">Semaine</span>
-            <span v-if="store.activeTab === 'weekly'" class="w-1 h-1 rounded-full bg-violet-400"></span>
-          </button>
-
-          <button
-            @click="store.activeTab = 'history'"
-            :class="[
-              'flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer min-w-[64px]',
-              store.activeTab === 'history'
-                ? 'text-violet-400 font-bold scale-105'
-                : 'text-gray-400 hover:text-gray-200'
-            ]"
-            aria-label="Logs History"
-          >
-            <History class="w-5 h-5" />
-            <span class="text-[10px] tracking-tight">Logs</span>
-            <span v-if="store.activeTab === 'history'" class="w-1 h-1 rounded-full bg-violet-400"></span>
-          </button>
-
-          <button
-            @click="store.activeTab = 'measurements'"
-            :class="[
-              'flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer min-w-[64px]',
-              store.activeTab === 'measurements'
-                ? 'text-violet-400 font-bold scale-105'
-                : 'text-gray-400 hover:text-gray-200'
-            ]"
-            aria-label="Measurements"
-          >
-            <Ruler class="w-5 h-5" />
-            <span class="text-[10px] tracking-tight">Mesures</span>
-            <span v-if="store.activeTab === 'measurements'" class="w-1 h-1 rounded-full bg-violet-400"></span>
-          </button>
-        </nav>
       </template>
+
+      <!-- Mobile Bottom Navigation Bar (Always visible on mobile) -->
+      <nav 
+        class="fixed bottom-0 left-0 right-0 z-40 bg-gray-950/90 backdrop-blur-xl border-t border-gray-800/80 px-2 py-1.5 sm:hidden flex items-center justify-around shadow-2xl shadow-black"
+        aria-label="Navigation mobile"
+      >
+        <button
+          @click="store.activeView = 'dashboard'; store.activeTab = 'monthly'"
+          :class="[
+            'flex flex-col items-center gap-0.5 py-1 px-1.5 rounded-xl transition-all duration-200 cursor-pointer min-w-[54px]',
+            store.activeView === 'dashboard' && store.activeTab === 'monthly'
+              ? 'text-violet-400 font-bold scale-105'
+              : 'text-gray-400 hover:text-gray-200'
+          ]"
+          aria-label="Mois"
+        >
+          <TrendingUp class="w-5 h-5" />
+          <span class="text-[10px] tracking-tight">Mois</span>
+          <span v-if="store.activeView === 'dashboard' && store.activeTab === 'monthly'" class="w-1 h-1 rounded-full bg-violet-400"></span>
+        </button>
+
+        <button
+          @click="store.activeView = 'dashboard'; store.activeTab = 'weekly'"
+          :class="[
+            'flex flex-col items-center gap-0.5 py-1 px-1.5 rounded-xl transition-all duration-200 cursor-pointer min-w-[54px]',
+            store.activeView === 'dashboard' && store.activeTab === 'weekly'
+              ? 'text-violet-400 font-bold scale-105'
+              : 'text-gray-400 hover:text-gray-200'
+          ]"
+          aria-label="Semaine"
+        >
+          <CalendarDays class="w-5 h-5" />
+          <span class="text-[10px] tracking-tight">Semaine</span>
+          <span v-if="store.activeView === 'dashboard' && store.activeTab === 'weekly'" class="w-1 h-1 rounded-full bg-violet-400"></span>
+        </button>
+
+        <button
+          @click="store.activeView = 'dashboard'; store.activeTab = 'history'"
+          :class="[
+            'flex flex-col items-center gap-0.5 py-1 px-1.5 rounded-xl transition-all duration-200 cursor-pointer min-w-[54px]',
+            store.activeView === 'dashboard' && store.activeTab === 'history'
+              ? 'text-violet-400 font-bold scale-105'
+              : 'text-gray-400 hover:text-gray-200'
+          ]"
+          aria-label="Logs"
+        >
+          <History class="w-5 h-5" />
+          <span class="text-[10px] tracking-tight">Logs</span>
+          <span v-if="store.activeView === 'dashboard' && store.activeTab === 'history'" class="w-1 h-1 rounded-full bg-violet-400"></span>
+        </button>
+
+        <button
+          @click="store.activeView = 'dashboard'; store.activeTab = 'measurements'"
+          :class="[
+            'flex flex-col items-center gap-0.5 py-1 px-1.5 rounded-xl transition-all duration-200 cursor-pointer min-w-[54px]',
+            store.activeView === 'dashboard' && store.activeTab === 'measurements'
+              ? 'text-violet-400 font-bold scale-105'
+              : 'text-gray-400 hover:text-gray-200'
+          ]"
+          aria-label="Mesures"
+        >
+          <Ruler class="w-5 h-5" />
+          <span class="text-[10px] tracking-tight">Mesures</span>
+          <span v-if="store.activeView === 'dashboard' && store.activeTab === 'measurements'" class="w-1 h-1 rounded-full bg-violet-400"></span>
+        </button>
+
+        <button
+          @click="store.activeView = 'settings'"
+          :class="[
+            'flex flex-col items-center gap-0.5 py-1 px-1.5 rounded-xl transition-all duration-200 cursor-pointer min-w-[54px]',
+            store.activeView === 'settings'
+              ? 'text-violet-400 font-bold scale-105'
+              : 'text-gray-400 hover:text-gray-200'
+          ]"
+          title="Paramètres & Objectifs"
+          aria-label="Réglages"
+        >
+          <Settings class="w-5 h-5" />
+          <span class="text-[10px] tracking-tight">Réglages</span>
+          <span v-if="store.activeView === 'settings'" class="w-1 h-1 rounded-full bg-violet-400"></span>
+        </button>
+      </nav>
 
       <!-- Modal Form overlays -->
       <LogForm />
@@ -301,7 +334,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { Plus, Scale, Bluetooth, TrendingUp, CalendarDays, History, Ruler } from 'lucide-vue-next';
+import { Plus, Scale, Bluetooth, TrendingUp, CalendarDays, History, Ruler, Settings } from 'lucide-vue-next';
 import { useBodyGraphStore } from './stores/bodyGraph';
 
 // Import subcomponents
