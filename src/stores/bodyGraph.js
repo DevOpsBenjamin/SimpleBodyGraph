@@ -905,7 +905,9 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         // Cold start deep link check
         const launchUrl = await CapApp.getLaunchUrl();
         if (launchUrl?.url && launchUrl.url.includes('auth-callback')) {
-          await Browser.close().catch(() => {});
+          if (Capacitor.isPluginAvailable('Browser')) {
+            await Browser.close().catch(() => {});
+          }
           await handleAuthCallbackUrl(launchUrl.url);
           this.showAuthModal = false;
         }
@@ -915,7 +917,9 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           // Warm / background start deep link listener
           CapApp.addListener('appUrlOpen', async ({ url }) => {
             if (url && url.includes('auth-callback')) {
-              await Browser.close().catch(() => {});
+              if (Capacitor.isPluginAvailable('Browser')) {
+                await Browser.close().catch(() => {});
+              }
               try {
                 await handleAuthCallbackUrl(url);
                 this.showAuthModal = false;
@@ -948,7 +952,17 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         if (error) throw error;
 
         if (isNative && data?.url) {
-          await Browser.open({ url: data.url, windowName: '_self' });
+          if (Capacitor.isPluginAvailable('Browser')) {
+            try {
+              await Browser.open({ url: data.url, windowName: '_self' });
+            } catch (browserErr) {
+              console.warn('Browser.open failed, falling back to window.open:', browserErr);
+              window.open(data.url, '_system');
+            }
+          } else {
+            console.warn('Capacitor Browser plugin not compiled into native APK, falling back to window.open');
+            window.open(data.url, '_system');
+          }
         }
         return data;
       } catch (error) {
