@@ -17,53 +17,55 @@
       </div>
 
       <!-- User Info & Sync Controls -->
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 sm:gap-3">
         <!-- Logs Database Count Badge -->
         <div 
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-gray-900/60 border border-gray-800/80 text-gray-300 select-none"
-          title="Total recorded entries in database"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-gray-900/80 border border-gray-800/80 text-gray-300 select-none shadow-xs"
+          title="Total des logs enregistrés"
         >
-          <Database class="w-3.5 h-3.5 text-violet-400" />
-          <span>{{ store.logs.length }} logs</span>
+          <Database class="w-3.5 h-3.5 text-violet-400 shrink-0" />
+          <span>{{ store.logs.length }}</span>
+          <span class="hidden sm:inline text-gray-400">logs</span>
           <!-- Pending Sync warning dot -->
           <span 
             v-if="store.stats.unsyncedCount > 0"
             class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" 
-            title="Logs pending sync"
+            title="Logs en attente de synchronisation"
           ></span>
         </div>
 
         <!-- 1. LOCAL ONLY UNCONFIGURED STATE -->
         <div 
           v-if="!store.isCloudConfigured"
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border border-gray-800/80 bg-gray-900/60 text-gray-400 select-none"
-          title="Supabase is not configured. Running offline in browser memory."
+          class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium border border-gray-800/80 bg-gray-900/60 text-gray-400 select-none"
+          title="Mode local hors ligne"
         >
           <span class="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
-          Local Mode
+          <span class="hidden xs:inline">Local</span>
         </div>
 
         <!-- 2. SUPABASE ACTIVE CONNECTIVITY STATUS -->
         <template v-else>
-          <!-- Online/Offline Badge -->
+          <!-- Online/Offline Badge (Compact on mobile) -->
           <div 
             :class="[
-              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all duration-300 select-none',
+              'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-all duration-300 select-none',
               store.isOnline 
                 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
                 : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
             ]"
+            :title="store.isOnline ? 'Connecté à Internet' : 'Hors-ligne'"
           >
             <span :class="['w-1.5 h-1.5 rounded-full', store.isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400']"></span>
-            {{ store.isOnline ? 'Online' : 'Offline' }}
+            <span class="hidden xs:inline">{{ store.isOnline ? 'En ligne' : 'Hors-ligne' }}</span>
           </div>
 
           <!-- Authenticated Info -->
-          <div v-if="store.isAuthenticated" class="flex items-center gap-2">
-            <!-- User Profile Identity -->
+          <div v-if="store.isAuthenticated" class="flex items-center gap-1 sm:gap-2">
+            <!-- User Profile Identity (Desktop) -->
             <div class="hidden md:flex flex-col text-right">
               <span class="text-xs font-semibold text-white leading-none">{{ store.userEmail }}</span>
-              <span class="text-[9px] text-violet-400 mt-0.5">Cloud Backup Active</span>
+              <span class="text-[9px] text-violet-400 mt-0.5">Cloud Sync Actif</span>
             </div>
 
             <!-- Sync Error Badge -->
@@ -71,10 +73,10 @@
               v-if="store.syncError"
               @click="showSyncErrorDetails"
               class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 text-xs font-semibold cursor-pointer transition-all duration-200"
-              :title="'Sync Error: ' + (store.syncError.message || store.syncError)"
+              :title="'Erreur sync: ' + (store.syncError.message || store.syncError)"
             >
               <AlertTriangle class="w-3.5 h-3.5 text-rose-400 animate-pulse" />
-              <span class="hidden sm:inline">Sync Error</span>
+              <span class="hidden sm:inline">Sync Erreur</span>
             </button>
 
             <!-- Manual Sync button -->
@@ -82,7 +84,7 @@
               @click="store.triggerSync" 
               :disabled="store.isSyncing || !store.isOnline"
               class="p-2 rounded-xl glass-card text-gray-400 hover:text-white hover:bg-gray-800/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
-              title="Sync Now"
+              title="Synchroniser maintenant"
             >
               <RefreshCw :class="['w-4 h-4', store.isSyncing ? 'animate-spin text-violet-400' : '']" />
             </button>
@@ -91,7 +93,7 @@
             <button 
               @click="handleLogout"
               class="p-2 rounded-xl hover:bg-rose-500/10 text-gray-400 hover:text-rose-400 transition-all duration-200 cursor-pointer"
-              title="Log Out"
+              title="Déconnexion"
             >
               <LogOut class="w-4 h-4" />
             </button>
@@ -101,10 +103,11 @@
           <div v-else class="flex items-center">
             <button 
               @click="store.showAuthModal = true"
-              class="px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-all duration-200 cursor-pointer shadow-lg shadow-violet-500/10"
+              class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-all duration-200 cursor-pointer shadow-lg shadow-violet-500/10"
+              title="Connexion / Sauvegarde Cloud"
             >
               <Cloud class="w-3.5 h-3.5" />
-              Backup to Cloud
+              <span class="hidden sm:inline">Cloud Backup</span>
             </button>
           </div>
         </template>
@@ -119,6 +122,7 @@
               : 'glass-card text-gray-400 hover:text-white hover:bg-gray-800/50'
           ]"
           title="Settings & Goals"
+          aria-label="Settings & Goals"
         >
           <Settings class="w-4 h-4" />
         </button>

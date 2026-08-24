@@ -17,6 +17,9 @@
       aria-labelledby="auth-modal-title"
       class="w-full sm:max-w-md bg-gray-900 border-t sm:border border-gray-800 rounded-t-3xl sm:rounded-3xl p-6 relative z-10 shadow-2xl shadow-black max-h-[90vh] overflow-y-auto transform translate-y-0 transition-all duration-300"
     >
+      <!-- Mobile Drag Handle Pill -->
+      <div class="w-12 h-1.5 rounded-full bg-gray-700 mx-auto mb-4 sm:hidden"></div>
+
       <!-- Modal Header -->
       <div class="flex items-center justify-between mb-4">
         <h2 id="auth-modal-title" class="text-xl font-bold text-white flex items-center gap-2">
@@ -25,7 +28,7 @@
         </h2>
         <button 
           @click="closeModal"
-          class="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer"
+          class="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer active:scale-95"
           aria-label="Fermer la fenêtre"
         >
           <X class="w-5 h-5" />

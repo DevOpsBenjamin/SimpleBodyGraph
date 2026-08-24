@@ -2,7 +2,8 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  testMatch: ['**/charts.spec.js', '**/db.spec.js'],
+  testMatch: ['**/*.spec.js'],
+  testIgnore: ['**/*.unit.spec.js'],
   use: {
     baseURL: 'http://localhost:4173',
   },
