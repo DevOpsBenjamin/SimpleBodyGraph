@@ -64,52 +64,60 @@
           <!-- Stats summary cards -->
           <StatsOverview />
 
-          <!-- Tab navigation controller -->
-          <section class="mb-6">
-            <div class="flex p-1 rounded-xl bg-gray-900/80 border border-gray-800/60 max-w-md">
+          <!-- Desktop Tab navigation controller (hidden on mobile) -->
+          <section class="mb-6 hidden sm:block">
+            <div class="flex p-1.5 rounded-2xl bg-gray-900/80 border border-gray-800/80 max-w-lg shadow-inner">
               <button 
                 @click="store.activeTab = 'monthly'"
                 :class="[
-                  'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
+                  'flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5',
                   store.activeTab === 'monthly'
-                    ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md' 
-                    : 'text-gray-400 hover:text-gray-200'
+                    ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
+                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
                 ]"
+                aria-label="Tendance (Mensuel)"
               >
-                Tendance (Mensuel)
+                <TrendingUp class="w-3.5 h-3.5" />
+                <span>Tendance (Mensuel)</span>
               </button>
               <button 
                 @click="store.activeTab = 'weekly'"
                 :class="[
-                  'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
+                  'flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5',
                   store.activeTab === 'weekly'
-                    ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md' 
-                    : 'text-gray-400 hover:text-gray-200'
+                    ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
+                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
                 ]"
+                aria-label="Tendance (Semaine)"
               >
-                Tendance (Semaine)
+                <CalendarDays class="w-3.5 h-3.5" />
+                <span>Tendance (Semaine)</span>
               </button>
               <button 
                 @click="store.activeTab = 'history'"
                 :class="[
-                  'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
+                  'flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5',
                   store.activeTab === 'history' 
-                    ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md' 
-                    : 'text-gray-400 hover:text-gray-200'
+                    ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
+                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
                 ]"
+                aria-label="Logs History"
               >
-                Logs History
+                <History class="w-3.5 h-3.5" />
+                <span>Logs History</span>
               </button>
               <button
                 @click="store.activeTab = 'measurements'"
                 :class="[
-                  'flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-300 cursor-pointer',
+                  'flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5',
                   store.activeTab === 'measurements'
-                    ? 'bg-violet-600/20 text-violet-300 border border-violet-500/20 shadow-md'
-                    : 'text-gray-400 hover:text-gray-200'
+                    ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
+                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
                 ]"
+                aria-label="Measurements"
               >
-                Measurements
+                <Ruler class="w-3.5 h-3.5" />
+                <span>Measurements</span>
               </button>
             </div>
           </section>
@@ -127,22 +135,23 @@
           </section>
         </main>
 
-        <!-- FAB Buttons -->
-        <div class="fixed bottom-6 right-6 z-20 flex flex-col gap-3">
+        <!-- FAB Buttons (Positioned above Bottom Navigation on mobile) -->
+        <div class="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-30 flex flex-col gap-3">
           <button
             v-if="store.activeTab === 'measurements'"
             @click="store.showAddMeasurementModal = true"
-            class="w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30 hover:scale-105 transition-all duration-300 select-none cursor-pointer"
+            class="w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white flex items-center justify-center shadow-xl shadow-indigo-600/40 hover:scale-105 active:scale-95 transition-all duration-200 select-none cursor-pointer"
             title="Add Measurement"
+            aria-label="Add Measurement"
           >
-            <Plus class="w-8 h-8" />
+            <Plus class="w-7 h-7" />
           </button>
           <template v-else>
             <!-- Live Bluetooth Weigh-In Button (if paired scale exists) -->
             <button
               v-if="store.pairedDevices.length > 0"
               @click="store.showLiveWeighInModal = true"
-              class="w-14 h-14 rounded-full bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white flex items-center justify-center shadow-lg shadow-violet-600/40 hover:scale-105 transition-all duration-300 select-none cursor-pointer relative"
+              class="w-14 h-14 rounded-full bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white flex items-center justify-center shadow-xl shadow-violet-600/40 hover:scale-105 active:scale-95 transition-all duration-200 select-none cursor-pointer relative"
               title="Pesée Bluetooth en direct"
             >
               <Scale class="w-7 h-7 text-white" />
@@ -155,18 +164,85 @@
             <button 
               @click="store.showAddModal = true"
               :class="[
-                'w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 select-none cursor-pointer',
+                'w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all duration-200 select-none cursor-pointer active:scale-95',
                 store.pairedDevices.length > 0
                   ? 'bg-gray-900 hover:bg-gray-800 active:bg-gray-700 text-violet-400 border border-gray-800 hover:scale-105'
-                  : 'bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white shadow-violet-600/30 hover:scale-105'
+                  : 'bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white shadow-violet-600/40 hover:scale-105'
               ]"
               title="Add Log Entry"
               aria-label="Add Log Entry"
             >
-              <Plus class="w-8 h-8" />
+              <Plus class="w-7 h-7" />
             </button>
           </template>
         </div>
+
+        <!-- Mobile Bottom Navigation Bar -->
+        <nav 
+          v-if="store.activeView !== 'settings'" 
+          class="fixed bottom-0 left-0 right-0 z-40 bg-gray-950/90 backdrop-blur-xl border-t border-gray-800/80 px-2 py-1.5 sm:hidden flex items-center justify-around shadow-2xl shadow-black"
+          aria-label="Navigation mobile"
+        >
+          <button
+            @click="store.activeTab = 'monthly'"
+            :class="[
+              'flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer min-w-[64px]',
+              store.activeTab === 'monthly'
+                ? 'text-violet-400 font-bold scale-105'
+                : 'text-gray-400 hover:text-gray-200'
+            ]"
+            aria-label="Tendance (Mensuel)"
+          >
+            <TrendingUp class="w-5 h-5" />
+            <span class="text-[10px] tracking-tight">Mois</span>
+            <span v-if="store.activeTab === 'monthly'" class="w-1 h-1 rounded-full bg-violet-400"></span>
+          </button>
+
+          <button
+            @click="store.activeTab = 'weekly'"
+            :class="[
+              'flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer min-w-[64px]',
+              store.activeTab === 'weekly'
+                ? 'text-violet-400 font-bold scale-105'
+                : 'text-gray-400 hover:text-gray-200'
+            ]"
+            aria-label="Tendance (Semaine)"
+          >
+            <CalendarDays class="w-5 h-5" />
+            <span class="text-[10px] tracking-tight">Semaine</span>
+            <span v-if="store.activeTab === 'weekly'" class="w-1 h-1 rounded-full bg-violet-400"></span>
+          </button>
+
+          <button
+            @click="store.activeTab = 'history'"
+            :class="[
+              'flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer min-w-[64px]',
+              store.activeTab === 'history'
+                ? 'text-violet-400 font-bold scale-105'
+                : 'text-gray-400 hover:text-gray-200'
+            ]"
+            aria-label="Logs History"
+          >
+            <History class="w-5 h-5" />
+            <span class="text-[10px] tracking-tight">Logs</span>
+            <span v-if="store.activeTab === 'history'" class="w-1 h-1 rounded-full bg-violet-400"></span>
+          </button>
+
+          <button
+            @click="store.activeTab = 'measurements'"
+            :class="[
+              'flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer min-w-[64px]',
+              store.activeTab === 'measurements'
+                ? 'text-violet-400 font-bold scale-105'
+                : 'text-gray-400 hover:text-gray-200'
+            ]"
+            aria-label="Measurements"
+          >
+            <Ruler class="w-5 h-5" />
+            <span class="text-[10px] tracking-tight">Mesures</span>
+            <span v-if="store.activeTab === 'measurements'" class="w-1 h-1 rounded-full bg-violet-400"></span>
+          </button>
+        </nav>
       </template>
 
       <!-- Modal Form overlays -->
@@ -186,7 +262,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { Plus, Scale, Bluetooth } from 'lucide-vue-next';
+import { Plus, Scale, Bluetooth, TrendingUp, CalendarDays, History, Ruler } from 'lucide-vue-next';
 import { useBodyGraphStore } from './stores/bodyGraph';
 
 // Import subcomponents
