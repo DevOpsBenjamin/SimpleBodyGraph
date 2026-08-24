@@ -22,7 +22,7 @@
 
       <div class="flex items-center gap-2">
         <span class="text-[10px] px-2.5 py-1 rounded-xl bg-violet-600/10 border border-violet-500/20 text-violet-300 font-semibold select-none hidden sm:inline-block">
-          SimpleBodyGraph v1.1.3
+          SimpleBodyGraph v1.2.0
         </span>
       </div>
     </div>
