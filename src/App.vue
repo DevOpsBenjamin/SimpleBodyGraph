@@ -135,46 +135,85 @@
           </section>
         </main>
 
-        <!-- FAB Buttons (Positioned above Bottom Navigation on mobile) -->
-        <div class="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-30 flex flex-col gap-3">
-          <button
-            v-if="store.activeTab === 'measurements'"
-            @click="store.showAddMeasurementModal = true"
-            class="w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white flex items-center justify-center shadow-xl shadow-indigo-600/40 hover:scale-105 active:scale-95 transition-all duration-200 select-none cursor-pointer"
-            title="Add Measurement"
-            aria-label="Add Measurement"
+        <!-- Backdrop when Speed Dial is open -->
+        <div 
+          v-if="showQuickActions"
+          @click="showQuickActions = false"
+          class="fixed inset-0 z-30 bg-black/60 backdrop-blur-xs transition-opacity duration-200"
+        ></div>
+
+        <!-- Unified Smart FAB & Speed-Dial -->
+        <div class="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-35 flex flex-col items-end gap-3">
+          <!-- Expanded Options (Speed Dial) -->
+          <div 
+            v-if="showQuickActions"
+            class="flex flex-col items-end gap-2.5 mb-1 animate-fade-in"
           >
-            <Plus class="w-7 h-7" />
-          </button>
-          <template v-else>
-            <!-- Live Bluetooth Weigh-In Button (if paired scale exists) -->
+            <!-- 1. Live BLE Scale Weigh-In (if paired devices exist) -->
             <button
               v-if="store.pairedDevices.length > 0"
-              @click="store.showLiveWeighInModal = true"
-              class="w-14 h-14 rounded-full bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white flex items-center justify-center shadow-xl shadow-violet-600/40 hover:scale-105 active:scale-95 transition-all duration-200 select-none cursor-pointer relative"
-              title="Pesée Bluetooth en direct"
+              @click="store.showLiveWeighInModal = true; showQuickActions = false"
+              class="flex items-center gap-2.5 group cursor-pointer"
+              title="Pesée Bluetooth"
             >
-              <Scale class="w-7 h-7 text-white" />
-              <span class="absolute top-0 right-0 w-4 h-4 rounded-full bg-emerald-500 border-2 border-gray-950 flex items-center justify-center">
-                <Bluetooth class="w-2.5 h-2.5 text-white" />
+              <span class="px-2.5 py-1 rounded-xl bg-gray-900/90 border border-gray-800 text-xs font-semibold text-gray-200 shadow-lg group-hover:text-white transition-colors">
+                Pesée Bluetooth en direct
               </span>
+              <div class="w-12 h-12 rounded-full bg-violet-600 hover:bg-violet-500 text-white flex items-center justify-center shadow-lg shadow-violet-600/30 transition-transform group-hover:scale-105 active:scale-95 relative">
+                <Scale class="w-5 h-5" />
+                <span class="absolute top-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-gray-950 flex items-center justify-center">
+                  <Bluetooth class="w-2 h-2 text-white" />
+                </span>
+              </div>
             </button>
 
-            <!-- Manual Log Entry Button -->
-            <button 
-              @click="store.showAddModal = true"
-              :class="[
-                'w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all duration-200 select-none cursor-pointer active:scale-95',
-                store.pairedDevices.length > 0
-                  ? 'bg-gray-900 hover:bg-gray-800 active:bg-gray-700 text-violet-400 border border-gray-800 hover:scale-105'
-                  : 'bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white shadow-violet-600/40 hover:scale-105'
-              ]"
+            <!-- 2. Tape Measurements -->
+            <button
+              @click="store.showAddMeasurementModal = true; showQuickActions = false"
+              class="flex items-center gap-2.5 group cursor-pointer"
+              title="Add Measurement"
+              aria-label="Add Measurement"
+            >
+              <span class="px-2.5 py-1 rounded-xl bg-gray-900/90 border border-gray-800 text-xs font-semibold text-gray-200 shadow-lg group-hover:text-white transition-colors">
+                Nouvelles Mensurations
+              </span>
+              <div class="w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30 transition-transform group-hover:scale-105 active:scale-95">
+                <Ruler class="w-5 h-5" />
+              </div>
+            </button>
+
+            <!-- 3. Manual Weigh-In Entry -->
+            <button
+              @click="store.showAddModal = true; showQuickActions = false"
+              class="flex items-center gap-2.5 group cursor-pointer"
               title="Add Log Entry"
               aria-label="Add Log Entry"
             >
-              <Plus class="w-7 h-7" />
+              <span class="px-2.5 py-1 rounded-xl bg-gray-900/90 border border-gray-800 text-xs font-semibold text-gray-200 shadow-lg group-hover:text-white transition-colors">
+                Pesée Manuelle
+              </span>
+              <div class="w-12 h-12 rounded-full bg-violet-600 hover:bg-violet-500 text-white flex items-center justify-center shadow-lg shadow-violet-600/30 transition-transform group-hover:scale-105 active:scale-95">
+                <Plus class="w-5 h-5" />
+              </div>
             </button>
-          </template>
+          </div>
+
+          <!-- Main FAB Button -->
+          <button 
+            @click="handleMainFabClick"
+            :class="[
+              'w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-200 select-none cursor-pointer active:scale-95',
+              showQuickActions
+                ? 'bg-gray-800 text-gray-200 border border-gray-700 shadow-black rotate-45'
+                : store.activeTab === 'measurements'
+                  ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/40 hover:scale-105'
+                  : 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-600/40 hover:scale-105'
+            ]"
+            :title="store.activeTab === 'measurements' ? 'Add Measurement' : 'Add Log Entry'"
+            :aria-label="store.activeTab === 'measurements' ? 'Add Measurement' : 'Add Log Entry'"
+          >
+            <Plus class="w-7 h-7 transition-transform duration-200" />
+          </button>
         </div>
 
         <!-- Mobile Bottom Navigation Bar -->
@@ -279,8 +318,30 @@ import ScaleWeighInModal from './components/ScaleWeighInModal.vue';
 import AuthModal from './components/AuthModal.vue';
 import ConfirmModal from './components/ConfirmModal.vue';
 import ToastContainer from './components/ToastContainer.vue';
-
 const store = useBodyGraphStore();
+
+// Quick Actions Speed-Dial State
+const showQuickActions = ref(false);
+
+const handleMainFabClick = () => {
+  if (showQuickActions.value) {
+    showQuickActions.value = false;
+    return;
+  }
+
+  // If user has paired BLE scales, open the speed dial menu for choices
+  if (store.pairedDevices.length > 0) {
+    showQuickActions.value = true;
+    return;
+  }
+
+  // Otherwise direct 1-tap action based on active tab
+  if (store.activeTab === 'measurements') {
+    store.showAddMeasurementModal = true;
+  } else {
+    store.showAddModal = true;
+  }
+};
 
 // Android APK banner — only shown on Android browsers (not inside the Capacitor app)
 const isAndroid = /android/i.test(navigator.userAgent) && !window.Capacitor;
