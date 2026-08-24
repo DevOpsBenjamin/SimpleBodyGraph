@@ -1,5 +1,8 @@
 import { defineStore } from 'pinia';
-import { supabase } from '../supabase';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
+import { supabase, handleAuthCallbackUrl } from '../supabase';
 import { 
   getAllLogs, 
   saveLog, 
@@ -12,6 +15,8 @@ import {
   exportAllData,
   importAllData
 } from '../db';
+
+let deepLinksConfigured = false;
 
 // Helper to find the Monday (YYYY-MM-DD) of a given date
 export function getMondayOfDate(dateStr) {
@@ -563,6 +568,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       }
 
       try {
+        await this.setupAuthDeepLinks();
         const { data } = await supabase.auth.getSession();
         this.session = data.session;
         this.user = data.session?.user || null;
@@ -892,16 +898,58 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       }
     },
 
+    async setupAuthDeepLinks() {
+      if (!Capacitor.isNativePlatform() || !supabase) return;
+
+      try {
+        // Cold start deep link check
+        const launchUrl = await CapApp.getLaunchUrl();
+        if (launchUrl?.url && launchUrl.url.includes('auth-callback')) {
+          await Browser.close().catch(() => {});
+          await handleAuthCallbackUrl(launchUrl.url);
+          this.showAuthModal = false;
+        }
+
+        if (!deepLinksConfigured) {
+          deepLinksConfigured = true;
+          // Warm / background start deep link listener
+          CapApp.addListener('appUrlOpen', async ({ url }) => {
+            if (url && url.includes('auth-callback')) {
+              await Browser.close().catch(() => {});
+              try {
+                await handleAuthCallbackUrl(url);
+                this.showAuthModal = false;
+              } catch (err) {
+                console.error('Deep link auth callback failed:', err);
+              }
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Failed to setup native auth deep links:', e);
+      }
+    },
+
     async signInWithGoogle() {
       if (!supabase) return;
       try {
+        const isNative = Capacitor.isNativePlatform();
+        const redirectTo = isNative
+          ? 'com.devopsbenjamin.simplebodygraph://auth-callback'
+          : window.location.origin;
+
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: window.location.origin
+            redirectTo,
+            skipBrowserRedirect: isNative
           }
         });
         if (error) throw error;
+
+        if (isNative && data?.url) {
+          await Browser.open({ url: data.url, windowName: '_self' });
+        }
         return data;
       } catch (error) {
         console.error('Google OAuth failed:', error);

@@ -466,7 +466,10 @@ describe('useBodyGraphStore', () => {
       await store.signInWithGoogle();
       expect(supabase.auth.signInWithOAuth).toHaveBeenCalledWith({
         provider: 'google',
-        options: { redirectTo: 'http://localhost:4173' }
+        options: { 
+          redirectTo: 'http://localhost:4173',
+          skipBrowserRedirect: false
+        }
       });
     });
 
