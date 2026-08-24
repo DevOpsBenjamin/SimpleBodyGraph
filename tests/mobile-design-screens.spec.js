@@ -64,17 +64,17 @@ test('Capture mobile UI screens for design review', async ({ page }) => {
   await saveScreen('03_dashboard_monthly.png');
 
   // 5. Dashboard - Weekly Tab
-  await page.getByRole('button', { name: 'Tendance (Semaine)' }).click();
+  await page.getByRole('button', { name: 'Semaine' }).first().click();
   await page.waitForTimeout(500);
   await saveScreen('04_dashboard_weekly.png');
 
   // 6. Dashboard - History Tab
-  await page.getByRole('button', { name: 'Logs History' }).click();
+  await page.getByRole('button', { name: 'Logs' }).first().click();
   await page.waitForTimeout(500);
   await saveScreen('05_dashboard_history.png');
 
   // 7. Dashboard - Measurements Tab
-  await page.getByRole('button', { name: 'Measurements' }).click();
+  await page.getByRole('button', { name: 'Mesures' }).first().click();
   await page.waitForTimeout(500);
   await saveScreen('06_dashboard_measurements.png');
 
@@ -86,7 +86,7 @@ test('Capture mobile UI screens for design review', async ({ page }) => {
   await page.waitForTimeout(300);
 
   // Switch back to monthly
-  await page.getByRole('button', { name: 'Tendance (Mensuel)' }).click();
+  await page.getByRole('button', { name: 'Mois' }).first().click();
   await page.waitForTimeout(300);
 
   // 9. Add Log Entry Modal
@@ -97,7 +97,7 @@ test('Capture mobile UI screens for design review', async ({ page }) => {
   await page.waitForTimeout(300);
 
   // 10. Settings View - Paliers
-  await page.locator('button[title="Settings & Goals"]').click();
+  await page.getByRole('button', { name: 'Réglages' }).first().click();
   await page.waitForTimeout(500);
   await saveScreen('09_settings_goals.png');
 

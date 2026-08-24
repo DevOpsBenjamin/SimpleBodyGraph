@@ -44,8 +44,8 @@ test('Seed user data and take screenshot', async ({ page }) => {
   await page.screenshot({ path: screenshotPath, fullPage: true });
   console.log('Screenshot captured at:', screenshotPath);
 
-  // Open settings modal to verify the newly added Settings & tabs
-  await page.locator('button[title="Settings & Goals"]').click();
+  // Open settings view to verify the newly added Settings & tabs
+  await page.getByRole('button', { name: 'Paramètres' }).first().click();
   await page.waitForTimeout(500);
 
   // Assert target header and tabs are visible

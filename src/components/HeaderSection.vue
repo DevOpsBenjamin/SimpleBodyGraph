@@ -111,28 +111,13 @@
             </button>
           </div>
         </template>
-
-        <!-- Settings button (Goal Configuration & Page View) -->
-        <button 
-          @click="store.activeView = store.activeView === 'settings' ? 'dashboard' : 'settings'"
-          :class="[
-            'p-2 rounded-xl transition-all duration-200 cursor-pointer',
-            store.activeView === 'settings'
-              ? 'bg-violet-600/30 text-violet-300 border border-violet-500/40 shadow-md shadow-violet-500/20'
-              : 'glass-card text-gray-400 hover:text-white hover:bg-gray-800/50'
-          ]"
-          title="Settings & Goals"
-          aria-label="Settings & Goals"
-        >
-          <Settings class="w-4 h-4" />
-        </button>
       </div>
     </div>
   </header>
 </template>
 
 <script setup>
-import { RefreshCw, LogOut, Cloud, AlertTriangle, Settings, Database } from 'lucide-vue-next';
+import { RefreshCw, LogOut, Cloud, AlertTriangle, Database } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 import { useConfirm } from '../composables/useConfirm';
 import { useToast } from '../composables/useToast';
