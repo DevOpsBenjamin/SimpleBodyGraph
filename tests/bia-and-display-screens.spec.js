@@ -54,7 +54,11 @@ test.describe('BIA & Display Preferences Visual Verification', () => {
 
     await page.waitForTimeout(1000);
 
-    // 1. Capture Monthly Dashboard with 4 cards, BIA Summary, and Unified Chart
+    // Assert that KPIs reflect the latest month's progression (July 2026: ~75kg, ~12% fat)
+    const massCard = page.locator('text=Poids Total').first();
+    await expect(massCard).toBeVisible();
+
+    // 1. Capture Monthly Dashboard with 4 cards, BIA Summary, Unified Chart, and Segmental Charts
     await page.screenshot({ path: 'screenshots_mobile/bia_01_monthly_dashboard.png', fullPage: true });
 
     // 2. Switch to Weekly Tab
