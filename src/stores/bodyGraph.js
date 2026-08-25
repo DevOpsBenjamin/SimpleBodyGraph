@@ -131,7 +131,23 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     selectedWeekIndex: 0,
     // Active log record being edited, null if creating a new one
     editingLog: null,
-    editingMeasurement: null
+    editingMeasurement: null,
+
+    // Display and visibility preferences (Cards & Charts)
+    displayPreferences: {
+      cards: {
+        mass: true,
+        fatMass: true,
+        bodyFat: true,
+        leanMass: true
+      },
+      charts: {
+        showMass: true,
+        showFatMass: true,
+        showLeanMass: false,
+        showFatPercentChart: false
+      }
+    }
   }),
 
   getters: {
@@ -467,6 +483,95 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         rollingMedianFatMassChange,
         unsyncedCount
       };
+    },
+
+    periodStats() {
+      const isMonthView = this.activeTab === 'monthly';
+      const isWeekView = this.activeTab === 'weekly';
+
+      if (isMonthView && this.groupedMonths.length > 0) {
+        const activeMonth = this.activeMonth || this.groupedMonths[0];
+        const nextMonth = this.groupedMonths[this.selectedMonthIndex + 1] || null;
+
+        const currentMass = activeMonth.medianMass;
+        const currentFat = activeMonth.medianFat;
+        const currentFatMass = activeMonth.medianFatMass;
+        const currentLeanMass = activeMonth.medianLeanMass;
+
+        const prevMass = nextMonth ? nextMonth.medianMass : null;
+        const prevFat = nextMonth ? nextMonth.medianFat : null;
+        const prevFatMass = nextMonth ? nextMonth.medianFatMass : null;
+        const prevLeanMass = nextMonth ? nextMonth.medianLeanMass : null;
+
+        const massChange = (currentMass !== null && prevMass !== null) ? (currentMass - prevMass) : 0;
+        const fatChange = (currentFat !== null && prevFat !== null) ? (currentFat - prevFat) : 0;
+        const fatMassChange = (currentFatMass !== null && prevFatMass !== null) ? (currentFatMass - prevFatMass) : 0;
+        const leanMassChange = (currentLeanMass !== null && prevLeanMass !== null) ? (currentLeanMass - prevLeanMass) : 0;
+
+        return {
+          currentMass,
+          currentFat,
+          currentFatMass,
+          currentLeanMass,
+          massChange,
+          fatChange,
+          fatMassChange,
+          leanMassChange,
+          comparisonLabel: 'mois préc.',
+          periodBadge: 'Mois',
+          hasPreviousPeriod: !!nextMonth
+        };
+      }
+
+      if (isWeekView && this.groupedWeeks.length > 0) {
+        const activeWeek = this.activeWeek || this.groupedWeeks[0];
+        const nextWeek = this.groupedWeeks[this.selectedWeekIndex + 1] || null;
+
+        const currentMass = activeWeek.medianMass;
+        const currentFat = activeWeek.medianFat;
+        const currentFatMass = activeWeek.medianFatMass;
+        const currentLeanMass = activeWeek.medianLeanMass;
+
+        const prevMass = nextWeek ? nextWeek.medianMass : null;
+        const prevFat = nextWeek ? nextWeek.medianFat : null;
+        const prevFatMass = nextWeek ? nextWeek.medianFatMass : null;
+        const prevLeanMass = nextWeek ? nextWeek.medianLeanMass : null;
+
+        const massChange = (currentMass !== null && prevMass !== null) ? (currentMass - prevMass) : 0;
+        const fatChange = (currentFat !== null && prevFat !== null) ? (currentFat - prevFat) : 0;
+        const fatMassChange = (currentFatMass !== null && prevFatMass !== null) ? (currentFatMass - prevFatMass) : 0;
+        const leanMassChange = (currentLeanMass !== null && prevLeanMass !== null) ? (currentLeanMass - prevLeanMass) : 0;
+
+        return {
+          currentMass,
+          currentFat,
+          currentFatMass,
+          currentLeanMass,
+          massChange,
+          fatChange,
+          fatMassChange,
+          leanMassChange,
+          comparisonLabel: '7d ago',
+          periodBadge: '7d Median',
+          hasPreviousPeriod: !!nextWeek
+        };
+      }
+
+      // Default fallback (e.g. History or Measurements view)
+      const s = this.stats;
+      return {
+        currentMass: s.rollingMedianMass,
+        currentFat: s.rollingMedianFat,
+        currentFatMass: s.rollingMedianFatMass,
+        currentLeanMass: s.rollingMedianLeanMass,
+        massChange: s.rollingMedianMassChange,
+        fatChange: s.rollingMedianFatChange,
+        fatMassChange: s.rollingMedianFatMassChange,
+        leanMassChange: s.rollingMedianLeanMassChange,
+        comparisonLabel: '7d ago',
+        periodBadge: '7d Median',
+        hasPreviousPeriod: s.rollingMedianMass !== null
+      };
     }
   },
 
@@ -557,6 +662,19 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           }];
         } else {
           this.paliers = [];
+        }
+      }
+
+      const savedDisplayPrefs = localStorage.getItem('bodygraph_display_preferences');
+      if (savedDisplayPrefs) {
+        try {
+          const parsed = JSON.parse(savedDisplayPrefs);
+          this.displayPreferences = {
+            cards: { ...this.displayPreferences.cards, ...(parsed?.cards || {}) },
+            charts: { ...this.displayPreferences.charts, ...(parsed?.charts || {}) }
+          };
+        } catch (e) {
+          console.warn('Failed to parse saved display preferences:', e);
         }
       }
 
@@ -726,6 +844,27 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       } else {
         this.targetMass = null;
         this.targetFat = null;
+      }
+    },
+
+    async updateDisplayPreferences(newPrefs) {
+      this.displayPreferences = {
+        cards: { ...this.displayPreferences.cards, ...(newPrefs?.cards || {}) },
+        charts: { ...this.displayPreferences.charts, ...(newPrefs?.charts || {}) }
+      };
+
+      // Offline-first persistence
+      localStorage.setItem('bodygraph_display_preferences', JSON.stringify(this.displayPreferences));
+
+      // Cloud sync if authenticated
+      if (supabase && this.user) {
+        try {
+          await supabase.auth.updateUser({
+            data: { display_preferences: this.displayPreferences }
+          });
+        } catch (error) {
+          console.warn('Failed to sync display preferences to cloud:', error);
+        }
       }
     },
 
@@ -1241,7 +1380,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async exportData() {
-      const data = await exportAllData(this.currentUserId, this.paliers, this.profile);
+      const data = await exportAllData(this.currentUserId, this.paliers, this.profile, this.displayPreferences);
       const jsonStr = JSON.stringify(data, null, 2);
       if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -1278,6 +1417,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
       if (result.profile && typeof result.profile === 'object') {
         await this.updateProfile(result.profile);
+      }
+
+      if (result.displayPreferences && typeof result.displayPreferences === 'object') {
+        await this.updateDisplayPreferences(result.displayPreferences);
       }
 
       await this.loadLogs();

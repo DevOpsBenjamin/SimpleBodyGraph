@@ -586,11 +586,11 @@ describe('useBodyGraphStore', () => {
       expect(db.syncLogs).toHaveBeenCalledWith('user-real');
     });
 
-    it('exportData calls exportAllData with current userId, paliers, and profile', async () => {
+    it('exportData calls exportAllData with current userId, paliers, profile, and displayPreferences', async () => {
       const store = useBodyGraphStore();
       const exportResult = await store.exportData();
 
-      expect(db.exportAllData).toHaveBeenCalledWith('guest', store.paliers, store.profile);
+      expect(db.exportAllData).toHaveBeenCalledWith('guest', store.paliers, store.profile, store.displayPreferences);
       expect(exportResult.version).toBe(2);
       expect(exportResult.logs).toEqual(mockLogs);
       expect(exportResult.measurements).toEqual(mockMeasurements);
@@ -746,7 +746,7 @@ describe('useBodyGraphStore', () => {
         store.profile = { gender: 'male', birthDate: '1990-01-01', height: 180 };
 
         const exported = await store.exportData();
-        expect(db.exportAllData).toHaveBeenCalledWith('guest', store.paliers, store.profile);
+        expect(db.exportAllData).toHaveBeenCalledWith('guest', store.paliers, store.profile, store.displayPreferences);
 
         const updateProfileSpy = vi.spyOn(store, 'updateProfile');
         const payload = {

@@ -270,7 +270,7 @@ export async function bulkWrite(storeName, { puts = [], deletes = [] }) {
 }
 
 // Export all data for backup / migration
-export async function exportAllData(userId = 'guest', paliers = [], profile = null) {
+export async function exportAllData(userId = 'guest', paliers = [], profile = null, displayPreferences = null) {
   const logs = await getAllLogs(userId);
   const measurements = await getAllMeasurements(userId);
   return {
@@ -278,11 +278,14 @@ export async function exportAllData(userId = 'guest', paliers = [], profile = nu
     exportedAt: new Date().toISOString(),
     paliers: paliers || [],
     profile: profile || null,
+    displayPreferences: displayPreferences || null,
     logs: logs.map(l => ({
       id: l.id,
       date: l.date,
       mass: Number(l.mass),
-      body_fat: Number(l.body_fat)
+      body_fat: Number(l.body_fat),
+      heart_rate: l.heart_rate ? Number(l.heart_rate) : null,
+      impedances: l.impedances || null
     })),
     measurements: measurements.map(m => ({
       id: m.id,
@@ -305,6 +308,7 @@ export async function importAllData(data, userId = 'guest') {
   const measurementsToImport = Array.isArray(data.measurements) ? data.measurements : [];
   const paliersToImport = Array.isArray(data.paliers) ? data.paliers : [];
   const profileToImport = (data.profile && typeof data.profile === 'object') ? data.profile : null;
+  const displayPreferencesToImport = (data.displayPreferences && typeof data.displayPreferences === 'object') ? data.displayPreferences : null;
 
   const validLogs = [];
   for (const log of logsToImport) {
@@ -314,6 +318,8 @@ export async function importAllData(data, userId = 'guest') {
         date: log.date,
         mass: Number(log.mass),
         body_fat: Number(log.body_fat),
+        heart_rate: log.heart_rate ? Number(log.heart_rate) : null,
+        impedances: log.impedances || null,
         user_id: userId,
         synced: false
       });
@@ -347,7 +353,8 @@ export async function importAllData(data, userId = 'guest') {
     importedLogsCount: validLogs.length,
     importedMeasurementsCount: validMeasurements.length,
     paliers: paliersToImport,
-    profile: profileToImport
+    profile: profileToImport,
+    displayPreferences: displayPreferencesToImport
   };
 }
 

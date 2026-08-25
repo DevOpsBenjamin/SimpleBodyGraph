@@ -4,13 +4,13 @@
     <div class="w-16 h-16 bg-gray-950 rounded-2xl flex items-center justify-center border border-gray-800/60 text-gray-500 mb-4">
       <Scale class="w-8 h-8" />
     </div>
-    <h3 class="text-lg font-semibold text-white mb-1">No Data Available</h3>
-    <p class="text-sm text-gray-400 max-w-xs mb-6">Start logging your body mass and body fat percentage to render your progress charts.</p>
+    <h3 class="text-lg font-semibold text-white mb-1">Aucune donnée disponible</h3>
+    <p class="text-sm text-gray-400 max-w-xs mb-6">Commencez par ajouter ou synchroniser des pesées pour afficher vos graphiques de progression.</p>
     <button 
       @click="store.showAddModal = true"
       class="px-4 py-2 bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white font-medium rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer shadow-lg shadow-violet-500/10"
     >
-      <Plus class="w-4 h-4" /> Add Your First Log
+      <Plus class="w-4 h-4" /> Ajouter une pesée
     </button>
   </div>
 
@@ -28,7 +28,7 @@
       <!-- MONTH NAVIGATION BAR -->
       <PeriodFocusBar
         v-if="store.activeMonth"
-        title="Active Month Focus"
+        title="Mois sélectionné"
         :label="store.activeMonth.label"
         period-name="month"
         :can-prev="store.selectedMonthIndex < store.groupedMonths.length - 1"
@@ -38,7 +38,14 @@
       />
 
       <!-- Touch Swipe tip -->
-      <p class="text-center text-[10px] text-gray-500 select-none">💡 Swipe left/right on cards to navigate months</p>
+      <p class="text-center text-[10px] text-gray-500 select-none">💡 Glissez vers la gauche/droite pour naviguer entre les mois</p>
+
+      <!-- BIA PERIOD SUMMARY (IF BIA DATA PRESENT) -->
+      <BiaPeriodSummaryCard
+        v-if="store.activeMonth"
+        :period-item="store.activeMonth"
+        :period-label="store.activeMonth.label"
+      />
 
       <!-- HEVY SYNC HELPER FOR ACTIVE MONTH -->
       <HevyFocusCard
@@ -46,63 +53,26 @@
         period-label="Monthly"
       />
 
-      <!-- Monthly Charts Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Monthly Weight -->
-        <MetricChartCard
-          title="Monthly Weight: Median vs Average (kg)"
-          metric-type="weight"
-          color-type="violet"
-          unit=" kg"
-          median-label="Monthly Median"
-          average-label="Monthly Average"
-          :median-data="monthlyChartData.weight.median"
-          :average-data="monthlyChartData.weight.avg"
-          :paliers="store.paliersSorted"
-          :active-palier="store.activePalier"
-          :time-scale-options="commonMonthlyTimeScaleOptions"
-        />
+      <!-- UNIFIED COMPOSITION CHART (MONTHLY) -->
+      <UnifiedCompositionChart
+        title="Progression Mensuelle (Médianes)"
+        :mass-data="monthlyChartData.weight.median"
+        :fat-mass-data="monthlyChartData.fatMass.median"
+        :lean-mass-data="monthlyChartData.lean.median"
+        :time-scale-options="commonMonthlyTimeScaleOptions"
+      />
 
-        <!-- Monthly Lean Mass -->
+      <!-- OPTIONAL BODY FAT % CHART -->
+      <div v-if="store.displayPreferences?.charts?.showFatPercentChart" class="pt-2">
         <MetricChartCard
-          title="Monthly Lean Mass: Median vs Average (kg)"
-          metric-type="lean"
-          color-type="blue"
-          unit=" kg"
-          median-label="Monthly Median"
-          average-label="Monthly Average"
-          :median-data="monthlyChartData.lean.median"
-          :average-data="monthlyChartData.lean.avg"
-          :paliers="store.paliersSorted"
-          :active-palier="store.activePalier"
-          :time-scale-options="commonMonthlyTimeScaleOptions"
-        />
-
-        <!-- Monthly Body Fat -->
-        <MetricChartCard
-          title="Monthly Body Fat: Median vs Average (%)"
+          title="Taux de Masse Grasse Mensuel (%)"
           metric-type="fat"
           color-type="emerald"
           unit="%"
-          median-label="Monthly Median"
-          average-label="Monthly Average"
+          median-label="Médiane Mensuelle"
+          average-label="Moyenne Mensuelle"
           :median-data="monthlyChartData.fat.median"
           :average-data="monthlyChartData.fat.avg"
-          :paliers="store.paliersSorted"
-          :active-palier="store.activePalier"
-          :time-scale-options="commonMonthlyTimeScaleOptions"
-        />
-
-        <!-- Monthly Fat Mass -->
-        <MetricChartCard
-          title="Monthly Fat Mass: Median vs Average (kg)"
-          metric-type="fat_mass"
-          color-type="amber"
-          unit=" kg"
-          median-label="Monthly Median"
-          average-label="Monthly Average"
-          :median-data="monthlyChartData.fatMass.median"
-          :average-data="monthlyChartData.fatMass.avg"
           :paliers="store.paliersSorted"
           :active-palier="store.activePalier"
           :time-scale-options="commonMonthlyTimeScaleOptions"
@@ -117,7 +87,7 @@
     </div>
 
     <!-- 2. WEEKLY VIEW -->
-    <div
+    <div 
       v-show="store.activeTab === 'weekly'"
       class="space-y-6 animate-fade-in"
       @touchstart="handleTouchStart"
@@ -126,7 +96,7 @@
       <!-- WEEK NAVIGATION BAR -->
       <PeriodFocusBar
         v-if="store.activeWeek"
-        title="Active Week Focus"
+        title="Semaine sélectionnée"
         :label="store.activeWeek.label"
         period-name="week"
         :can-prev="store.selectedWeekIndex < store.groupedWeeks.length - 1"
@@ -136,7 +106,14 @@
       />
 
       <!-- Touch Swipe tip -->
-      <p class="text-center text-[10px] text-gray-500 select-none">💡 Swipe left/right on cards to navigate weeks</p>
+      <p class="text-center text-[10px] text-gray-500 select-none">💡 Glissez vers la gauche/droite pour naviguer entre les semaines</p>
+
+      <!-- BIA PERIOD SUMMARY (IF BIA DATA PRESENT) -->
+      <BiaPeriodSummaryCard
+        v-if="store.activeWeek"
+        :period-item="store.activeWeek"
+        :period-label="store.activeWeek.label"
+      />
 
       <!-- HEVY SYNC HELPER FOR ACTIVE WEEK -->
       <HevyFocusCard
@@ -144,63 +121,26 @@
         period-label="Weekly"
       />
 
-      <!-- Weekly Charts Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Weekly Weight -->
-        <MetricChartCard
-          title="Weekly Weight: Median vs Average (kg)"
-          metric-type="weight"
-          color-type="violet"
-          unit=" kg"
-          median-label="Weekly Median"
-          average-label="Weekly Average"
-          :median-data="weeklyChartData.weight.median"
-          :average-data="weeklyChartData.weight.avg"
-          :paliers="store.paliersSorted"
-          :active-palier="store.activePalier"
-          :time-scale-options="commonWeeklyTimeScaleOptions"
-        />
+      <!-- UNIFIED COMPOSITION CHART (WEEKLY) -->
+      <UnifiedCompositionChart
+        title="Progression Hebdomadaire (Médianes 7j)"
+        :mass-data="weeklyChartData.weight.median"
+        :fat-mass-data="weeklyChartData.fatMass.median"
+        :lean-mass-data="weeklyChartData.lean.median"
+        :time-scale-options="commonWeeklyTimeScaleOptions"
+      />
 
-        <!-- Weekly Lean Mass -->
+      <!-- OPTIONAL BODY FAT % CHART -->
+      <div v-if="store.displayPreferences?.charts?.showFatPercentChart" class="pt-2">
         <MetricChartCard
-          title="Weekly Lean Mass: Median vs Average (kg)"
-          metric-type="lean"
-          color-type="blue"
-          unit=" kg"
-          median-label="Weekly Median"
-          average-label="Weekly Average"
-          :median-data="weeklyChartData.lean.median"
-          :average-data="weeklyChartData.lean.avg"
-          :paliers="store.paliersSorted"
-          :active-palier="store.activePalier"
-          :time-scale-options="commonWeeklyTimeScaleOptions"
-        />
-
-        <!-- Weekly Body Fat -->
-        <MetricChartCard
-          title="Weekly Body Fat: Median vs Average (%)"
+          title="Taux de Masse Grasse Hebdomadaire (%)"
           metric-type="fat"
           color-type="emerald"
           unit="%"
-          median-label="Weekly Median"
-          average-label="Weekly Average"
+          median-label="Médiane Hebdomadaire"
+          average-label="Moyenne Hebdomadaire"
           :median-data="weeklyChartData.fat.median"
           :average-data="weeklyChartData.fat.avg"
-          :paliers="store.paliersSorted"
-          :active-palier="store.activePalier"
-          :time-scale-options="commonWeeklyTimeScaleOptions"
-        />
-
-        <!-- Weekly Fat Mass -->
-        <MetricChartCard
-          title="Weekly Fat Mass: Median vs Average (kg)"
-          metric-type="fat_mass"
-          color-type="amber"
-          unit=" kg"
-          median-label="Weekly Median"
-          average-label="Weekly Average"
-          :median-data="weeklyChartData.fatMass.median"
-          :average-data="weeklyChartData.fatMass.avg"
           :paliers="store.paliersSorted"
           :active-palier="store.activePalier"
           :time-scale-options="commonWeeklyTimeScaleOptions"
@@ -225,6 +165,8 @@ import PeriodFocusBar from './PeriodFocusBar.vue';
 import HevyFocusCard from './HevyFocusCard.vue';
 import HevySyncList from './HevySyncList.vue';
 import MetricChartCard from './MetricChartCard.vue';
+import UnifiedCompositionChart from './UnifiedCompositionChart.vue';
+import BiaPeriodSummaryCard from './BiaPeriodSummaryCard.vue';
 import { 
   commonMonthlyTimeScaleOptions, 
   commonWeeklyTimeScaleOptions 
