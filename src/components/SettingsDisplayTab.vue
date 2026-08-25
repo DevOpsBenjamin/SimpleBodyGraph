@@ -156,13 +156,41 @@
         <label class="flex items-center justify-between p-3.5 rounded-2xl bg-gray-950/60 border border-gray-800/80 hover:border-violet-500/30 transition-all cursor-pointer select-none">
           <div>
             <span class="text-xs font-bold text-white block">Graphique Secondaire : % Masse Grasse</span>
-            <span class="text-[10px] text-gray-400">Affiche un graphique dédié au pourcentage de graisse sous le graphique principal</span>
+            <span class="text-[10px] text-gray-400">Affiche un graphique dédié au pourcentage de graisse</span>
           </div>
           <input 
             type="checkbox" 
             v-model="localPrefs.charts.showFatPercentChart" 
             @change="savePreferences"
             class="w-4 h-4 rounded text-violet-600 accent-violet-600"
+          />
+        </label>
+
+        <!-- BIA Muscle Segmental -->
+        <label class="flex items-center justify-between p-3.5 rounded-2xl bg-gray-950/60 border border-gray-800/80 hover:border-emerald-500/30 transition-all cursor-pointer select-none">
+          <div>
+            <span class="text-xs font-bold text-white block">Graphique BIA : Muscle Segmentaire (5 zones)</span>
+            <span class="text-[10px] text-gray-400">Évolution musculaire détaillée : Tronc, Bras D/G, Jambes D/G</span>
+          </div>
+          <input 
+            type="checkbox" 
+            v-model="localPrefs.charts.showBiaMuscleChart" 
+            @change="savePreferences"
+            class="w-4 h-4 rounded text-emerald-600 accent-emerald-500"
+          />
+        </label>
+
+        <!-- BIA Fat Segmental -->
+        <label class="flex items-center justify-between p-3.5 rounded-2xl bg-gray-950/60 border border-gray-800/80 hover:border-amber-500/30 transition-all cursor-pointer select-none">
+          <div>
+            <span class="text-xs font-bold text-white block">Graphique BIA : Masse Grasse Segmentaire (5 zones)</span>
+            <span class="text-[10px] text-gray-400">Évolution du tissu adipeux par zone anatomique</span>
+          </div>
+          <input 
+            type="checkbox" 
+            v-model="localPrefs.charts.showBiaFatChart" 
+            @change="savePreferences"
+            class="w-4 h-4 rounded text-amber-600 accent-amber-500"
           />
         </label>
       </div>
@@ -190,7 +218,9 @@ const localPrefs = reactive({
     showMass: store.displayPreferences.charts.showMass,
     showFatMass: store.displayPreferences.charts.showFatMass,
     showLeanMass: store.displayPreferences.charts.showLeanMass,
-    showFatPercentChart: store.displayPreferences.charts.showFatPercentChart
+    showFatPercentChart: store.displayPreferences.charts.showFatPercentChart,
+    showBiaMuscleChart: store.displayPreferences.charts.showBiaMuscleChart,
+    showBiaFatChart: store.displayPreferences.charts.showBiaFatChart
   }
 });
 

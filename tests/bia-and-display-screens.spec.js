@@ -30,7 +30,14 @@ test.describe('BIA & Display Preferences Visual Verification', () => {
       localStorage.setItem('bodygraph_paliers', JSON.stringify(data.paliers));
       localStorage.setItem('bodygraph_display_preferences', JSON.stringify({
         cards: { mass: true, fatMass: true, bodyFat: true, leanMass: true },
-        charts: { showMass: true, showFatMass: true, showLeanMass: true, showFatPercentChart: true }
+        charts: { 
+          showMass: true, 
+          showFatMass: true, 
+          showLeanMass: true, 
+          showFatPercentChart: true,
+          showBiaMuscleChart: true,
+          showBiaFatChart: true
+        }
       }));
     }, mockData);
 

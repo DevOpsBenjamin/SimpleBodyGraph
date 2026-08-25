@@ -62,6 +62,24 @@
         :time-scale-options="commonMonthlyTimeScaleOptions"
       />
 
+      <!-- BIA SEGMENTAL MUSCLE CHART (MONTHLY) -->
+      <BiaSegmentalChart
+        v-if="store.displayPreferences?.charts?.showBiaMuscleChart && monthlyBiaSegmentalData.length > 0"
+        title="Masse Musculaire Segmentaire Mensuelle (kg)"
+        type="muscle"
+        :data="monthlyBiaSegmentalData"
+        :time-scale-options="commonMonthlyTimeScaleOptions"
+      />
+
+      <!-- BIA SEGMENTAL FAT CHART (MONTHLY) -->
+      <BiaSegmentalChart
+        v-if="store.displayPreferences?.charts?.showBiaFatChart && monthlyBiaSegmentalData.length > 0"
+        title="Masse Grasse Segmentaire Mensuelle (kg)"
+        type="fat"
+        :data="monthlyBiaSegmentalData"
+        :time-scale-options="commonMonthlyTimeScaleOptions"
+      />
+
       <!-- OPTIONAL BODY FAT % CHART -->
       <div v-if="store.displayPreferences?.charts?.showFatPercentChart" class="pt-2">
         <MetricChartCard
@@ -130,6 +148,24 @@
         :time-scale-options="commonWeeklyTimeScaleOptions"
       />
 
+      <!-- BIA SEGMENTAL MUSCLE CHART (WEEKLY) -->
+      <BiaSegmentalChart
+        v-if="store.displayPreferences?.charts?.showBiaMuscleChart && weeklyBiaSegmentalData.length > 0"
+        title="Masse Musculaire Segmentaire Hebdomadaire (kg)"
+        type="muscle"
+        :data="weeklyBiaSegmentalData"
+        :time-scale-options="commonWeeklyTimeScaleOptions"
+      />
+
+      <!-- BIA SEGMENTAL FAT CHART (WEEKLY) -->
+      <BiaSegmentalChart
+        v-if="store.displayPreferences?.charts?.showBiaFatChart && weeklyBiaSegmentalData.length > 0"
+        title="Masse Grasse Segmentaire Hebdomadaire (kg)"
+        type="fat"
+        :data="weeklyBiaSegmentalData"
+        :time-scale-options="commonWeeklyTimeScaleOptions"
+      />
+
       <!-- OPTIONAL BODY FAT % CHART -->
       <div v-if="store.displayPreferences?.charts?.showFatPercentChart" class="pt-2">
         <MetricChartCard
@@ -159,7 +195,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Scale, Plus } from 'lucide-vue-next';
-import { useBodyGraphStore } from '../stores/bodyGraph';
+import { useBodyGraphStore, calculateMedian } from '../stores/bodyGraph';
 import YearRangeSelector from './YearRangeSelector.vue';
 import PeriodFocusBar from './PeriodFocusBar.vue';
 import HevyFocusCard from './HevyFocusCard.vue';
@@ -167,6 +203,8 @@ import HevySyncList from './HevySyncList.vue';
 import MetricChartCard from './MetricChartCard.vue';
 import UnifiedCompositionChart from './UnifiedCompositionChart.vue';
 import BiaPeriodSummaryCard from './BiaPeriodSummaryCard.vue';
+import BiaSegmentalChart from './BiaSegmentalChart.vue';
+import { defaultBiaEngine } from '../services/bia/biaCalculator';
 import { 
   commonMonthlyTimeScaleOptions, 
   commonWeeklyTimeScaleOptions 
@@ -251,5 +289,127 @@ const weeklyChartData = computed(() => {
       avg: sorted.map(w => ({ x: w.monday, y: w.avgFatMass }))
     }
   };
+});
+
+// Computed BIA Segmental datasets for Monthly view
+const monthlyBiaSegmentalData = computed(() => {
+  const sorted = [...store.groupedMonths].reverse();
+  const points = [];
+
+  for (const m of sorted) {
+    const biaLogs = (m.logs || []).filter(l => {
+      return l.impedances?.r_50k?.length >= 6 &&
+        l.impedances?.r_250k?.length >= 6;
+    });
+
+    if (biaLogs.length === 0) continue;
+
+    const lf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaLogs.map(l => l.impedances.r_50k[idx])));
+    const hf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaLogs.map(l => l.impedances.r_250k[idx])));
+    const mass = m.medianMass || calculateMedian(biaLogs.map(l => Number(l.mass)));
+    const fat = m.medianFat || calculateMedian(biaLogs.map(l => Number(l.body_fat)));
+    const hrLogs = biaLogs.filter(l => l.heart_rate).map(l => Number(l.heart_rate));
+    const hr = hrLogs.length > 0 ? calculateMedian(hrLogs) : 80;
+
+    const sex = store.profile?.gender === 'female' ? 0 : 1;
+    const age = store.userAge || 34;
+    const height = store.profile?.height ? Number(store.profile.height) : 175.0;
+
+    const res = defaultBiaEngine.analyze({
+      sex,
+      age,
+      height_cm: height,
+      weight_kg: mass,
+      resistances_50k: lf,
+      resistances_250k: hf,
+      raw_fat_rate: fat,
+      heart_rate_bpm: hr
+    });
+
+    if (res && res.segmental_analysis) {
+      points.push({
+        date: m.startDate,
+        muscle: {
+          total: res.segmental_analysis.muscle_mass.total_smm_kg,
+          trunk: res.segmental_analysis.muscle_mass.trunk_kg,
+          rightArm: res.segmental_analysis.muscle_mass.right_arm_kg,
+          leftArm: res.segmental_analysis.muscle_mass.left_arm_kg,
+          rightLeg: res.segmental_analysis.muscle_mass.right_leg_kg,
+          leftLeg: res.segmental_analysis.muscle_mass.left_leg_kg
+        },
+        fat: {
+          total: res.segmental_analysis.fat_mass.total_fat_kg,
+          trunk: res.segmental_analysis.fat_mass.trunk_kg,
+          rightArm: res.segmental_analysis.fat_mass.right_arm_kg,
+          leftArm: res.segmental_analysis.fat_mass.left_arm_kg,
+          rightLeg: res.segmental_analysis.fat_mass.right_leg_kg,
+          leftLeg: res.segmental_analysis.fat_mass.left_leg_kg
+        }
+      });
+    }
+  }
+
+  return points;
+});
+
+// Computed BIA Segmental datasets for Weekly view
+const weeklyBiaSegmentalData = computed(() => {
+  const sorted = [...store.groupedWeeks].reverse();
+  const points = [];
+
+  for (const w of sorted) {
+    const biaLogs = (w.logs || []).filter(l => {
+      return l.impedances?.r_50k?.length >= 6 &&
+        l.impedances?.r_250k?.length >= 6;
+    });
+
+    if (biaLogs.length === 0) continue;
+
+    const lf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaLogs.map(l => l.impedances.r_50k[idx])));
+    const hf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaLogs.map(l => l.impedances.r_250k[idx])));
+    const mass = w.medianMass || calculateMedian(biaLogs.map(l => Number(l.mass)));
+    const fat = w.medianFat || calculateMedian(biaLogs.map(l => Number(l.body_fat)));
+    const hrLogs = biaLogs.filter(l => l.heart_rate).map(l => Number(l.heart_rate));
+    const hr = hrLogs.length > 0 ? calculateMedian(hrLogs) : 80;
+
+    const sex = store.profile?.gender === 'female' ? 0 : 1;
+    const age = store.userAge || 34;
+    const height = store.profile?.height ? Number(store.profile.height) : 175.0;
+
+    const res = defaultBiaEngine.analyze({
+      sex,
+      age,
+      height_cm: height,
+      weight_kg: mass,
+      resistances_50k: lf,
+      resistances_250k: hf,
+      raw_fat_rate: fat,
+      heart_rate_bpm: hr
+    });
+
+    if (res && res.segmental_analysis) {
+      points.push({
+        date: w.monday,
+        muscle: {
+          total: res.segmental_analysis.muscle_mass.total_smm_kg,
+          trunk: res.segmental_analysis.muscle_mass.trunk_kg,
+          rightArm: res.segmental_analysis.muscle_mass.right_arm_kg,
+          leftArm: res.segmental_analysis.muscle_mass.left_arm_kg,
+          rightLeg: res.segmental_analysis.muscle_mass.right_leg_kg,
+          leftLeg: res.segmental_analysis.muscle_mass.left_leg_kg
+        },
+        fat: {
+          total: res.segmental_analysis.fat_mass.total_fat_kg,
+          trunk: res.segmental_analysis.fat_mass.trunk_kg,
+          rightArm: res.segmental_analysis.fat_mass.right_arm_kg,
+          leftArm: res.segmental_analysis.fat_mass.left_arm_kg,
+          rightLeg: res.segmental_analysis.fat_mass.right_leg_kg,
+          leftLeg: res.segmental_analysis.fat_mass.left_leg_kg
+        }
+      });
+    }
+  }
+
+  return points;
 });
 </script>

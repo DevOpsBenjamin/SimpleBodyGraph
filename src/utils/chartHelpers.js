@@ -126,8 +126,8 @@ export function getScaleLimits(dataPointsList, metricType, paliers = [], activeP
   const margin = (metricType === 'fat') ? 1.5 : 2.0;
 
   return {
-    min: Math.max(0, minVal - margin),
-    max: maxVal + margin
+    min: Math.max(0, Math.floor((minVal - margin) * 2) / 2),
+    max: Math.ceil((maxVal + margin) * 2) / 2
   };
 }
 

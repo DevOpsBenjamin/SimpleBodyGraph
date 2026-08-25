@@ -145,7 +145,9 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         showMass: true,
         showFatMass: true,
         showLeanMass: false,
-        showFatPercentChart: false
+        showFatPercentChart: false,
+        showBiaMuscleChart: true,
+        showBiaFatChart: false
       }
     }
   }),
