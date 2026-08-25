@@ -1,0 +1,3079 @@
+{
+  "profile": {
+    "gender": "male",
+    "birthDate": "2002-05-14",
+    "height": 178
+  },
+  "paliers": [
+    {
+      "id": "palier-1",
+      "mass": 82,
+      "fat": 18,
+      "validated": true
+    },
+    {
+      "id": "palier-2",
+      "mass": 79,
+      "fat": 15,
+      "validated": true
+    },
+    {
+      "id": "palier-3",
+      "mass": 75,
+      "fat": 12,
+      "validated": true
+    },
+    {
+      "id": "palier-4",
+      "mass": 73,
+      "fat": 10,
+      "validated": false
+    }
+  ],
+  "displayPreferences": {
+    "cards": {
+      "mass": true,
+      "fatMass": true,
+      "bodyFat": true,
+      "leanMass": true
+    },
+    "charts": {
+      "showMass": true,
+      "showFatMass": true,
+      "showLeanMass": true,
+      "showFatPercentChart": true,
+      "showBiaMuscleChart": true,
+      "showBiaFatChart": true
+    },
+    "segmentalColors": {
+      "muscle": {
+        "total": "#a78bfa",
+        "trunk": "#fbbf24",
+        "rightArm": "#22d3ee",
+        "leftArm": "#38bdf8",
+        "rightLeg": "#34d399",
+        "leftLeg": "#a3e635"
+      },
+      "fat": {
+        "total": "#c084fc",
+        "trunk": "#f59e0b",
+        "rightArm": "#06b6d4",
+        "leftArm": "#0ea5e9",
+        "rightLeg": "#10b981",
+        "leftLeg": "#84cc16"
+      }
+    },
+    "segmentalVisibility": {
+      "muscle": {
+        "total": true,
+        "trunk": true,
+        "rightArm": true,
+        "leftArm": true,
+        "rightLeg": true,
+        "leftLeg": true
+      },
+      "fat": {
+        "total": true,
+        "trunk": true,
+        "rightArm": true,
+        "leftArm": true,
+        "rightLeg": true,
+        "leftLeg": true
+      }
+    }
+  },
+  "logs": [
+    {
+      "id": "log-cut-001",
+      "date": "2026-04-01",
+      "mass": 85.26,
+      "body_fat": 19.9,
+      "measured_at": "2026-04-01T07:15:00Z",
+      "heart_rate": 68,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          507,
+          579,
+          533,
+          543,
+          540,
+          530
+        ],
+        "r_250k": [
+          444,
+          506,
+          466,
+          477,
+          471,
+          462
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-002",
+      "date": "2026-04-02",
+      "mass": 84.86,
+      "body_fat": 19.9,
+      "measured_at": "2026-04-02T07:36:00Z",
+      "heart_rate": 77,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          507,
+          580,
+          533,
+          543,
+          540,
+          530
+        ],
+        "r_250k": [
+          444,
+          506,
+          466,
+          476,
+          473,
+          464
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-003",
+      "date": "2026-04-03",
+      "mass": 84.53,
+      "body_fat": 19.9,
+      "measured_at": "2026-04-03T07:44:00Z",
+      "heart_rate": 71,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          507,
+          580,
+          533,
+          543,
+          540,
+          530
+        ],
+        "r_250k": [
+          442,
+          506,
+          467,
+          473,
+          471,
+          465
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-004",
+      "date": "2026-04-04",
+      "mass": 84.96,
+      "body_fat": 19.6,
+      "measured_at": "2026-04-04T07:21:00Z",
+      "heart_rate": 80,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          506,
+          579,
+          532,
+          542,
+          539,
+          529
+        ],
+        "r_250k": [
+          441,
+          508,
+          467,
+          476,
+          472,
+          463
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-005",
+      "date": "2026-04-05",
+      "mass": 84.51,
+      "body_fat": 19.7,
+      "measured_at": "2026-04-05T07:44:00Z",
+      "heart_rate": 72,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          507,
+          580,
+          533,
+          544,
+          540,
+          530
+        ],
+        "r_250k": [
+          444,
+          508,
+          468,
+          475,
+          474,
+          463
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-006",
+      "date": "2026-04-06",
+      "mass": 84.3,
+      "body_fat": 19.8,
+      "measured_at": "2026-04-06T07:37:00Z",
+      "heart_rate": 68,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          507,
+          579,
+          533,
+          543,
+          540,
+          530
+        ],
+        "r_250k": [
+          443,
+          507,
+          466,
+          475,
+          472,
+          465
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-007",
+      "date": "2026-04-07",
+      "mass": 84.21,
+      "body_fat": 19.6,
+      "measured_at": "2026-04-07T07:40:00Z",
+      "heart_rate": 75,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          506,
+          579,
+          532,
+          543,
+          540,
+          529
+        ],
+        "r_250k": [
+          443,
+          506,
+          466,
+          475,
+          471,
+          462
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-008",
+      "date": "2026-04-08",
+      "mass": 84.06,
+      "body_fat": 19.2,
+      "measured_at": "2026-04-08T07:40:00Z",
+      "heart_rate": 75,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          509,
+          582,
+          535,
+          546,
+          542,
+          532
+        ],
+        "r_250k": [
+          447,
+          509,
+          468,
+          476,
+          473,
+          466
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-009",
+      "date": "2026-04-09",
+      "mass": 84.17,
+      "body_fat": 19.5,
+      "measured_at": "2026-04-09T07:32:00Z",
+      "heart_rate": 78,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          510,
+          583,
+          536,
+          546,
+          543,
+          533
+        ],
+        "r_250k": [
+          447,
+          510,
+          469,
+          478,
+          476,
+          466
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-010",
+      "date": "2026-04-10",
+      "mass": 83.82,
+      "body_fat": 19.1,
+      "measured_at": "2026-04-10T07:20:00Z",
+      "heart_rate": 79,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          506,
+          579,
+          532,
+          543,
+          540,
+          529
+        ],
+        "r_250k": [
+          443,
+          507,
+          466,
+          475,
+          472,
+          463
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-011",
+      "date": "2026-04-11",
+      "mass": 84.23,
+      "body_fat": 19.4,
+      "measured_at": "2026-04-11T07:38:00Z",
+      "heart_rate": 75,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          506,
+          579,
+          532,
+          543,
+          540,
+          529
+        ],
+        "r_250k": [
+          442,
+          507,
+          464,
+          477,
+          472,
+          464
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-012",
+      "date": "2026-04-12",
+      "mass": 83.69,
+      "body_fat": 19.3,
+      "measured_at": "2026-04-12T07:17:00Z",
+      "heart_rate": 70,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          505,
+          577,
+          531,
+          541,
+          538,
+          528
+        ],
+        "r_250k": [
+          442,
+          505,
+          463,
+          474,
+          470,
+          461
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-013",
+      "date": "2026-04-13",
+      "mass": 84.05,
+      "body_fat": 19.2,
+      "measured_at": "2026-04-13T07:23:00Z",
+      "heart_rate": 69,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          505,
+          577,
+          531,
+          541,
+          538,
+          528
+        ],
+        "r_250k": [
+          442,
+          503,
+          464,
+          472,
+          470,
+          464
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-014",
+      "date": "2026-04-14",
+      "mass": 83.69,
+      "body_fat": 19.1,
+      "measured_at": "2026-04-14T07:35:00Z",
+      "heart_rate": 73,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          508,
+          581,
+          534,
+          545,
+          541,
+          531
+        ],
+        "r_250k": [
+          444,
+          507,
+          467,
+          478,
+          474,
+          463
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-015",
+      "date": "2026-04-15",
+      "mass": 83.35,
+      "body_fat": 18.9,
+      "measured_at": "2026-04-15T07:17:00Z",
+      "heart_rate": 80,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          506,
+          578,
+          532,
+          542,
+          539,
+          529
+        ],
+        "r_250k": [
+          443,
+          506,
+          466,
+          474,
+          472,
+          463
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-016",
+      "date": "2026-04-16",
+      "mass": 83.25,
+      "body_fat": 18.7,
+      "measured_at": "2026-04-16T07:41:00Z",
+      "heart_rate": 78,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          504,
+          576,
+          530,
+          540,
+          537,
+          527
+        ],
+        "r_250k": [
+          443,
+          504,
+          462,
+          471,
+          470,
+          460
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-017",
+      "date": "2026-04-17",
+      "mass": 83.34,
+      "body_fat": 18.5,
+      "measured_at": "2026-04-17T07:44:00Z",
+      "heart_rate": 73,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          505,
+          577,
+          530,
+          541,
+          537,
+          527
+        ],
+        "r_250k": [
+          444,
+          503,
+          464,
+          475,
+          469,
+          462
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-018",
+      "date": "2026-04-18",
+      "mass": 83.08,
+      "body_fat": 18.5,
+      "measured_at": "2026-04-18T07:15:00Z",
+      "heart_rate": 79,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          504,
+          576,
+          530,
+          540,
+          537,
+          527
+        ],
+        "r_250k": [
+          443,
+          505,
+          464,
+          471,
+          472,
+          459
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-019",
+      "date": "2026-04-19",
+      "mass": 83.25,
+      "body_fat": 18.3,
+      "measured_at": "2026-04-19T07:18:00Z",
+      "heart_rate": 74,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          502,
+          574,
+          528,
+          538,
+          535,
+          525
+        ],
+        "r_250k": [
+          441,
+          503,
+          462,
+          471,
+          470,
+          458
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-020",
+      "date": "2026-04-20",
+      "mass": 83.4,
+      "body_fat": 18.6,
+      "measured_at": "2026-04-20T07:38:00Z",
+      "heart_rate": 77,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          506,
+          578,
+          531,
+          542,
+          539,
+          528
+        ],
+        "r_250k": [
+          442,
+          504,
+          464,
+          473,
+          472,
+          464
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-021",
+      "date": "2026-04-21",
+      "mass": 83.09,
+      "body_fat": 18.1,
+      "measured_at": "2026-04-21T07:28:00Z",
+      "heart_rate": 80,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          503,
+          575,
+          528,
+          539,
+          536,
+          525
+        ],
+        "r_250k": [
+          441,
+          501,
+          461,
+          470,
+          468,
+          460
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-022",
+      "date": "2026-04-22",
+      "mass": 83.14,
+      "body_fat": 18.1,
+      "measured_at": "2026-04-22T07:31:00Z",
+      "heart_rate": 69,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          504,
+          576,
+          529,
+          540,
+          536,
+          526
+        ],
+        "r_250k": [
+          439,
+          504,
+          465,
+          471,
+          468,
+          459
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-023",
+      "date": "2026-04-23",
+      "mass": 83.1,
+      "body_fat": 18.4,
+      "measured_at": "2026-04-23T07:29:00Z",
+      "heart_rate": 69,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          500,
+          572,
+          526,
+          536,
+          533,
+          523
+        ],
+        "r_250k": [
+          437,
+          499,
+          461,
+          470,
+          468,
+          458
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-024",
+      "date": "2026-04-24",
+      "mass": 82.57,
+      "body_fat": 18.4,
+      "measured_at": "2026-04-24T07:38:00Z",
+      "heart_rate": 79,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          502,
+          573,
+          528,
+          538,
+          535,
+          525
+        ],
+        "r_250k": [
+          440,
+          500,
+          460,
+          471,
+          467,
+          458
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-025",
+      "date": "2026-04-25",
+      "mass": 82.38,
+      "body_fat": 17.9,
+      "measured_at": "2026-04-25T07:21:00Z",
+      "heart_rate": 73,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          500,
+          571,
+          525,
+          535,
+          532,
+          522
+        ],
+        "r_250k": [
+          438,
+          499,
+          458,
+          466,
+          464,
+          456
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-026",
+      "date": "2026-04-26",
+      "mass": 82.77,
+      "body_fat": 18.2,
+      "measured_at": "2026-04-26T07:29:00Z",
+      "heart_rate": 77,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          505,
+          577,
+          531,
+          541,
+          538,
+          528
+        ],
+        "r_250k": [
+          443,
+          505,
+          463,
+          473,
+          472,
+          460
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-027",
+      "date": "2026-04-27",
+      "mass": 82.03,
+      "body_fat": 17.7,
+      "measured_at": "2026-04-27T07:32:00Z",
+      "heart_rate": 78,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          500,
+          572,
+          526,
+          536,
+          533,
+          523
+        ],
+        "r_250k": [
+          437,
+          501,
+          459,
+          470,
+          466,
+          458
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-028",
+      "date": "2026-04-28",
+      "mass": 81.96,
+      "body_fat": 18,
+      "measured_at": "2026-04-28T07:37:00Z",
+      "heart_rate": 75,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          502,
+          573,
+          527,
+          538,
+          534,
+          524
+        ],
+        "r_250k": [
+          437,
+          502,
+          461,
+          469,
+          467,
+          460
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-029",
+      "date": "2026-04-29",
+      "mass": 82.02,
+      "body_fat": 17.9,
+      "measured_at": "2026-04-29T07:16:00Z",
+      "heart_rate": 70,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          503,
+          575,
+          528,
+          539,
+          536,
+          525
+        ],
+        "r_250k": [
+          438,
+          502,
+          463,
+          471,
+          470,
+          460
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-030",
+      "date": "2026-04-30",
+      "mass": 82.09,
+      "body_fat": 17.7,
+      "measured_at": "2026-04-30T07:34:00Z",
+      "heart_rate": 79,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          501,
+          573,
+          526,
+          537,
+          534,
+          523
+        ],
+        "r_250k": [
+          439,
+          502,
+          458,
+          468,
+          467,
+          459
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-031",
+      "date": "2026-05-01",
+      "mass": 81.82,
+      "body_fat": 17.6,
+      "measured_at": "2026-05-01T07:35:00Z",
+      "heart_rate": 69,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          497,
+          569,
+          523,
+          533,
+          530,
+          520
+        ],
+        "r_250k": [
+          434,
+          496,
+          457,
+          466,
+          463,
+          453
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-032",
+      "date": "2026-05-02",
+      "mass": 81.87,
+      "body_fat": 17.3,
+      "measured_at": "2026-05-02T07:33:00Z",
+      "heart_rate": 71,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          498,
+          569,
+          524,
+          534,
+          531,
+          520
+        ],
+        "r_250k": [
+          436,
+          498,
+          457,
+          465,
+          465,
+          455
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-033",
+      "date": "2026-05-03",
+      "mass": 81.49,
+      "body_fat": 17.5,
+      "measured_at": "2026-05-03T07:23:00Z",
+      "heart_rate": 71,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          497,
+          568,
+          523,
+          533,
+          530,
+          520
+        ],
+        "r_250k": [
+          433,
+          497,
+          456,
+          467,
+          463,
+          453
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-034",
+      "date": "2026-05-04",
+      "mass": 81.74,
+      "body_fat": 17.2,
+      "measured_at": "2026-05-04T07:18:00Z",
+      "heart_rate": 75,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          501,
+          573,
+          526,
+          537,
+          534,
+          523
+        ],
+        "r_250k": [
+          439,
+          502,
+          460,
+          470,
+          469,
+          457
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-035",
+      "date": "2026-05-05",
+      "mass": 81.34,
+      "body_fat": 17,
+      "measured_at": "2026-05-05T07:39:00Z",
+      "heart_rate": 70,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          497,
+          568,
+          522,
+          532,
+          529,
+          519
+        ],
+        "r_250k": [
+          436,
+          497,
+          458,
+          465,
+          463,
+          455
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-036",
+      "date": "2026-05-06",
+      "mass": 81.7,
+      "body_fat": 17,
+      "measured_at": "2026-05-06T07:20:00Z",
+      "heart_rate": 80,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          499,
+          570,
+          524,
+          535,
+          532,
+          521
+        ],
+        "r_250k": [
+          438,
+          500,
+          458,
+          468,
+          467,
+          457
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-037",
+      "date": "2026-05-07",
+      "mass": 81.43,
+      "body_fat": 17.2,
+      "measured_at": "2026-05-07T07:21:00Z",
+      "heart_rate": 74,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          499,
+          570,
+          524,
+          535,
+          531,
+          521
+        ],
+        "r_250k": [
+          436,
+          498,
+          459,
+          469,
+          465,
+          456
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-038",
+      "date": "2026-05-08",
+      "mass": 81.01,
+      "body_fat": 17.1,
+      "measured_at": "2026-05-08T07:33:00Z",
+      "heart_rate": 80,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          497,
+          568,
+          523,
+          533,
+          530,
+          520
+        ],
+        "r_250k": [
+          435,
+          496,
+          456,
+          466,
+          462,
+          454
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-039",
+      "date": "2026-05-09",
+      "mass": 80.97,
+      "body_fat": 16.7,
+      "measured_at": "2026-05-09T07:35:00Z",
+      "heart_rate": 76,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          494,
+          565,
+          520,
+          530,
+          527,
+          517
+        ],
+        "r_250k": [
+          431,
+          493,
+          453,
+          462,
+          463,
+          453
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-040",
+      "date": "2026-05-10",
+      "mass": 81.31,
+      "body_fat": 16.9,
+      "measured_at": "2026-05-10T07:43:00Z",
+      "heart_rate": 68,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          499,
+          571,
+          525,
+          535,
+          532,
+          522
+        ],
+        "r_250k": [
+          438,
+          500,
+          461,
+          468,
+          464,
+          458
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-041",
+      "date": "2026-05-11",
+      "mass": 81,
+      "body_fat": 16.5,
+      "measured_at": "2026-05-11T07:18:00Z",
+      "heart_rate": 70,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          498,
+          569,
+          523,
+          533,
+          530,
+          520
+        ],
+        "r_250k": [
+          436,
+          497,
+          456,
+          467,
+          463,
+          455
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-042",
+      "date": "2026-05-12",
+      "mass": 80.52,
+      "body_fat": 16.7,
+      "measured_at": "2026-05-12T07:38:00Z",
+      "heart_rate": 68,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          495,
+          566,
+          520,
+          530,
+          527,
+          517
+        ],
+        "r_250k": [
+          435,
+          495,
+          455,
+          465,
+          463,
+          454
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-043",
+      "date": "2026-05-13",
+      "mass": 80.43,
+      "body_fat": 16.5,
+      "measured_at": "2026-05-13T07:38:00Z",
+      "heart_rate": 76,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          499,
+          570,
+          524,
+          534,
+          531,
+          521
+        ],
+        "r_250k": [
+          438,
+          500,
+          458,
+          467,
+          466,
+          456
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-044",
+      "date": "2026-05-14",
+      "mass": 80.78,
+      "body_fat": 16.5,
+      "measured_at": "2026-05-14T07:22:00Z",
+      "heart_rate": 80,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          497,
+          568,
+          523,
+          533,
+          530,
+          520
+        ],
+        "r_250k": [
+          435,
+          496,
+          457,
+          468,
+          462,
+          453
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-045",
+      "date": "2026-05-15",
+      "mass": 80.43,
+      "body_fat": 16.2,
+      "measured_at": "2026-05-15T07:15:00Z",
+      "heart_rate": 74,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          497,
+          568,
+          522,
+          533,
+          530,
+          519
+        ],
+        "r_250k": [
+          436,
+          498,
+          456,
+          465,
+          463,
+          454
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-046",
+      "date": "2026-05-16",
+      "mass": 80.5,
+      "body_fat": 16.5,
+      "measured_at": "2026-05-16T07:16:00Z",
+      "heart_rate": 70,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          493,
+          564,
+          519,
+          529,
+          526,
+          516
+        ],
+        "r_250k": [
+          431,
+          492,
+          455,
+          465,
+          460,
+          452
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-047",
+      "date": "2026-05-17",
+      "mass": 80.1,
+      "body_fat": 16.4,
+      "measured_at": "2026-05-17T07:41:00Z",
+      "heart_rate": 71,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          498,
+          569,
+          523,
+          533,
+          530,
+          520
+        ],
+        "r_250k": [
+          434,
+          496,
+          459,
+          465,
+          464,
+          454
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-048",
+      "date": "2026-05-18",
+      "mass": 80.05,
+      "body_fat": 16.4,
+      "measured_at": "2026-05-18T07:36:00Z",
+      "heart_rate": 71,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          496,
+          567,
+          521,
+          531,
+          528,
+          518
+        ],
+        "r_250k": [
+          433,
+          495,
+          455,
+          463,
+          462,
+          454
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-049",
+      "date": "2026-05-19",
+      "mass": 80.16,
+      "body_fat": 15.9,
+      "measured_at": "2026-05-19T07:28:00Z",
+      "heart_rate": 79,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          494,
+          565,
+          519,
+          530,
+          527,
+          516
+        ],
+        "r_250k": [
+          430,
+          496,
+          456,
+          463,
+          460,
+          453
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-050",
+      "date": "2026-05-20",
+      "mass": 80.29,
+      "body_fat": 16,
+      "measured_at": "2026-05-20T07:29:00Z",
+      "heart_rate": 77,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          493,
+          563,
+          518,
+          528,
+          525,
+          515
+        ],
+        "r_250k": [
+          431,
+          493,
+          455,
+          464,
+          458,
+          450
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-051",
+      "date": "2026-05-21",
+      "mass": 79.69,
+      "body_fat": 15.9,
+      "measured_at": "2026-05-21T07:22:00Z",
+      "heart_rate": 76,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          494,
+          565,
+          519,
+          529,
+          526,
+          516
+        ],
+        "r_250k": [
+          433,
+          495,
+          455,
+          461,
+          461,
+          453
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-052",
+      "date": "2026-05-22",
+      "mass": 79.77,
+      "body_fat": 15.9,
+      "measured_at": "2026-05-22T07:23:00Z",
+      "heart_rate": 74,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          495,
+          565,
+          520,
+          530,
+          527,
+          517
+        ],
+        "r_250k": [
+          433,
+          493,
+          455,
+          465,
+          460,
+          452
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-053",
+      "date": "2026-05-23",
+      "mass": 79.39,
+      "body_fat": 15.6,
+      "measured_at": "2026-05-23T07:23:00Z",
+      "heart_rate": 71,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          495,
+          566,
+          520,
+          530,
+          527,
+          517
+        ],
+        "r_250k": [
+          434,
+          496,
+          456,
+          465,
+          462,
+          454
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-054",
+      "date": "2026-05-24",
+      "mass": 79.25,
+      "body_fat": 15.7,
+      "measured_at": "2026-05-24T07:22:00Z",
+      "heart_rate": 71,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          493,
+          563,
+          518,
+          528,
+          525,
+          515
+        ],
+        "r_250k": [
+          432,
+          493,
+          455,
+          462,
+          458,
+          449
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-055",
+      "date": "2026-05-25",
+      "mass": 79.57,
+      "body_fat": 15.8,
+      "measured_at": "2026-05-25T07:18:00Z",
+      "heart_rate": 76,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          494,
+          565,
+          519,
+          530,
+          527,
+          516
+        ],
+        "r_250k": [
+          432,
+          492,
+          456,
+          464,
+          460,
+          453
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-056",
+      "date": "2026-05-26",
+      "mass": 79.58,
+      "body_fat": 15.3,
+      "measured_at": "2026-05-26T07:28:00Z",
+      "heart_rate": 68,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          493,
+          563,
+          518,
+          528,
+          525,
+          515
+        ],
+        "r_250k": [
+          432,
+          494,
+          453,
+          460,
+          461,
+          452
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-057",
+      "date": "2026-05-27",
+      "mass": 78.99,
+      "body_fat": 15.4,
+      "measured_at": "2026-05-27T07:29:00Z",
+      "heart_rate": 72,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          493,
+          563,
+          518,
+          528,
+          525,
+          515
+        ],
+        "r_250k": [
+          430,
+          492,
+          455,
+          461,
+          461,
+          451
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-058",
+      "date": "2026-05-28",
+      "mass": 79.02,
+      "body_fat": 15.5,
+      "measured_at": "2026-05-28T07:34:00Z",
+      "heart_rate": 76,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          490,
+          561,
+          516,
+          526,
+          523,
+          513
+        ],
+        "r_250k": [
+          430,
+          492,
+          450,
+          459,
+          457,
+          449
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-059",
+      "date": "2026-05-29",
+      "mass": 79.25,
+      "body_fat": 15.2,
+      "measured_at": "2026-05-29T07:36:00Z",
+      "heart_rate": 77,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          493,
+          563,
+          518,
+          528,
+          525,
+          515
+        ],
+        "r_250k": [
+          431,
+          492,
+          455,
+          464,
+          461,
+          450
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-060",
+      "date": "2026-05-30",
+      "mass": 78.98,
+      "body_fat": 15,
+      "measured_at": "2026-05-30T07:26:00Z",
+      "heart_rate": 75,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          491,
+          561,
+          516,
+          526,
+          523,
+          513
+        ],
+        "r_250k": [
+          432,
+          492,
+          450,
+          460,
+          458,
+          448
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-061",
+      "date": "2026-05-31",
+      "mass": 78.66,
+      "body_fat": 14.9,
+      "measured_at": "2026-05-31T07:41:00Z",
+      "heart_rate": 73,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          490,
+          560,
+          515,
+          525,
+          522,
+          512
+        ],
+        "r_250k": [
+          427,
+          491,
+          452,
+          458,
+          458,
+          449
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-062",
+      "date": "2026-06-01",
+      "mass": 78.91,
+      "body_fat": 15.1,
+      "measured_at": "2026-06-01T07:39:00Z",
+      "heart_rate": 69,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          492,
+          563,
+          517,
+          527,
+          524,
+          514
+        ],
+        "r_250k": [
+          431,
+          493,
+          451,
+          461,
+          460,
+          449
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-063",
+      "date": "2026-06-02",
+      "mass": 78.62,
+      "body_fat": 15,
+      "measured_at": "2026-06-02T07:20:00Z",
+      "heart_rate": 73,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          490,
+          560,
+          515,
+          525,
+          522,
+          512
+        ],
+        "r_250k": [
+          429,
+          490,
+          451,
+          458,
+          458,
+          447
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-064",
+      "date": "2026-06-03",
+      "mass": 78.24,
+      "body_fat": 14.9,
+      "measured_at": "2026-06-03T07:31:00Z",
+      "heart_rate": 75,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          492,
+          563,
+          517,
+          527,
+          524,
+          514
+        ],
+        "r_250k": [
+          430,
+          491,
+          451,
+          462,
+          457,
+          450
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-065",
+      "date": "2026-06-04",
+      "mass": 78.59,
+      "body_fat": 14.9,
+      "measured_at": "2026-06-04T07:22:00Z",
+      "heart_rate": 76,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          490,
+          560,
+          515,
+          525,
+          522,
+          512
+        ],
+        "r_250k": [
+          430,
+          490,
+          451,
+          458,
+          457,
+          448
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-066",
+      "date": "2026-06-05",
+      "mass": 78.41,
+      "body_fat": 14.6,
+      "measured_at": "2026-06-05T07:23:00Z",
+      "heart_rate": 77,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          491,
+          561,
+          516,
+          526,
+          523,
+          513
+        ],
+        "r_250k": [
+          430,
+          490,
+          453,
+          460,
+          457,
+          450
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-067",
+      "date": "2026-06-06",
+      "mass": 78.33,
+      "body_fat": 14.8,
+      "measured_at": "2026-06-06T07:29:00Z",
+      "heart_rate": 76,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          490,
+          560,
+          515,
+          525,
+          522,
+          512
+        ],
+        "r_250k": [
+          430,
+          492,
+          450,
+          461,
+          458,
+          447
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-068",
+      "date": "2026-06-07",
+      "mass": 77.97,
+      "body_fat": 14.7,
+      "measured_at": "2026-06-07T07:39:00Z",
+      "heart_rate": 75,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          488,
+          557,
+          513,
+          522,
+          520,
+          510
+        ],
+        "r_250k": [
+          428,
+          486,
+          447,
+          456,
+          454,
+          448
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-069",
+      "date": "2026-06-08",
+      "mass": 78.2,
+      "body_fat": 14.5,
+      "measured_at": "2026-06-08T07:36:00Z",
+      "heart_rate": 72,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          486,
+          555,
+          511,
+          521,
+          518,
+          508
+        ],
+        "r_250k": [
+          427,
+          485,
+          447,
+          456,
+          455,
+          444
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-070",
+      "date": "2026-06-09",
+      "mass": 78.01,
+      "body_fat": 14.6,
+      "measured_at": "2026-06-09T07:19:00Z",
+      "heart_rate": 79,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          491,
+          561,
+          515,
+          526,
+          522,
+          512
+        ],
+        "r_250k": [
+          431,
+          489,
+          451,
+          459,
+          458,
+          450
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-071",
+      "date": "2026-06-10",
+      "mass": 77.87,
+      "body_fat": 14.1,
+      "measured_at": "2026-06-10T07:42:00Z",
+      "heart_rate": 69,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          485,
+          554,
+          510,
+          520,
+          517,
+          507
+        ],
+        "r_250k": [
+          426,
+          484,
+          447,
+          457,
+          451,
+          443
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-072",
+      "date": "2026-06-11",
+      "mass": 77.82,
+      "body_fat": 14.3,
+      "measured_at": "2026-06-11T07:31:00Z",
+      "heart_rate": 78,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          487,
+          556,
+          511,
+          521,
+          518,
+          509
+        ],
+        "r_250k": [
+          424,
+          488,
+          446,
+          456,
+          454,
+          445
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-073",
+      "date": "2026-06-12",
+      "mass": 77.95,
+      "body_fat": 14,
+      "measured_at": "2026-06-12T07:22:00Z",
+      "heart_rate": 70,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          483,
+          552,
+          508,
+          518,
+          515,
+          505
+        ],
+        "r_250k": [
+          421,
+          485,
+          443,
+          452,
+          451,
+          443
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-074",
+      "date": "2026-06-13",
+      "mass": 77.87,
+      "body_fat": 14.1,
+      "measured_at": "2026-06-13T07:23:00Z",
+      "heart_rate": 75,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          485,
+          554,
+          510,
+          520,
+          517,
+          507
+        ],
+        "r_250k": [
+          425,
+          486,
+          447,
+          456,
+          453,
+          445
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-075",
+      "date": "2026-06-14",
+      "mass": 77.13,
+      "body_fat": 13.9,
+      "measured_at": "2026-06-14T07:31:00Z",
+      "heart_rate": 78,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          484,
+          553,
+          509,
+          519,
+          516,
+          506
+        ],
+        "r_250k": [
+          422,
+          484,
+          444,
+          456,
+          452,
+          444
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-076",
+      "date": "2026-06-15",
+      "mass": 77.29,
+      "body_fat": 14.1,
+      "measured_at": "2026-06-15T07:20:00Z",
+      "heart_rate": 79,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          484,
+          553,
+          509,
+          518,
+          516,
+          506
+        ],
+        "r_250k": [
+          424,
+          482,
+          447,
+          451,
+          452,
+          443
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-077",
+      "date": "2026-06-16",
+      "mass": 77.13,
+      "body_fat": 13.7,
+      "measured_at": "2026-06-16T07:17:00Z",
+      "heart_rate": 72,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          485,
+          554,
+          509,
+          519,
+          516,
+          506
+        ],
+        "r_250k": [
+          424,
+          485,
+          445,
+          456,
+          450,
+          443
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-078",
+      "date": "2026-06-17",
+      "mass": 77.38,
+      "body_fat": 13.6,
+      "measured_at": "2026-06-17T07:21:00Z",
+      "heart_rate": 69,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          487,
+          557,
+          512,
+          522,
+          519,
+          509
+        ],
+        "r_250k": [
+          427,
+          489,
+          448,
+          458,
+          455,
+          446
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-079",
+      "date": "2026-06-18",
+      "mass": 76.77,
+      "body_fat": 13.8,
+      "measured_at": "2026-06-18T07:38:00Z",
+      "heart_rate": 74,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          486,
+          556,
+          511,
+          521,
+          518,
+          508
+        ],
+        "r_250k": [
+          426,
+          488,
+          446,
+          456,
+          453,
+          444
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-080",
+      "date": "2026-06-19",
+      "mass": 77.15,
+      "body_fat": 13.6,
+      "measured_at": "2026-06-19T07:41:00Z",
+      "heart_rate": 71,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          483,
+          553,
+          508,
+          518,
+          515,
+          505
+        ],
+        "r_250k": [
+          424,
+          486,
+          446,
+          455,
+          450,
+          441
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-081",
+      "date": "2026-06-20",
+      "mass": 76.86,
+      "body_fat": 13.4,
+      "measured_at": "2026-06-20T07:18:00Z",
+      "heart_rate": 73,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          486,
+          555,
+          511,
+          521,
+          518,
+          508
+        ],
+        "r_250k": [
+          425,
+          484,
+          447,
+          457,
+          455,
+          445
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-082",
+      "date": "2026-06-21",
+      "mass": 76.74,
+      "body_fat": 13.2,
+      "measured_at": "2026-06-21T07:18:00Z",
+      "heart_rate": 74,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          486,
+          555,
+          510,
+          520,
+          517,
+          507
+        ],
+        "r_250k": [
+          426,
+          487,
+          446,
+          456,
+          452,
+          445
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-083",
+      "date": "2026-06-22",
+      "mass": 76.67,
+      "body_fat": 13.3,
+      "measured_at": "2026-06-22T07:23:00Z",
+      "heart_rate": 79,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          482,
+          551,
+          507,
+          516,
+          514,
+          504
+        ],
+        "r_250k": [
+          422,
+          482,
+          442,
+          450,
+          451,
+          440
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-084",
+      "date": "2026-06-23",
+      "mass": 76.84,
+      "body_fat": 13.1,
+      "measured_at": "2026-06-23T07:34:00Z",
+      "heart_rate": 70,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          485,
+          554,
+          509,
+          519,
+          516,
+          506
+        ],
+        "r_250k": [
+          425,
+          487,
+          444,
+          453,
+          453,
+          444
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-085",
+      "date": "2026-06-24",
+      "mass": 76.74,
+      "body_fat": 12.9,
+      "measured_at": "2026-06-24T07:42:00Z",
+      "heart_rate": 74,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          483,
+          552,
+          507,
+          517,
+          514,
+          504
+        ],
+        "r_250k": [
+          424,
+          483,
+          444,
+          454,
+          449,
+          440
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-086",
+      "date": "2026-06-25",
+      "mass": 76.09,
+      "body_fat": 13.2,
+      "measured_at": "2026-06-25T07:22:00Z",
+      "heart_rate": 68,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          481,
+          549,
+          505,
+          515,
+          512,
+          503
+        ],
+        "r_250k": [
+          421,
+          480,
+          444,
+          451,
+          449,
+          441
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-087",
+      "date": "2026-06-26",
+      "mass": 76.55,
+      "body_fat": 13,
+      "measured_at": "2026-06-26T07:27:00Z",
+      "heart_rate": 69,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          483,
+          552,
+          508,
+          518,
+          515,
+          505
+        ],
+        "r_250k": [
+          422,
+          482,
+          446,
+          453,
+          449,
+          443
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-088",
+      "date": "2026-06-27",
+      "mass": 76.04,
+      "body_fat": 12.6,
+      "measured_at": "2026-06-27T07:39:00Z",
+      "heart_rate": 70,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          483,
+          552,
+          507,
+          517,
+          514,
+          504
+        ],
+        "r_250k": [
+          422,
+          484,
+          444,
+          452,
+          451,
+          443
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-089",
+      "date": "2026-06-28",
+      "mass": 76.32,
+      "body_fat": 12.9,
+      "measured_at": "2026-06-28T07:44:00Z",
+      "heart_rate": 69,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          479,
+          547,
+          504,
+          513,
+          511,
+          501
+        ],
+        "r_250k": [
+          419,
+          480,
+          441,
+          450,
+          446,
+          440
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-090",
+      "date": "2026-06-29",
+      "mass": 75.59,
+      "body_fat": 12.8,
+      "measured_at": "2026-06-29T07:35:00Z",
+      "heart_rate": 69,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          479,
+          548,
+          504,
+          513,
+          511,
+          501
+        ],
+        "r_250k": [
+          417,
+          481,
+          443,
+          450,
+          446,
+          437
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-091",
+      "date": "2026-06-30",
+      "mass": 75.85,
+      "body_fat": 12.6,
+      "measured_at": "2026-06-30T07:43:00Z",
+      "heart_rate": 78,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          481,
+          550,
+          506,
+          516,
+          513,
+          503
+        ],
+        "r_250k": [
+          420,
+          480,
+          444,
+          453,
+          451,
+          440
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-092",
+      "date": "2026-07-01",
+      "mass": 75.85,
+      "body_fat": 12.6,
+      "measured_at": "2026-07-01T07:41:00Z",
+      "heart_rate": 75,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          479,
+          547,
+          503,
+          513,
+          510,
+          500
+        ],
+        "r_250k": [
+          421,
+          480,
+          439,
+          448,
+          445,
+          438
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-093",
+      "date": "2026-07-02",
+      "mass": 75.71,
+      "body_fat": 12.5,
+      "measured_at": "2026-07-02T07:25:00Z",
+      "heart_rate": 68,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          479,
+          548,
+          504,
+          514,
+          511,
+          501
+        ],
+        "r_250k": [
+          420,
+          480,
+          439,
+          449,
+          449,
+          439
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-094",
+      "date": "2026-07-03",
+      "mass": 75.59,
+      "body_fat": 12.3,
+      "measured_at": "2026-07-03T07:20:00Z",
+      "heart_rate": 73,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          480,
+          548,
+          504,
+          514,
+          511,
+          501
+        ],
+        "r_250k": [
+          419,
+          479,
+          439,
+          450,
+          447,
+          440
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-095",
+      "date": "2026-07-04",
+      "mass": 75.72,
+      "body_fat": 12.5,
+      "measured_at": "2026-07-04T07:29:00Z",
+      "heart_rate": 78,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          479,
+          547,
+          503,
+          513,
+          510,
+          500
+        ],
+        "r_250k": [
+          418,
+          477,
+          439,
+          450,
+          446,
+          436
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-096",
+      "date": "2026-07-05",
+      "mass": 75.43,
+      "body_fat": 12,
+      "measured_at": "2026-07-05T07:33:00Z",
+      "heart_rate": 75,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          480,
+          549,
+          505,
+          515,
+          512,
+          502
+        ],
+        "r_250k": [
+          420,
+          482,
+          443,
+          452,
+          449,
+          439
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-097",
+      "date": "2026-07-06",
+      "mass": 75.52,
+      "body_fat": 12.2,
+      "measured_at": "2026-07-06T07:41:00Z",
+      "heart_rate": 72,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          477,
+          546,
+          502,
+          512,
+          509,
+          499
+        ],
+        "r_250k": [
+          416,
+          477,
+          438,
+          450,
+          445,
+          435
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-098",
+      "date": "2026-07-07",
+      "mass": 74.91,
+      "body_fat": 12,
+      "measured_at": "2026-07-07T07:17:00Z",
+      "heart_rate": 80,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          480,
+          548,
+          504,
+          514,
+          511,
+          501
+        ],
+        "r_250k": [
+          418,
+          481,
+          440,
+          448,
+          446,
+          440
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-099",
+      "date": "2026-07-08",
+      "mass": 74.7,
+      "body_fat": 12,
+      "measured_at": "2026-07-08T07:20:00Z",
+      "heart_rate": 74,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          480,
+          549,
+          505,
+          515,
+          512,
+          502
+        ],
+        "r_250k": [
+          420,
+          479,
+          441,
+          450,
+          449,
+          440
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "log-cut-100",
+      "date": "2026-07-09",
+      "mass": 74.71,
+      "body_fat": 12.1,
+      "measured_at": "2026-07-09T07:42:00Z",
+      "heart_rate": 74,
+      "scale_device_id": "HUAWEI-SCALE-3-PRO-CUT",
+      "impedances": {
+        "r_50k": [
+          481,
+          549,
+          505,
+          515,
+          512,
+          502
+        ],
+        "r_250k": [
+          422,
+          479,
+          441,
+          449,
+          447,
+          437
+        ]
+      },
+      "user_id": "guest",
+      "synced": true
+    }
+  ],
+  "measurements": [
+    {
+      "id": "meas-cut-001",
+      "date": "2026-04-01",
+      "waist": 87.8,
+      "chest": 103.8,
+      "arms": 37.4,
+      "thighs": 58.9,
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "meas-cut-002",
+      "date": "2026-04-15",
+      "waist": 86.1,
+      "chest": 103.7,
+      "arms": 37.5,
+      "thighs": 58.4,
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "meas-cut-003",
+      "date": "2026-04-29",
+      "waist": 84.6,
+      "chest": 103.2,
+      "arms": 37.4,
+      "thighs": 58,
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "meas-cut-004",
+      "date": "2026-05-13",
+      "waist": 83.1,
+      "chest": 103,
+      "arms": 37.3,
+      "thighs": 57.4,
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "meas-cut-005",
+      "date": "2026-05-27",
+      "waist": 81.1,
+      "chest": 102.5,
+      "arms": 37.3,
+      "thighs": 56.9,
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "meas-cut-006",
+      "date": "2026-06-10",
+      "waist": 79.6,
+      "chest": 102.2,
+      "arms": 37.1,
+      "thighs": 56.6,
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "meas-cut-007",
+      "date": "2026-06-24",
+      "waist": 77.7,
+      "chest": 102,
+      "arms": 37,
+      "thighs": 56,
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "meas-cut-008",
+      "date": "2026-07-08",
+      "waist": 76.1,
+      "chest": 101.6,
+      "arms": 37,
+      "thighs": 55.6,
+      "user_id": "guest",
+      "synced": true
+    },
+    {
+      "id": "meas-cut-009",
+      "date": "2026-07-09",
+      "waist": 75.9,
+      "chest": 101.5,
+      "arms": 37,
+      "thighs": 55.5,
+      "user_id": "guest",
+      "synced": true
+    }
+  ]
+}

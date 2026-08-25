@@ -103,7 +103,17 @@ export function getGoalLinesForMetric(metricType, paliers = [], activePalier = n
 
 // Helper to calculate Y-axis scaling to show all data points and paliers with a small extra margin
 export function getScaleLimits(dataPointsList, metricType, paliers = [], activePalier = null) {
-  const values = dataPointsList.flatMap(dp => dp.map(item => item.y)).filter(v => v !== null && v !== undefined && !isNaN(v));
+  if (!Array.isArray(dataPointsList)) return {};
+
+  const values = dataPointsList.flatMap(dp => {
+    if (typeof dp === 'number') return [dp];
+    if (Array.isArray(dp)) {
+      return dp.map(item => (typeof item === 'number' ? item : item?.y));
+    }
+    if (dp && typeof dp === 'object' && 'y' in dp) return [dp.y];
+    return [];
+  }).filter(v => v !== null && v !== undefined && !isNaN(v));
+
   const goalLines = getGoalLinesForMetric(metricType, paliers, activePalier);
   const goalValues = goalLines.map(gl => gl.value).filter(v => v !== null && v !== undefined && !isNaN(v));
 
@@ -116,8 +126,8 @@ export function getScaleLimits(dataPointsList, metricType, paliers = [], activeP
   const margin = (metricType === 'fat') ? 1.5 : 2.0;
 
   return {
-    min: Math.max(0, minVal - margin),
-    max: maxVal + margin
+    min: Math.max(0, Math.floor((minVal - margin) * 2) / 2),
+    max: Math.ceil((maxVal + margin) * 2) / 2
   };
 }
 

@@ -33,3 +33,7 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# Local test fixtures & mock data
+*.local.json
+tests/fixtures/*.local.json

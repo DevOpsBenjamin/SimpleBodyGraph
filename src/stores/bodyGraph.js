@@ -18,82 +18,85 @@ import {
 
 let deepLinksConfigured = false;
 
-// Helper to find the Monday (YYYY-MM-DD) of a given date
-export function getMondayOfDate(dateStr) {
-  const dateObj = new Date(dateStr);
-  const day = dateObj.getDay();
-  const diff = dateObj.getDate() - day + (day === 0 ? -6 : 1);
-  const mondayObj = new Date(dateObj.setDate(diff));
-  
-  const yyyy = mondayObj.getFullYear();
-  const mm = String(mondayObj.getMonth() + 1).padStart(2, '0');
-  const dd = String(mondayObj.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
-}
+export {
+  getMondayOfDate,
+  getSundayOfMonday,
+  calculateMedian,
+  getRollingLogsForDate,
+  getRollingMedianForDate,
+  calculateAge,
+  getPreviousWindowEndDate
+} from '../utils/dateAndMath';
 
-// Helper to find Sunday of a given Monday (YYYY-MM-DD)
-function getSundayOfMonday(mondayStr) {
-  const mondayObj = new Date(mondayStr);
-  const sundayObj = new Date(mondayObj.setDate(mondayObj.getDate() + 6));
-  
-  const yyyy = sundayObj.getFullYear();
-  const mm = String(sundayObj.getMonth() + 1).padStart(2, '0');
-  const dd = String(sundayObj.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
-}
+import {
+  calculateAge
+} from '../utils/dateAndMath';
 
-// Helper to calculate median of a numeric array
-export function calculateMedian(arr) {
-  if (!arr || arr.length === 0) return 0;
-  const sorted = [...arr].filter(v => v !== null && v !== undefined && !isNaN(v)).sort((a, b) => a - b);
-  if (sorted.length === 0) return 0;
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 !== 0 
-    ? sorted[mid] 
-    : (sorted[mid - 1] + sorted[mid]) / 2;
-}
+import {
+  computeLogsWithEstimates,
+  computeGroupedMonths,
+  computeGroupedWeeks,
+  computeRollingStats,
+  computePeriodStats
+} from '../services/stats/groupingService';
 
-// Helper to get logs falling into a specific date range [refDate - days + 1, refDate]
-export function getRollingLogsForDate(logs, refDateStr, days = 7) {
-  const refDate = new Date(refDateStr);
-  const startDate = new Date(refDate);
-  startDate.setDate(startDate.getDate() - (days - 1));
-  
-  const startStr = startDate.toISOString().split('T')[0];
-  const endStr = refDate.toISOString().split('T')[0];
-  
-  return logs.filter(log => log.date >= startStr && log.date <= endStr);
-}
+import {
+  evaluatePalierAutoValidation
+} from '../services/goals/palierService';
 
-// Helper to calculate rolling median for a given reference date and field
-function getRollingMedianForDate(logs, refDateStr, field, days = 7) {
-  const windowLogs = getRollingLogsForDate(logs, refDateStr, days);
-  if (windowLogs.length === 0) return null;
-  const values = windowLogs.map(l => Number(l[field]));
-  return calculateMedian(values);
-}
-
-// Helper to calculate age in years from birthDate (YYYY-MM-DD)
-export function calculateAge(birthDateStr) {
-  if (!birthDateStr) return null;
-  const birth = new Date(birthDateStr);
-  if (isNaN(birth.getTime())) return null;
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-    age--;
+// Default display preferences
+export const DEFAULT_DISPLAY_PREFERENCES = {
+  cards: {
+    mass: true,
+    fatMass: true,
+    bodyFat: true,
+    leanMass: true
+  },
+  charts: {
+    showMass: true,
+    showFatMass: true,
+    showLeanMass: false,
+    showFatPercentChart: false,
+    showBiaMuscleChart: true,
+    showBiaFatChart: false
+  },
+  segmentalColors: {
+    muscle: {
+      total: '#a78bfa',
+      trunk: '#fbbf24',
+      rightArm: '#22d3ee',
+      leftArm: '#38bdf8',
+      rightLeg: '#34d399',
+      leftLeg: '#a3e635'
+    },
+    fat: {
+      total: '#c084fc',
+      trunk: '#f59e0b',
+      rightArm: '#06b6d4',
+      leftArm: '#0ea5e9',
+      rightLeg: '#10b981',
+      leftLeg: '#84cc16'
+    }
+  },
+  segmentalVisibility: {
+    muscle: {
+      total: true,
+      trunk: true,
+      rightArm: true,
+      leftArm: true,
+      rightLeg: true,
+      leftLeg: true
+    },
+    fat: {
+      total: true,
+      trunk: true,
+      rightArm: true,
+      leftArm: true,
+      rightLeg: true,
+      leftLeg: true
+    }
   }
-  return age >= 0 ? age : null;
-}
-
-// Helper to get previous window end date (refDate offset by offsetDays)
-function getPreviousWindowEndDate(refDateStr, offsetDays = 7) {
-  const refDate = new Date(refDateStr);
-  const prevDate = new Date(refDate);
-  prevDate.setDate(prevDate.getDate() - offsetDays);
-  return prevDate.toISOString().split('T')[0];
-}
+};
 
 export const useBodyGraphStore = defineStore('bodyGraph', {
   state: () => ({
@@ -131,7 +134,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     selectedWeekIndex: 0,
     // Active log record being edited, null if creating a new one
     editingLog: null,
-    editingMeasurement: null
+    editingMeasurement: null,
+
+    // Display and visibility preferences (Cards & Charts & BIA Segments)
+    displayPreferences: JSON.parse(JSON.stringify(DEFAULT_DISPLAY_PREFERENCES))
   }),
 
   getters: {
@@ -179,151 +185,15 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     logsWithEstimates: (state) => {
-      return state.logs.map(log => {
-        const mass = Number(log.mass);
-        const body_fat = Number(log.body_fat);
-        const fat_mass = mass * (body_fat / 100);
-        const lean_mass = mass - fat_mass;
-
-        return {
-          ...log,
-          fat_mass,
-          lean_mass
-        };
-      });
+      return computeLogsWithEstimates(state.logs);
     },
 
-    // Groups logs into weeks (Monday to Sunday) and computes stats
-    // Groups logs into months and computes true median stats based on all raw logs
-    groupedMonths() {
-      let logsToUse = this.logsWithEstimates;
-      if (logsToUse.length === 0) return [];
-
-      // Filter by start and end years if they are set
-      if (this.startYear !== null && this.endYear !== null) {
-        logsToUse = logsToUse.filter(log => {
-          const yr = new Date(log.date).getFullYear();
-          return yr >= this.startYear && yr <= this.endYear;
-        });
-      }
-
-      const groups = {};
-
-      for (const log of logsToUse) {
-        // e.g., '2025-06'
-        const monthKey = log.date.substring(0, 7);
-        if (!groups[monthKey]) {
-          groups[monthKey] = [];
-        }
-        groups[monthKey].push(log);
-      }
-
-      const months = [];
-      for (const [monthKey, monthLogs] of Object.entries(groups)) {
-        const masses = monthLogs.map(l => Number(l.mass));
-        const fats = monthLogs.map(l => Number(l.body_fat));
-
-        const medianMass = calculateMedian(masses);
-        const medianFat = calculateMedian(fats);
-        const medianFatMass = medianMass * (medianFat / 100);
-        const medianLeanMass = medianMass - medianFatMass;
-
-        const avgMass = masses.length > 0 ? masses.reduce((sum, val) => sum + val, 0) / masses.length : 0;
-        const avgFat = fats.length > 0 ? fats.reduce((sum, val) => sum + val, 0) / fats.length : 0;
-        const avgFatMass = avgMass * (avgFat / 100);
-        const avgLeanMass = avgMass - avgFatMass;
-
-        // Create a date object for the first day of the month for time scale plotting
-        const startDateStr = `${monthKey}-01`;
-        const dateObj = new Date(startDateStr);
-        const label = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
-
-        months.push({
-          id: monthKey,
-          startDate: startDateStr,
-          label,
-          logs: monthLogs,
-          medianMass,
-          medianFat,
-          medianFatMass,
-          medianLeanMass,
-          avgMass,
-          avgFat,
-          avgFatMass,
-          avgLeanMass
-        });
-      }
-
-      // Sort months descending (latest month first)
-      months.sort((a, b) => b.id.localeCompare(a.id));
-      return months;
+    groupedMonths(state) {
+      return computeGroupedMonths(this.logsWithEstimates, state.startYear, state.endYear);
     },
 
-    groupedWeeks() {
-      let logsToUse = this.logsWithEstimates;
-      if (logsToUse.length === 0) return [];
-
-      // Filter by start and end years if they are set
-      if (this.startYear !== null && this.endYear !== null) {
-        logsToUse = logsToUse.filter(log => {
-          const yr = new Date(log.date).getFullYear();
-          return yr >= this.startYear && yr <= this.endYear;
-        });
-      }
-
-      const groups = {};
-
-      for (const log of logsToUse) {
-        const mon = getMondayOfDate(log.date);
-        if (!groups[mon]) {
-          groups[mon] = [];
-        }
-        groups[mon].push(log);
-      }
-
-      const weeks = [];
-      for (const [mon, weekLogs] of Object.entries(groups)) {
-        const sun = getSundayOfMonday(mon);
-        
-        const masses = weekLogs.map(l => Number(l.mass));
-        const fats = weekLogs.map(l => Number(l.body_fat));
-
-        const medianMass = calculateMedian(masses);
-        const medianFat = calculateMedian(fats);
-        const medianFatMass = medianMass * (medianFat / 100);
-        const medianLeanMass = medianMass - medianFatMass;
-
-        // Calculate true averages for comparison on weekly charts
-        const avgMass = masses.length > 0 ? masses.reduce((sum, val) => sum + val, 0) / masses.length : 0;
-        const avgFat = fats.length > 0 ? fats.reduce((sum, val) => sum + val, 0) / fats.length : 0;
-        const avgFatMass = avgMass * (avgFat / 100);
-        const avgLeanMass = avgMass - avgFatMass;
-
-        // Label format: "Jun 8 - Jun 14"
-        const monDate = new Date(mon);
-        const sunDate = new Date(sun);
-        const label = `${monDate.toLocaleString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })} - ${sunDate.toLocaleString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
-
-        weeks.push({
-          id: mon,
-          monday: mon,
-          sunday: sun,
-          label,
-          logs: weekLogs,
-          medianMass,
-          medianFat,
-          medianFatMass,
-          medianLeanMass,
-          avgMass,
-          avgFat,
-          avgFatMass,
-          avgLeanMass
-        });
-      }
-
-      // Sort weeks descending (latest week first)
-      weeks.sort((a, b) => b.monday.localeCompare(a.monday));
-      return weeks;
+    groupedWeeks(state) {
+      return computeGroupedWeeks(this.logsWithEstimates, state.startYear, state.endYear);
     },
 
     sortedMeasurements: (state) => {
@@ -334,7 +204,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     activeMonth() {
       const months = this.groupedMonths;
       if (months.length === 0) return null;
-
       const safeIndex = Math.max(0, Math.min(this.selectedMonthIndex, months.length - 1));
       return months[safeIndex];
     },
@@ -343,8 +212,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     activeWeek() {
       const weeks = this.groupedWeeks;
       if (weeks.length === 0) return null;
-
-      // Bound checking without side effects
       const safeIndex = Math.max(0, Math.min(this.selectedWeekIndex, weeks.length - 1));
       return weeks[safeIndex];
     },
@@ -362,111 +229,30 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     paliersSorted(state) {
-      // Sort paliers in logical order depending on whether the user wants to lose or gain weight
-      // Or just standard numeric order of their mass targets.
-      // Let's sort them ascending by mass (poids) target, but we'll also preserve manual order if needed.
-      // Let's return the list sorted ascending by mass to make the math of "which is next" predictable,
-      // or we can sort them by targetMass ascending if the trend is generally ascending, or descending.
-      // To be completely safe and predictable, let's keep the user's manual ordering of paliers,
-      // but we'll sort them by targetMass ascending if none is specified or just return them as-is.
       return [...state.paliers];
     },
 
     activePalier() {
       const paliers = this.paliersSorted;
       if (paliers.length === 0) return null;
-      // The active palier is the first one that is NOT validated
-      const active = paliers.find(p => !p.validated);
-      return active || null;
+      return paliers.find(p => !p.validated) || null;
     },
 
     stats() {
-      const currentLogs = this.logsWithEstimates;
-      const count = currentLogs.length;
+      return computeRollingStats(this.logsWithEstimates);
+    },
 
-      if (count === 0) {
-        return {
-          currentMass: null,
-          currentFat: null,
-          currentFatMass: null,
-          currentLeanMass: null,
-          massChange: 0,
-          fatChange: 0,
-          fatMassChange: 0,
-          leanMassChange: 0,
-          rollingMedianMass: null,
-          rollingMedianFat: null,
-          rollingMedianLeanMass: null,
-          rollingMedianFatMass: null,
-          rollingMedianMassChange: 0,
-          rollingMedianFatChange: 0,
-          rollingMedianLeanMassChange: 0,
-          rollingMedianFatMassChange: 0,
-          unsyncedCount: 0
-        };
-      }
-
-      const currentEntry = currentLogs[0];
-      const prevEntry = currentLogs[1] || null;
-
-      const unsyncedCount = currentLogs.filter(log => !log.synced).length;
-
-      // Calculate rolling medians
-      const latestDateStr = currentEntry.date;
-      const prevWindowEndDateStr = getPreviousWindowEndDate(latestDateStr, 7);
-
-      const currentWindowLogs = getRollingLogsForDate(currentLogs, latestDateStr, 7);
-      const prevWindowLogs = getRollingLogsForDate(currentLogs, prevWindowEndDateStr, 7);
-
-      const rollingMedianMass = currentWindowLogs.length > 0 ? calculateMedian(currentWindowLogs.map(l => Number(l.mass))) : null;
-      const rollingMedianFat = currentWindowLogs.length > 0 ? calculateMedian(currentWindowLogs.map(l => Number(l.body_fat))) : null;
-      const rollingMedianLeanMass = currentWindowLogs.length > 0 ? calculateMedian(currentWindowLogs.map(l => Number(l.lean_mass))) : null;
-      const rollingMedianFatMass = (rollingMedianMass !== null && rollingMedianFat !== null)
-        ? rollingMedianMass * (rollingMedianFat / 100)
-        : null;
-
-      const prevRollingMedianMass = prevWindowLogs.length > 0 ? calculateMedian(prevWindowLogs.map(l => Number(l.mass))) : null;
-      const prevRollingMedianFat = prevWindowLogs.length > 0 ? calculateMedian(prevWindowLogs.map(l => Number(l.body_fat))) : null;
-      const prevRollingMedianLeanMass = prevWindowLogs.length > 0 ? calculateMedian(prevWindowLogs.map(l => Number(l.lean_mass))) : null;
-      const prevRollingMedianFatMass = (prevRollingMedianMass !== null && prevRollingMedianFat !== null)
-        ? prevRollingMedianMass * (prevRollingMedianFat / 100)
-        : null;
-
-      const rollingMedianMassChange = (rollingMedianMass !== null && prevRollingMedianMass !== null)
-        ? rollingMedianMass - prevRollingMedianMass
-        : 0;
-
-      const rollingMedianFatChange = (rollingMedianFat !== null && prevRollingMedianFat !== null)
-        ? rollingMedianFat - prevRollingMedianFat
-        : 0;
-
-      const rollingMedianLeanMassChange = (rollingMedianLeanMass !== null && prevRollingMedianLeanMass !== null)
-        ? rollingMedianLeanMass - prevRollingMedianLeanMass
-        : 0;
-
-      const rollingMedianFatMassChange = (rollingMedianFatMass !== null && prevRollingMedianFatMass !== null)
-        ? rollingMedianFatMass - prevRollingMedianFatMass
-        : 0;
-
-      return {
-        currentMass: Number(currentEntry.mass),
-        currentFat: Number(currentEntry.body_fat),
-        currentFatMass: Number(currentEntry.fat_mass),
-        currentLeanMass: Number(currentEntry.lean_mass),
-        massChange: prevEntry ? Number(currentEntry.mass) - Number(prevEntry.mass) : 0,
-        fatChange: prevEntry ? Number(currentEntry.body_fat) - Number(prevEntry.body_fat) : 0,
-        fatMassChange: prevEntry ? Number(currentEntry.fat_mass) - Number(prevEntry.fat_mass) : 0,
-        leanMassChange: prevEntry ? Number(currentEntry.lean_mass) - Number(prevEntry.lean_mass) : 0,
-        rollingMedianMass,
-        rollingMedianFat,
-        rollingMedianLeanMass,
-        rollingMedianFatMass,
-        rollingMedianMassChange,
-        rollingMedianFatChange,
-        rollingMedianLeanMassChange,
-        rollingMedianFatMassChange,
-        unsyncedCount
-      };
+    periodStats() {
+      return computePeriodStats({
+        activeTab: this.activeTab,
+        groupedMonths: this.groupedMonths,
+        groupedWeeks: this.groupedWeeks,
+        activeMonth: this.activeMonth,
+        activeWeek: this.activeWeek,
+        selectedMonthIndex: this.selectedMonthIndex,
+        selectedWeekIndex: this.selectedWeekIndex,
+        stats: this.stats
+      });
     }
   },
 
@@ -557,6 +343,27 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           }];
         } else {
           this.paliers = [];
+        }
+      }
+
+      const savedDisplayPrefs = localStorage.getItem('bodygraph_display_preferences');
+      if (savedDisplayPrefs) {
+        try {
+          const parsed = JSON.parse(savedDisplayPrefs);
+          this.displayPreferences = {
+            cards: { ...DEFAULT_DISPLAY_PREFERENCES.cards, ...(parsed?.cards || {}) },
+            charts: { ...DEFAULT_DISPLAY_PREFERENCES.charts, ...(parsed?.charts || {}) },
+            segmentalColors: {
+              muscle: { ...DEFAULT_DISPLAY_PREFERENCES.segmentalColors.muscle, ...(parsed?.segmentalColors?.muscle || {}) },
+              fat: { ...DEFAULT_DISPLAY_PREFERENCES.segmentalColors.fat, ...(parsed?.segmentalColors?.fat || {}) }
+            },
+            segmentalVisibility: {
+              muscle: { ...DEFAULT_DISPLAY_PREFERENCES.segmentalVisibility.muscle, ...(parsed?.segmentalVisibility?.muscle || {}) },
+              fat: { ...DEFAULT_DISPLAY_PREFERENCES.segmentalVisibility.fat, ...(parsed?.segmentalVisibility?.fat || {}) }
+            }
+          };
+        } catch (e) {
+          console.warn('Failed to parse saved display preferences:', e);
         }
       }
 
@@ -726,6 +533,35 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       } else {
         this.targetMass = null;
         this.targetFat = null;
+      }
+    },
+
+    async updateDisplayPreferences(newPrefs) {
+      this.displayPreferences = {
+        cards: { ...this.displayPreferences.cards, ...(newPrefs?.cards || {}) },
+        charts: { ...this.displayPreferences.charts, ...(newPrefs?.charts || {}) },
+        segmentalColors: {
+          muscle: { ...this.displayPreferences.segmentalColors?.muscle, ...(newPrefs?.segmentalColors?.muscle || {}) },
+          fat: { ...this.displayPreferences.segmentalColors?.fat, ...(newPrefs?.segmentalColors?.fat || {}) }
+        },
+        segmentalVisibility: {
+          muscle: { ...this.displayPreferences.segmentalVisibility?.muscle, ...(newPrefs?.segmentalVisibility?.muscle || {}) },
+          fat: { ...this.displayPreferences.segmentalVisibility?.fat, ...(newPrefs?.segmentalVisibility?.fat || {}) }
+        }
+      };
+
+      // Offline-first persistence
+      localStorage.setItem('bodygraph_display_preferences', JSON.stringify(this.displayPreferences));
+
+      // Cloud sync if authenticated
+      if (supabase && this.user) {
+        try {
+          await supabase.auth.updateUser({
+            data: { display_preferences: this.displayPreferences }
+          });
+        } catch (error) {
+          console.warn('Failed to sync display preferences to cloud:', error);
+        }
       }
     },
 
@@ -1040,66 +876,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
     // Save or update a log entry
     async checkAndAutoValidatePaliers() {
-      if (this.paliers.length < 2) return;
-
-      const p1 = this.paliers[0];
-      const p2 = this.paliers[1];
-      const isWeightGain = Number(p2.mass) >= Number(p1.mass);
-      const isFatGain = Number(p2.fat) >= Number(p1.fat);
-
-      // Compute unfiltered weeks with at least 4 logs
-      const logsToUse = this.logsWithEstimates;
-      const groups = {};
-      for (const log of logsToUse) {
-        const mon = getMondayOfDate(log.date);
-        if (!groups[mon]) {
-          groups[mon] = [];
-        }
-        groups[mon].push(log);
-      }
-
-      const validWeeks = [];
-      for (const [mon, weekLogs] of Object.entries(groups)) {
-        if (weekLogs.length >= 4) {
-          const masses = weekLogs.map(l => Number(l.mass));
-          const fats = weekLogs.map(l => Number(l.body_fat));
-          const medianMass = calculateMedian(masses);
-          const medianFat = calculateMedian(fats);
-
-          validWeeks.push({
-            monday: mon,
-            medianMass,
-            medianFat
-          });
-        }
-      }
-
-      if (validWeeks.length === 0) return;
-
-      let changed = false;
-      const updatedPaliers = this.paliers.map((palier) => {
-        if (palier.validated) return palier; // already validated
-
-        const targetMass = Number(palier.mass);
-        const targetFat = Number(palier.fat);
-
-        const passed = validWeeks.some(week => {
-          const wMass = Number(week.medianMass);
-          const wFat = Number(week.medianFat);
-
-          const massPassed = isWeightGain ? (wMass >= targetMass) : (wMass <= targetMass);
-          const fatPassed = isFatGain ? (wFat >= targetFat) : (wFat <= targetFat);
-
-          return massPassed && fatPassed;
-        });
-
-        if (passed) {
-          changed = true;
-          return { ...palier, validated: true };
-        }
-        return palier;
-      });
-
+      const { changed, updatedPaliers } = evaluatePalierAutoValidation(this.paliers, this.logsWithEstimates);
       if (changed) {
         await this.updatePaliers(updatedPaliers);
       }
@@ -1241,7 +1018,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async exportData() {
-      const data = await exportAllData(this.currentUserId, this.paliers, this.profile);
+      const data = await exportAllData(this.currentUserId, this.paliers, this.profile, this.displayPreferences);
       const jsonStr = JSON.stringify(data, null, 2);
       if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -1278,6 +1055,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
       if (result.profile && typeof result.profile === 'object') {
         await this.updateProfile(result.profile);
+      }
+
+      if (result.displayPreferences && typeof result.displayPreferences === 'object') {
+        await this.updateDisplayPreferences(result.displayPreferences);
       }
 
       await this.loadLogs();

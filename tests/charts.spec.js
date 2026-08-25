@@ -27,10 +27,10 @@ test('Seed user data and take screenshot', async ({ page }) => {
   // Wait for the active month logs helper or charts to load since Month is the new default tab
   await expect(page.locator('.glass-card >> text=Hevy Helper').first()).toBeVisible();
 
-  // Assert 7d rolling medians are displayed on the top cards (calculated over the last 7 days ending Jul 15)
-  await expect(page.locator('text=100.50 kg').first()).toBeVisible(); // Total Mass card
-  await expect(page.locator('text=32.2').first()).toBeVisible(); // Body Fat % card
-  await expect(page.locator('text=32.31 kg').first()).toBeVisible(); // Fat Mass card
+  // Assert Monthly medians are displayed on the top cards in Month view (July 2026 median: 101.40 kg)
+  await expect(page.locator('text=101.40 kg').first()).toBeVisible(); // Total Mass card (Month median)
+  await expect(page.locator('text=32.4').first()).toBeVisible(); // Body Fat % card (Month median)
+  await expect(page.locator('text=32.85 kg').first()).toBeVisible(); // Fat Mass card (Month median)
 
   // Assert the Hevy Sync Helper list is visible at the bottom
   // Using bounding box or first visible element

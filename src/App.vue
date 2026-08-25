@@ -137,8 +137,8 @@
         <!-- Main Content -->
         <main class="flex-grow max-w-6xl w-full mx-auto p-4 sm:p-6 pb-28 z-10">
           
-          <!-- Stats summary cards -->
-          <StatsOverview />
+          <!-- Stats summary cards (Displayed only on Monthly and Weekly trend views) -->
+          <StatsOverview v-if="store.activeTab === 'monthly' || store.activeTab === 'weekly'" />
 
           <!-- Tabs content panel -->
           <section>

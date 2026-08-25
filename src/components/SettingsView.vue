@@ -28,7 +28,7 @@
     </div>
 
     <!-- Navigation Tabs / Sub-Sections -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1.5 rounded-2xl bg-gray-900/80 border border-gray-800/80">
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 p-1.5 rounded-2xl bg-gray-900/80 border border-gray-800/80">
       <button
         type="button"
         @click="activeSubTab = 'goals'"
@@ -41,6 +41,20 @@
       >
         <Target class="w-4 h-4" />
         <span>Objectifs</span>
+      </button>
+
+      <button
+        type="button"
+        @click="activeSubTab = 'display'"
+        :class="[
+          'py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer',
+          activeSubTab === 'display'
+            ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20'
+            : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+        ]"
+      >
+        <LayoutGrid class="w-4 h-4" />
+        <span>Affichage</span>
       </button>
 
       <button
@@ -585,6 +599,13 @@
       </div>
     </div>
 
+    <!-- ======================================================== -->
+    <!-- SECTION 5 : PRÉFÉRENCES D'AFFICHAGE (CARTES & GRAPHES)   -->
+    <!-- ======================================================== -->
+    <div v-show="activeSubTab === 'display'">
+      <SettingsDisplayTab />
+    </div>
+
     <!-- Assistant d'Appairage Interactif BLE -->
     <ScalePairingModal
       ref="pairingModalRef"
@@ -601,16 +622,17 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { 
   ArrowLeft, Trash2, Plus, CheckCircle, Download, Upload, 
-  Target, User, Scale, Database, Sparkles, Bluetooth, Search, RefreshCw, Smartphone, AlertTriangle 
+  Target, User, Scale, Database, Sparkles, Bluetooth, Search, RefreshCw, Smartphone, AlertTriangle, LayoutGrid
 } from 'lucide-vue-next';
 import { useBodyGraphStore, calculateAge } from '../stores/bodyGraph';
 import { BleService } from '../services/ble/bleService';
 import { ScaleManager } from '../services/ble/scaleManager';
 import ScalePairingModal from './ScalePairingModal.vue';
+import SettingsDisplayTab from './SettingsDisplayTab.vue';
 
 const store = useBodyGraphStore();
 
-const activeSubTab = ref('goals'); // 'goals' | 'profile' | 'devices' | 'data'
+const activeSubTab = ref('goals'); // 'goals' | 'display' | 'profile' | 'devices' | 'data'
 
 // Goals state
 const paliers = ref([]);
