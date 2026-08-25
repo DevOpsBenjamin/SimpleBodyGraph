@@ -19,14 +19,13 @@
           :key="seg.key"
           type="button"
           @click="toggleSegment(seg.key)"
+          :style="activeSegments[seg.key] ? { backgroundColor: `${seg.color}22`, borderColor: `${seg.color}66`, color: seg.color } : {}"
           :class="[
             'px-2 py-0.5 rounded-xl text-[10px] sm:text-[11px] font-bold transition-all duration-150 flex items-center gap-1.5 cursor-pointer select-none border',
-            activeSegments[seg.key]
-              ? seg.activeClass
-              : 'bg-gray-950/60 border-gray-800 text-gray-500 hover:text-gray-400'
+            !activeSegments[seg.key] ? 'bg-gray-950/60 border-gray-800 text-gray-500 hover:text-gray-400' : ''
           ]"
         >
-          <span :class="['w-2 h-2 rounded-full', activeSegments[seg.key] ? seg.dotColor : 'bg-gray-600']"></span>
+          <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: activeSegments[seg.key] ? seg.color : '#4b5563' }"></span>
           {{ seg.label }}
         </button>
       </div>
@@ -40,9 +39,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { Chart, registerables } from 'chart.js';
 import 'chartjs-adapter-date-fns';
+import { useBodyGraphStore, DEFAULT_DISPLAY_PREFERENCES } from '../stores/bodyGraph';
 import { getScaleLimits } from '../utils/chartHelpers';
 
 Chart.register(...registerables);
@@ -66,17 +66,26 @@ const props = defineProps({
   }
 });
 
+const store = useBodyGraphStore();
 const canvasRef = ref(null);
 let chartInstance = null;
 
-const segments = [
-  { key: 'total', label: props.type === 'muscle' ? 'Total SMM' : 'Total Gras', dotColor: 'bg-violet-400', color: 'rgba(167, 139, 250, 1)', activeClass: 'bg-violet-600/20 border-violet-500/50 text-violet-300' },
-  { key: 'trunk', label: 'Tronc', dotColor: 'bg-amber-400', color: 'rgba(251, 191, 36, 1)', activeClass: 'bg-amber-600/20 border-amber-500/50 text-amber-300' },
-  { key: 'rightArm', label: 'Bras D.', dotColor: 'bg-cyan-400', color: 'rgba(34, 211, 238, 1)', activeClass: 'bg-cyan-600/20 border-cyan-500/50 text-cyan-300' },
-  { key: 'leftArm', label: 'Bras G.', dotColor: 'bg-sky-400', color: 'rgba(56, 189, 248, 1)', activeClass: 'bg-sky-600/20 border-sky-500/50 text-sky-300' },
-  { key: 'rightLeg', label: 'Jambe D.', dotColor: 'bg-emerald-400', color: 'rgba(52, 211, 153, 1)', activeClass: 'bg-emerald-600/20 border-emerald-500/50 text-emerald-300' },
-  { key: 'leftLeg', label: 'Jambe G.', dotColor: 'bg-lime-400', color: 'rgba(163, 230, 53, 1)', activeClass: 'bg-lime-600/20 border-lime-500/50 text-lime-300' }
-];
+const colors = computed(() => {
+  return store.displayPreferences?.segmentalColors?.[props.type] || DEFAULT_DISPLAY_PREFERENCES.segmentalColors[props.type];
+});
+
+const defaultVisibility = computed(() => {
+  return store.displayPreferences?.segmentalVisibility?.[props.type] || DEFAULT_DISPLAY_PREFERENCES.segmentalVisibility[props.type];
+});
+
+const segments = computed(() => [
+  { key: 'total', label: props.type === 'muscle' ? 'Total SMM' : 'Total Gras', color: colors.value.total },
+  { key: 'trunk', label: 'Tronc', color: colors.value.trunk },
+  { key: 'rightArm', label: 'Bras D.', color: colors.value.rightArm },
+  { key: 'leftArm', label: 'Bras G.', color: colors.value.leftArm },
+  { key: 'rightLeg', label: 'Jambe D.', color: colors.value.rightLeg },
+  { key: 'leftLeg', label: 'Jambe G.', color: colors.value.leftLeg }
+]);
 
 const activeSegments = reactive({
   total: true,
@@ -86,6 +95,12 @@ const activeSegments = reactive({
   rightLeg: true,
   leftLeg: true
 });
+
+watch(defaultVisibility, (val) => {
+  if (val) {
+    Object.assign(activeSegments, val);
+  }
+}, { immediate: true, deep: true });
 
 const toggleSegment = (key) => {
   activeSegments[key] = !activeSegments[key];
@@ -99,7 +114,7 @@ const renderChart = () => {
   const metricKey = props.type; // 'muscle' or 'fat'
 
   const datasets = [];
-  segments.forEach(seg => {
+  segments.value.forEach(seg => {
     if (activeSegments[seg.key]) {
       const points = props.data.map(d => ({
         x: d.date,
@@ -206,7 +221,7 @@ onUnmounted(() => {
 });
 
 watch(
-  () => [props.data, props.timeScaleOptions],
+  () => [props.data, props.timeScaleOptions, colors.value],
   () => {
     nextTick(renderChart);
   },

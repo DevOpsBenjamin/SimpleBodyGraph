@@ -95,6 +95,60 @@ function getPreviousWindowEndDate(refDateStr, offsetDays = 7) {
   return prevDate.toISOString().split('T')[0];
 }
 
+// Default display preferences
+export const DEFAULT_DISPLAY_PREFERENCES = {
+  cards: {
+    mass: true,
+    fatMass: true,
+    bodyFat: true,
+    leanMass: true
+  },
+  charts: {
+    showMass: true,
+    showFatMass: true,
+    showLeanMass: false,
+    showFatPercentChart: false,
+    showBiaMuscleChart: true,
+    showBiaFatChart: false
+  },
+  segmentalColors: {
+    muscle: {
+      total: '#a78bfa',
+      trunk: '#fbbf24',
+      rightArm: '#22d3ee',
+      leftArm: '#38bdf8',
+      rightLeg: '#34d399',
+      leftLeg: '#a3e635'
+    },
+    fat: {
+      total: '#c084fc',
+      trunk: '#f59e0b',
+      rightArm: '#06b6d4',
+      leftArm: '#0ea5e9',
+      rightLeg: '#10b981',
+      leftLeg: '#84cc16'
+    }
+  },
+  segmentalVisibility: {
+    muscle: {
+      total: true,
+      trunk: true,
+      rightArm: true,
+      leftArm: true,
+      rightLeg: true,
+      leftLeg: true
+    },
+    fat: {
+      total: true,
+      trunk: true,
+      rightArm: true,
+      leftArm: true,
+      rightLeg: true,
+      leftLeg: true
+    }
+  }
+};
+
 export const useBodyGraphStore = defineStore('bodyGraph', {
   state: () => ({
     logs: [],
@@ -133,23 +187,8 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     editingLog: null,
     editingMeasurement: null,
 
-    // Display and visibility preferences (Cards & Charts)
-    displayPreferences: {
-      cards: {
-        mass: true,
-        fatMass: true,
-        bodyFat: true,
-        leanMass: true
-      },
-      charts: {
-        showMass: true,
-        showFatMass: true,
-        showLeanMass: false,
-        showFatPercentChart: false,
-        showBiaMuscleChart: true,
-        showBiaFatChart: false
-      }
-    }
+    // Display and visibility preferences (Cards & Charts & BIA Segments)
+    displayPreferences: JSON.parse(JSON.stringify(DEFAULT_DISPLAY_PREFERENCES))
   }),
 
   getters: {
@@ -672,8 +711,16 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         try {
           const parsed = JSON.parse(savedDisplayPrefs);
           this.displayPreferences = {
-            cards: { ...this.displayPreferences.cards, ...(parsed?.cards || {}) },
-            charts: { ...this.displayPreferences.charts, ...(parsed?.charts || {}) }
+            cards: { ...DEFAULT_DISPLAY_PREFERENCES.cards, ...(parsed?.cards || {}) },
+            charts: { ...DEFAULT_DISPLAY_PREFERENCES.charts, ...(parsed?.charts || {}) },
+            segmentalColors: {
+              muscle: { ...DEFAULT_DISPLAY_PREFERENCES.segmentalColors.muscle, ...(parsed?.segmentalColors?.muscle || {}) },
+              fat: { ...DEFAULT_DISPLAY_PREFERENCES.segmentalColors.fat, ...(parsed?.segmentalColors?.fat || {}) }
+            },
+            segmentalVisibility: {
+              muscle: { ...DEFAULT_DISPLAY_PREFERENCES.segmentalVisibility.muscle, ...(parsed?.segmentalVisibility?.muscle || {}) },
+              fat: { ...DEFAULT_DISPLAY_PREFERENCES.segmentalVisibility.fat, ...(parsed?.segmentalVisibility?.fat || {}) }
+            }
           };
         } catch (e) {
           console.warn('Failed to parse saved display preferences:', e);
@@ -852,7 +899,15 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     async updateDisplayPreferences(newPrefs) {
       this.displayPreferences = {
         cards: { ...this.displayPreferences.cards, ...(newPrefs?.cards || {}) },
-        charts: { ...this.displayPreferences.charts, ...(newPrefs?.charts || {}) }
+        charts: { ...this.displayPreferences.charts, ...(newPrefs?.charts || {}) },
+        segmentalColors: {
+          muscle: { ...this.displayPreferences.segmentalColors?.muscle, ...(newPrefs?.segmentalColors?.muscle || {}) },
+          fat: { ...this.displayPreferences.segmentalColors?.fat, ...(newPrefs?.segmentalColors?.fat || {}) }
+        },
+        segmentalVisibility: {
+          muscle: { ...this.displayPreferences.segmentalVisibility?.muscle, ...(newPrefs?.segmentalVisibility?.muscle || {}) },
+          fat: { ...this.displayPreferences.segmentalVisibility?.fat, ...(newPrefs?.segmentalVisibility?.fat || {}) }
+        }
       };
 
       // Offline-first persistence

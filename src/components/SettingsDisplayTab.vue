@@ -195,39 +195,124 @@
         </label>
       </div>
     </div>
+
+    <!-- Section 3 : Couleurs & Segments BIA Muscle -->
+    <div class="glass-card p-5 sm:p-6 rounded-3xl space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-gray-800/80">
+        <div>
+          <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+            <Palette class="w-4 h-4 text-emerald-400" />
+            Personnalisation BIA Muscle (Couleurs & Segments)
+          </h3>
+          <p class="text-xs text-gray-400 mt-0.5">
+            Configurez la visibilité par défaut et la couleur de chaque segment anatomique.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          @click="resetMuscleColors"
+          class="text-[11px] font-semibold text-gray-400 hover:text-white px-3 py-1.5 rounded-xl bg-gray-800/50 hover:bg-gray-800 border border-gray-700/60 transition-colors flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+        >
+          <RotateCcw class="w-3.5 h-3.5" />
+          Réinitialiser les couleurs
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+        <!-- Segment Item Loops -->
+        <div 
+          v-for="seg in muscleSegmentDefs" 
+          :key="seg.key"
+          class="flex items-center justify-between p-3.5 rounded-2xl bg-gray-950/60 border border-gray-800/80 hover:border-gray-700/80 transition-colors"
+        >
+          <!-- Left: Checkbox + Label -->
+          <label class="flex items-center gap-3 cursor-pointer select-none">
+            <input 
+              type="checkbox" 
+              v-model="localPrefs.segmentalVisibility.muscle[seg.key]"
+              @change="savePreferences"
+              class="w-4 h-4 rounded text-violet-600 accent-violet-600"
+            />
+            <div>
+              <span class="text-xs font-bold text-white block">{{ seg.label }}</span>
+              <span class="text-[10px] text-gray-400">{{ seg.desc }}</span>
+            </div>
+          </label>
+
+          <!-- Right: Color Picker with Swatch Preview -->
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-mono text-gray-400 uppercase">
+              {{ localPrefs.segmentalColors.muscle[seg.key] }}
+            </span>
+            <div class="relative w-7 h-7 rounded-xl border border-white/20 shadow-inner overflow-hidden cursor-pointer">
+              <input 
+                type="color" 
+                v-model="localPrefs.segmentalColors.muscle[seg.key]" 
+                @change="savePreferences"
+                class="absolute -inset-2 w-12 h-12 cursor-pointer opacity-0"
+              />
+              <div 
+                class="w-full h-full rounded-xl"
+                :style="{ backgroundColor: localPrefs.segmentalColors.muscle[seg.key] }"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { reactive, watch } from 'vue';
-import { LayoutGrid, Scale, Flame, Percent, Dumbbell, LineChart } from 'lucide-vue-next';
-import { useBodyGraphStore } from '../stores/bodyGraph';
+import { LayoutGrid, Scale, Flame, Percent, Dumbbell, LineChart, Palette, RotateCcw } from 'lucide-vue-next';
+import { useBodyGraphStore, DEFAULT_DISPLAY_PREFERENCES } from '../stores/bodyGraph';
 import { useToast } from '../composables/useToast';
 
 const store = useBodyGraphStore();
 const toast = useToast();
 
+const muscleSegmentDefs = [
+  { key: 'total', label: 'Total Muscle SMM', desc: 'Masse musculaire squelettique globale' },
+  { key: 'trunk', label: 'Tronc', desc: 'Musculature pectorale, dos et sangle abdominale' },
+  { key: 'rightArm', label: 'Bras Droit', desc: 'Biceps, triceps et avant-bras droit' },
+  { key: 'leftArm', label: 'Bras Gauche', desc: 'Biceps, triceps et avant-bras gauche' },
+  { key: 'rightLeg', label: 'Jambe Droite', desc: 'Quadriceps, ischio-jambiers et mollet droit' },
+  { key: 'leftLeg', label: 'Jambe Gauche', desc: 'Quadriceps, ischio-jambiers et mollet gauche' }
+];
+
 const localPrefs = reactive({
-  cards: {
-    mass: store.displayPreferences.cards.mass,
-    fatMass: store.displayPreferences.cards.fatMass,
-    bodyFat: store.displayPreferences.cards.bodyFat,
-    leanMass: store.displayPreferences.cards.leanMass
+  cards: { ...store.displayPreferences.cards },
+  charts: { ...store.displayPreferences.charts },
+  segmentalColors: {
+    muscle: { ...store.displayPreferences.segmentalColors.muscle },
+    fat: { ...store.displayPreferences.segmentalColors.fat }
   },
-  charts: {
-    showMass: store.displayPreferences.charts.showMass,
-    showFatMass: store.displayPreferences.charts.showFatMass,
-    showLeanMass: store.displayPreferences.charts.showLeanMass,
-    showFatPercentChart: store.displayPreferences.charts.showFatPercentChart,
-    showBiaMuscleChart: store.displayPreferences.charts.showBiaMuscleChart,
-    showBiaFatChart: store.displayPreferences.charts.showBiaFatChart
+  segmentalVisibility: {
+    muscle: { ...store.displayPreferences.segmentalVisibility.muscle },
+    fat: { ...store.displayPreferences.segmentalVisibility.fat }
   }
 });
 
 watch(() => store.displayPreferences, (newPrefs) => {
   localPrefs.cards = { ...newPrefs.cards };
   localPrefs.charts = { ...newPrefs.charts };
+  localPrefs.segmentalColors = {
+    muscle: { ...newPrefs.segmentalColors.muscle },
+    fat: { ...newPrefs.segmentalColors.fat }
+  };
+  localPrefs.segmentalVisibility = {
+    muscle: { ...newPrefs.segmentalVisibility.muscle },
+    fat: { ...newPrefs.segmentalVisibility.fat }
+  };
 }, { deep: true });
+
+const resetMuscleColors = async () => {
+  localPrefs.segmentalColors.muscle = { ...DEFAULT_DISPLAY_PREFERENCES.segmentalColors.muscle };
+  await savePreferences();
+  toast.showToast('Couleurs musculaires réinitialisées par défaut', 'info');
+};
 
 const savePreferences = async () => {
   try {
