@@ -35,5 +35,5 @@ blob-report/
 playwright/.cache/
 
 # Local test fixtures & mock data
-tests/fixtures/
 *.local.json
+tests/fixtures/*.local.json

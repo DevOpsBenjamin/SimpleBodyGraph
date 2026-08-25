@@ -7,9 +7,12 @@ test.describe('BIA & Display Preferences Visual Verification', () => {
   test.use({ viewport: { width: 390, height: 844 } }); // iPhone 14 Pro Mobile Viewport
 
   test('Seeds local BIA dataset and captures all new UI features', async ({ page }) => {
-    const fixturePath = path.join(process.cwd(), 'tests', 'fixtures', 'bia_mock_dataset.local.json');
+    const localFixture = path.join(process.cwd(), 'tests', 'fixtures', 'bia_mock_dataset.local.json');
+    const sharedFixture = path.join(process.cwd(), 'tests', 'fixtures', 'bia_cut_85to75_dataset.json');
+    const fixturePath = fs.existsSync(localFixture) ? localFixture : sharedFixture;
+
     if (!fs.existsSync(fixturePath)) {
-      test.skip('No local BIA fixture found');
+      test.skip('No BIA fixture found');
       return;
     }
 

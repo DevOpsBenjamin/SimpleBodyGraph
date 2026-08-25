@@ -91,7 +91,7 @@ for (let i = 0; i < totalDays; i++) {
 const mockDataset = {
   profile: {
     gender: 'male',
-    birthDate: '1992-05-14',
+    birthDate: '2002-05-14',
     height: 178
   },
   paliers: [
