@@ -8,7 +8,7 @@
           {{ title }}
         </h3>
         <p class="text-[11px] text-gray-400">
-          Évolution segmentaire par zone anatomique (DEXA 8 électrodes)
+          {{ $t('charts.segmentalDexaDesc') }}
         </p>
       </div>
 
@@ -44,6 +44,7 @@ import { Chart, registerables } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import { useBodyGraphStore, DEFAULT_DISPLAY_PREFERENCES } from '../stores/bodyGraph';
 import { getScaleLimits } from '../utils/chartHelpers';
+import { useI18n } from '../i18n';
 
 Chart.register(...registerables);
 
@@ -67,6 +68,7 @@ const props = defineProps({
 });
 
 const store = useBodyGraphStore();
+const { t, currentLanguage } = useI18n();
 const canvasRef = ref(null);
 let chartInstance = null;
 
@@ -79,12 +81,12 @@ const defaultVisibility = computed(() => {
 });
 
 const segments = computed(() => [
-  { key: 'total', label: props.type === 'muscle' ? 'Total SMM' : 'Total Gras', color: colors.value.total },
-  { key: 'trunk', label: 'Tronc', color: colors.value.trunk },
-  { key: 'rightArm', label: 'Bras D.', color: colors.value.rightArm },
-  { key: 'leftArm', label: 'Bras G.', color: colors.value.leftArm },
-  { key: 'rightLeg', label: 'Jambe D.', color: colors.value.rightLeg },
-  { key: 'leftLeg', label: 'Jambe G.', color: colors.value.leftLeg }
+  { key: 'total', label: props.type === 'muscle' ? t('charts.segments.totalSmm') : t('charts.segments.totalFat'), color: colors.value.total },
+  { key: 'trunk', label: t('charts.segments.trunk'), color: colors.value.trunk },
+  { key: 'rightArm', label: t('charts.segments.rightArm'), color: colors.value.rightArm },
+  { key: 'leftArm', label: t('charts.segments.leftArm'), color: colors.value.leftArm },
+  { key: 'rightLeg', label: t('charts.segments.rightLeg'), color: colors.value.rightLeg },
+  { key: 'leftLeg', label: t('charts.segments.leftLeg'), color: colors.value.leftLeg }
 ]);
 
 const activeSegments = reactive({
@@ -221,10 +223,11 @@ onUnmounted(() => {
 });
 
 watch(
-  () => [props.data, props.timeScaleOptions, colors.value],
+  () => [props.data, props.timeScaleOptions, colors.value, currentLanguage.value],
   () => {
     nextTick(renderChart);
   },
   { deep: true }
 );
 </script>
+

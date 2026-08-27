@@ -30,7 +30,7 @@
         type="button"
         @click="removeToast(toast.id)"
         class="shrink-0 text-gray-500 hover:text-gray-300 p-0.5 rounded-lg transition-colors cursor-pointer"
-        aria-label="Fermer la notification"
+        :aria-label="$t('common.close')"
       >
         <X class="w-3.5 h-3.5" />
       </button>

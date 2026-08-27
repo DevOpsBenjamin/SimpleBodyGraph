@@ -7,28 +7,28 @@
           type="button"
           @click="closeSettings"
           class="p-2.5 rounded-xl bg-gray-900/80 border border-gray-800 text-gray-300 hover:text-white hover:border-gray-700 active:scale-95 transition-all duration-200 cursor-pointer flex items-center gap-2 text-xs font-semibold shadow-sm"
-          title="Retour au Tableau de bord"
+          :title="$t('settings.backToDashboard')"
         >
           <ArrowLeft class="w-4 h-4 text-violet-400" />
-          <span class="hidden xs:inline">Dashboard</span>
+          <span class="hidden xs:inline">{{ $t('settings.dashboardBtn') }}</span>
         </button>
         <div>
           <h2 class="text-lg sm:text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
-            Paramètres & Configuration
+            {{ $t('settings.title') }}
           </h2>
-          <p class="text-xs text-gray-400">Personnalisez vos objectifs, profil corporel BIA et périphériques BLE.</p>
+          <p class="text-xs text-gray-400">{{ $t('settings.subtitle') }}</p>
         </div>
       </div>
 
       <div class="flex items-center gap-2">
         <span class="text-[10px] px-2.5 py-1 rounded-xl bg-violet-600/10 border border-violet-500/20 text-violet-300 font-semibold select-none hidden sm:inline-block">
-          SimpleBodyGraph v1.2.0
+          {{ $t('settings.version') }}
         </span>
       </div>
     </div>
 
     <!-- Navigation Tabs / Sub-Sections -->
-    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 p-1.5 rounded-2xl bg-gray-900/80 border border-gray-800/80">
+    <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 p-1.5 rounded-2xl bg-gray-900/80 border border-gray-800/80">
       <button
         type="button"
         @click="activeSubTab = 'goals'"
@@ -40,7 +40,7 @@
         ]"
       >
         <Target class="w-4 h-4" />
-        <span>Objectifs</span>
+        <span>{{ $t('settings.tabs.goals') }}</span>
       </button>
 
       <button
@@ -54,7 +54,7 @@
         ]"
       >
         <LayoutGrid class="w-4 h-4" />
-        <span>Affichage</span>
+        <span>{{ $t('settings.tabs.display') }}</span>
       </button>
 
       <button
@@ -68,7 +68,7 @@
         ]"
       >
         <User class="w-4 h-4" />
-        <span>Profil (BIA)</span>
+        <span>{{ $t('settings.tabs.profile') }}</span>
       </button>
 
       <button
@@ -82,7 +82,21 @@
         ]"
       >
         <Bluetooth class="w-4 h-4" />
-        <span>Balances BLE</span>
+        <span>{{ $t('settings.tabs.devices') }}</span>
+      </button>
+
+      <button
+        type="button"
+        @click="activeSubTab = 'language'"
+        :class="[
+          'py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer',
+          activeSubTab === 'language'
+            ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20'
+            : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+        ]"
+      >
+        <Globe class="w-4 h-4" />
+        <span>{{ $t('settings.tabs.language') }}</span>
       </button>
 
       <button
@@ -96,7 +110,7 @@
         ]"
       >
         <Database class="w-4 h-4" />
-        <span>Données</span>
+        <span>{{ $t('settings.tabs.data') }}</span>
       </button>
     </div>
 
@@ -116,15 +130,15 @@
     <div v-show="activeSubTab === 'goals'" class="space-y-6">
       <div class="glass-card p-5 sm:p-6 rounded-2xl space-y-5 border border-gray-800/80">
         <div>
-          <h3 class="text-sm font-bold text-violet-400 uppercase tracking-wider">Objectifs par Paliers</h3>
-          <p class="text-xs text-gray-400 mt-1">Définissez une trajectoire progressive avec des paliers successifs de poids et masse grasse.</p>
+          <h3 class="text-sm font-bold text-violet-400 uppercase tracking-wider">{{ $t('settings.goalsSection.title') }}</h3>
+          <p class="text-xs text-gray-400 mt-1">{{ $t('settings.goalsSection.desc') }}</p>
         </div>
 
         <form @submit.prevent="handleSaveGoals" class="space-y-4">
           <div v-if="paliers.length === 0" class="text-center py-8 text-xs text-gray-500 border border-dashed border-gray-800 rounded-2xl space-y-2">
             <Target class="w-8 h-8 text-gray-600 mx-auto mb-1" />
-            <p class="text-gray-400 font-medium">Aucun palier d'objectif configuré</p>
-            <p class="text-[11px] text-gray-600">Ajoutez votre premier palier pour commencer le suivi de votre progression.</p>
+            <p class="text-gray-400 font-medium">{{ $t('settings.goalsSection.emptyTitle') }}</p>
+            <p class="text-[11px] text-gray-600">{{ $t('settings.goalsSection.emptyDesc') }}</p>
           </div>
 
           <div v-else class="space-y-3">
@@ -143,7 +157,7 @@
                   <span class="w-5 h-5 rounded-full bg-violet-600/20 text-violet-400 border border-violet-500/30 flex items-center justify-center text-[10px]">
                     {{ index + 1 }}
                   </span>
-                  Palier {{ index + 1 }}
+                  {{ $t('settings.goalsSection.stageLabel', { index: index + 1 }) }}
                 </span>
 
                 <div class="flex items-center gap-2">
@@ -158,14 +172,14 @@
                     ]"
                   >
                     <CheckCircle class="w-3.5 h-3.5" :class="{ 'text-emerald-400': palier.validated }" />
-                    <span>{{ palier.validated ? 'Validé' : 'Non validé' }}</span>
+                    <span>{{ palier.validated ? $t('settings.goalsSection.validated') : $t('settings.goalsSection.notValidated') }}</span>
                   </button>
 
                   <button
                     type="button"
                     @click="removePalier(index)"
                     class="p-1.5 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors cursor-pointer"
-                    title="Supprimer ce palier"
+                    :title="$t('settings.goalsSection.deleteStageTitle')"
                   >
                     <Trash2 class="w-4 h-4" />
                   </button>
@@ -174,13 +188,13 @@
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="space-y-1">
-                  <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Poids Cible (kg)</label>
+                  <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ $t('settings.goalsSection.targetWeightLabel') }}</label>
                   <div class="relative">
                     <input
                       type="number"
                       step="0.1"
                       min="1"
-                      placeholder="ex: 85.0"
+                      :placeholder="$t('settings.goalsSection.targetWeightPlaceholder')"
                       v-model="palier.mass"
                       class="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-gray-900 border border-gray-800 focus:border-violet-500/50 text-xs text-white"
                     />
@@ -189,14 +203,14 @@
                 </div>
 
                 <div class="space-y-1">
-                  <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Masse Grasse Cible (%) <span class="text-gray-600 font-normal">(optionnel)</span></label>
+                  <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ $t('settings.goalsSection.targetFatLabel') }} <span class="text-gray-600 font-normal">{{ $t('settings.goalsSection.optional') }}</span></label>
                   <div class="relative">
                     <input
                       type="number"
                       step="0.1"
                       min="0"
                       max="100"
-                      placeholder="ex: 15.0"
+                      :placeholder="$t('settings.goalsSection.targetFatPlaceholder')"
                       v-model="palier.fat"
                       class="w-full pl-3.5 pr-8 py-2.5 rounded-xl bg-gray-900 border border-gray-800 focus:border-violet-500/50 text-xs text-white"
                     />
@@ -214,7 +228,7 @@
               class="flex-1 py-3 px-4 rounded-xl bg-gray-900 hover:bg-gray-800 active:scale-[0.98] text-gray-200 border border-gray-800 text-xs font-semibold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Plus class="w-4 h-4 text-violet-400" />
-              <span>Ajouter un palier</span>
+              <span>{{ $t('settings.goalsSection.addStageBtn') }}</span>
             </button>
 
             <button
@@ -222,7 +236,7 @@
               :disabled="goalsLoading"
               class="flex-1 py-3 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 active:scale-[0.98] text-white font-semibold text-xs transition-all duration-200 cursor-pointer shadow-lg shadow-violet-500/20 flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
-              {{ goalsLoading ? 'Sauvegarde...' : 'Sauvegarder les Paliers' }}
+              {{ goalsLoading ? $t('settings.goalsSection.savingBtn') : $t('settings.goalsSection.saveStagesBtn') }}
             </button>
           </div>
         </form>
@@ -236,8 +250,8 @@
       <div class="glass-card p-5 sm:p-6 rounded-2xl space-y-5 border border-gray-800/80">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="text-sm font-bold text-violet-400 uppercase tracking-wider">Profil Corporel (Bio-Impédance BIA)</h3>
-            <p class="text-xs text-gray-400 mt-1">Données requises pour le calcul précis de votre masse grasse et impédances sur balance connectée.</p>
+            <h3 class="text-sm font-bold text-violet-400 uppercase tracking-wider">{{ $t('settings.profileSection.title') }}</h3>
+            <p class="text-xs text-gray-400 mt-1">{{ $t('settings.profileSection.desc') }}</p>
           </div>
           <span 
             :class="[
@@ -247,7 +261,7 @@
                 : 'bg-gray-800/60 border-gray-700 text-gray-400'
             ]"
           >
-            {{ isProfileActive ? '🟢 Profil Actif' : '⚪ Profil Inactif' }}
+            {{ isProfileActive ? $t('settings.profileSection.activeBadge') : $t('settings.profileSection.inactiveBadge') }}
           </span>
         </div>
 
@@ -255,7 +269,7 @@
         <div class="p-4 bg-indigo-950/30 border border-indigo-800/30 rounded-2xl flex gap-3 items-start">
           <Sparkles class="w-5 h-5 text-indigo-400 mt-0.5 flex-shrink-0" />
           <div class="text-xs leading-relaxed text-gray-300">
-            <strong class="text-indigo-300">⚠️ Règle du calcul BIA :</strong> Les calculs de composition corporelle (masse grasse, impédances) nécessitent <span class="text-white font-semibold">l'ensemble des 3 informations (Sexe, Âge et Taille)</span>. Si vous ne souhaitez pas les renseigner, le profil reste désactivé.
+            <strong class="text-indigo-300">{{ $t('settings.profileSection.ruleNotice') }}</strong> {{ $t('settings.profileSection.ruleDesc') }}
           </div>
         </div>
 
@@ -263,7 +277,7 @@
           <!-- Sexe Selection -->
           <div class="space-y-2">
             <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider">
-              Sexe biologique <span class="text-rose-400">*</span>
+              {{ $t('settings.profileSection.genderLabel') }} <span class="text-rose-400">*</span>
             </label>
             <div class="grid grid-cols-2 gap-3">
               <button
@@ -277,7 +291,7 @@
                 ]"
               >
                 <span class="text-base">👨</span>
-                <span>Homme</span>
+                <span>{{ $t('settings.profileSection.male') }}</span>
               </button>
 
               <button
@@ -291,7 +305,7 @@
                 ]"
               >
                 <span class="text-base">👩</span>
-                <span>Femme</span>
+                <span>{{ $t('settings.profileSection.female') }}</span>
               </button>
             </div>
           </div>
@@ -301,10 +315,10 @@
             <div class="space-y-2">
               <div class="flex items-center justify-between">
                 <label for="profile-birthdate" class="block text-xs font-bold text-gray-400 uppercase tracking-wider">
-                  Date de naissance <span class="text-rose-400">*</span>
+                  {{ $t('settings.profileSection.birthdateLabel') }} <span class="text-rose-400">*</span>
                 </label>
                 <span v-if="calculatedAge !== null" class="text-xs font-bold text-violet-400 bg-violet-600/15 border border-violet-500/20 px-2.5 py-0.5 rounded-lg">
-                  {{ calculatedAge }} ans
+                  {{ $t('settings.profileSection.ageYears', { age: calculatedAge }) }}
                 </span>
               </div>
               <input
@@ -319,7 +333,7 @@
             <!-- Height (cm) -->
             <div class="space-y-2">
               <label for="profile-height" class="block text-xs font-bold text-gray-400 uppercase tracking-wider">
-                Taille (en cm) <span class="text-rose-400">*</span>
+                {{ $t('settings.profileSection.heightLabel') }} <span class="text-rose-400">*</span>
               </label>
               <div class="relative">
                 <input
@@ -329,7 +343,7 @@
                   max="250"
                   step="1"
                   required
-                  placeholder="ex: 175"
+                  :placeholder="$t('settings.profileSection.heightPlaceholder')"
                   v-model="profileForm.height"
                   class="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-gray-950 border border-gray-800 focus:border-violet-500/50 text-xs text-white"
                 />
@@ -349,7 +363,7 @@
               class="py-3 px-4 rounded-xl bg-gray-900 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/30 text-gray-400 border border-gray-800 text-xs font-semibold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Trash2 class="w-4 h-4" />
-              <span>Effacer / Réinitialiser</span>
+              <span>{{ $t('settings.profileSection.resetBtn') }}</span>
             </button>
 
             <button 
@@ -362,7 +376,7 @@
                   : 'bg-gray-800/80 text-gray-500 cursor-not-allowed border border-gray-700/50'
               ]"
             >
-              {{ profileLoading ? 'Enregistrement...' : 'Sauvegarder le Profil BIA' }}
+              {{ profileLoading ? $t('settings.profileSection.savingBtn') : $t('settings.profileSection.saveBtn') }}
             </button>
           </div>
         </form>
@@ -376,8 +390,8 @@
       <div class="glass-card p-5 sm:p-6 rounded-2xl space-y-6 border border-gray-800/80">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="text-sm font-bold text-violet-400 uppercase tracking-wider">Balances Connectées (BLE)</h3>
-            <p class="text-xs text-gray-400 mt-1">Scannez et associez votre balance Bluetooth pour vos pesées automatiques.</p>
+            <h3 class="text-sm font-bold text-violet-400 uppercase tracking-wider">{{ $t('settings.devicesSection.title') }}</h3>
+            <p class="text-xs text-gray-400 mt-1">{{ $t('settings.devicesSection.desc') }}</p>
           </div>
 
           <!-- Native / Web Badge -->
@@ -390,7 +404,7 @@
             ]"
           >
             <Smartphone class="w-3.5 h-3.5" />
-            <span>{{ isNativePlatform ? 'APK Natif BLE' : 'Mode Web (APK requis)' }}</span>
+            <span>{{ isNativePlatform ? $t('settings.devicesSection.nativeBadge') : $t('settings.devicesSection.webBadge') }}</span>
           </div>
         </div>
 
@@ -399,8 +413,8 @@
           <div class="flex items-start gap-3">
             <Smartphone class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
             <div class="space-y-1.5 text-xs text-gray-300 leading-relaxed">
-              <p><strong class="text-amber-300">📱 Application Native Requise :</strong> Pour des raisons de compatibilité matérielle (écoute des trames publicitaires passives, négociation MTU étendue et protocole d'authentification propriétaire), la détection et la synchronisation automatique des balances connectées fonctionnent exclusivement via l'application native Android.</p>
-              <p class="text-[11px] text-gray-400">Installez l'APK officiel sur votre smartphone pour connecter et synchroniser directement votre balance.</p>
+              <p><strong class="text-amber-300">{{ $t('settings.devicesSection.nativeRequiredTitle') }}</strong> {{ $t('settings.devicesSection.nativeRequiredDesc') }}</p>
+              <p class="text-[11px] text-gray-400">{{ $t('settings.devicesSection.nativeRequiredHelp') }}</p>
             </div>
           </div>
           <a
@@ -408,18 +422,18 @@
             class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 text-xs font-semibold transition-all cursor-pointer shadow-sm"
           >
             <Download class="w-4 h-4" />
-            <span>Télécharger l'APK Android Officiel</span>
+            <span>{{ $t('settings.devicesSection.downloadApkBtn') }}</span>
           </a>
         </div>
 
         <!-- Paired Devices List -->
         <div class="space-y-3">
-          <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block">Balances enregistrées</span>
+          <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block">{{ $t('settings.devicesSection.registeredScales') }}</span>
           
           <div v-if="store.pairedDevices.length === 0" class="p-6 bg-gray-950/40 border border-dashed border-gray-800 rounded-2xl text-center space-y-2">
             <Scale class="w-8 h-8 text-gray-600 mx-auto mb-1" />
-            <p class="text-xs text-gray-300 font-medium">Aucune balance associée</p>
-            <p class="text-[11px] text-gray-500">Lancez la recherche ci-dessous pour détecter et associer votre balance.</p>
+            <p class="text-xs text-gray-300 font-medium">{{ $t('settings.devicesSection.noScalesTitle') }}</p>
+            <p class="text-[11px] text-gray-500">{{ $t('settings.devicesSection.noScalesDesc') }}</p>
           </div>
 
           <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -435,9 +449,9 @@
                 <div>
                   <h4 class="text-xs font-bold text-white leading-tight flex items-center gap-2">
                     {{ device.name }}
-                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Associée</span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">{{ $t('settings.devicesSection.pairedBadge') }}</span>
                   </h4>
-                  <p class="text-[10px] text-gray-400 font-mono mt-0.5">MAC : {{ device.mac || device.deviceId }}</p>
+                  <p class="text-[10px] text-gray-400 font-mono mt-0.5">{{ $t('settings.devicesSection.macPrefix') }}{{ device.mac || device.deviceId }}</p>
                 </div>
               </div>
 
@@ -445,7 +459,7 @@
                 type="button"
                 @click="handleRemoveDevice(device.deviceId)"
                 class="p-2 rounded-xl hover:bg-rose-500/10 text-gray-500 hover:text-rose-400 transition-colors cursor-pointer"
-                title="Dissocier cette balance"
+                :title="$t('settings.devicesSection.unpairScaleTitle')"
               >
                 <Trash2 class="w-4 h-4" />
               </button>
@@ -457,8 +471,8 @@
         <div class="p-5 bg-gray-950/80 border border-gray-800 rounded-2xl space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h4 class="text-xs font-bold text-white">Recherche d'appareils Bluetooth à proximité</h4>
-              <p class="text-[11px] text-gray-400 mt-0.5">Allumez votre balance ou montez brièvement dessus pour la réveiller.</p>
+              <h4 class="text-xs font-bold text-white">{{ $t('settings.devicesSection.scanBoxTitle') }}</h4>
+              <p class="text-[11px] text-gray-400 mt-0.5">{{ $t('settings.devicesSection.scanBoxDesc') }}</p>
             </div>
 
             <button
@@ -473,7 +487,7 @@
             >
               <RefreshCw v-if="isScanning" class="w-4 h-4 animate-spin" />
               <Search v-else class="w-4 h-4" />
-              <span>{{ isScanning ? 'Arrêter la recherche' : 'Rechercher (BLE)' }}</span>
+              <span>{{ isScanning ? $t('settings.devicesSection.stopScanBtn') : $t('settings.devicesSection.startScanBtn') }}</span>
             </button>
           </div>
 
@@ -486,13 +500,13 @@
           <!-- Scanning active animation indicator -->
           <div v-if="isScanning && discoveredDevices.length === 0" class="py-6 text-center space-y-2">
             <div class="w-8 h-8 border-2 border-violet-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p class="text-xs text-violet-300 font-medium">Recherche Bluetooth en cours...</p>
-            <p class="text-[10px] text-gray-500">Posez le pied sur la balance pour activer son émetteur BLE</p>
+            <p class="text-xs text-violet-300 font-medium">{{ $t('settings.devicesSection.scanningActiveTitle') }}</p>
+            <p class="text-[10px] text-gray-500">{{ $t('settings.devicesSection.scanningActiveDesc') }}</p>
           </div>
 
           <!-- Discovered Devices List -->
           <div v-if="discoveredDevices.length > 0" class="space-y-2.5 pt-3 border-t border-gray-900">
-            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block">Appareils trouvés ({{ discoveredDevices.length }})</span>
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block">{{ $t('settings.devicesSection.devicesFoundTitle', { count: discoveredDevices.length }) }}</span>
             
             <div 
               v-for="dev in discoveredDevices" 
@@ -510,13 +524,13 @@
                       v-if="getDeviceDriver(dev)"
                       class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold"
                     >
-                      Compatible
+                      {{ $t('settings.devicesSection.compatibleBadge') }}
                     </span>
                     <span 
                       v-else
                       class="text-[9px] px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700 select-none"
                     >
-                      Non supporté
+                      {{ $t('settings.devicesSection.unsupportedBadge') }}
                     </span>
                   </div>
                   <p class="text-[10px] text-gray-400 font-mono mt-0.5">{{ dev.deviceId }} <span v-if="dev.rssi" class="text-gray-500">({{ dev.rssi }} dBm)</span></p>
@@ -530,20 +544,20 @@
                   @click="handlePairDevice(dev)"
                   class="py-2 px-3.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold transition-colors cursor-pointer shadow-md shadow-violet-500/10"
                 >
-                  Associer
+                  {{ $t('settings.devicesSection.pairBtn') }}
                 </button>
                 <button
                   type="button"
                   v-else
                   disabled
                   class="py-2 px-3.5 rounded-xl bg-gray-800/80 border border-gray-700/50 text-gray-500 text-xs font-semibold cursor-not-allowed select-none"
-                  title="Pilote non disponible pour ce modèle"
+                  :title="$t('settings.devicesSection.unsupportedDriverTitle')"
                 >
-                  Non supporté
+                  {{ $t('settings.devicesSection.unsupportedBtn') }}
                 </button>
               </template>
               <span v-else class="text-xs text-emerald-400 font-semibold px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                Déjà associée
+                {{ $t('settings.devicesSection.alreadyPairedBadge') }}
               </span>
             </div>
           </div>
@@ -552,13 +566,106 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- SECTION 4 : SAUVEGARDE & MIGRATION                       -->
+    <!-- SECTION 4 : LANGUE / INTERNATIONALIZATION (i18n)         -->
+    <!-- ======================================================== -->
+    <div v-show="activeSubTab === 'language'" class="space-y-6">
+      <div class="glass-card p-5 sm:p-6 rounded-2xl space-y-5 border border-gray-800/80">
+        <div>
+          <h3 class="text-sm font-bold text-violet-400 uppercase tracking-wider flex items-center gap-2">
+            <Globe class="w-4 h-4 text-violet-400" />
+            {{ $t('settings.languageSection.title') }}
+          </h3>
+          <p class="text-xs text-gray-400 mt-1">
+            {{ $t('settings.languageSection.desc') }}
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <!-- 1. Automatique (Navigateur) -->
+          <button
+            type="button"
+            @click="selectLanguage(null)"
+            :class="[
+              'p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex flex-col justify-between gap-3 select-none',
+              store.language === null || store.language === 'auto'
+                ? 'bg-violet-600/20 border-violet-500/50 shadow-lg shadow-violet-500/10'
+                : 'bg-gray-950/60 border-gray-800/80 hover:border-gray-700/80'
+            ]"
+          >
+            <div class="flex items-center justify-between w-full">
+              <span class="text-2xl">🌐</span>
+              <span 
+                v-if="store.language === null || store.language === 'auto'"
+                class="w-2.5 h-2.5 rounded-full bg-violet-400 animate-pulse"
+              ></span>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-white">{{ $t('settings.languageSection.autoOption') }}</h4>
+              <p class="text-[11px] text-gray-400 mt-0.5">
+                {{ detectedBrowserLang === 'en' ? $t('settings.languageSection.autoDetectedEn') : $t('settings.languageSection.autoDetectedFr') }}
+              </p>
+            </div>
+          </button>
+
+          <!-- 2. Français -->
+          <button
+            type="button"
+            @click="selectLanguage('fr')"
+            :class="[
+              'p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex flex-col justify-between gap-3 select-none',
+              store.language === 'fr'
+                ? 'bg-violet-600/20 border-violet-500/50 shadow-lg shadow-violet-500/10'
+                : 'bg-gray-950/60 border-gray-800/80 hover:border-gray-700/80'
+            ]"
+          >
+            <div class="flex items-center justify-between w-full">
+              <span class="text-2xl">🇫🇷</span>
+              <span 
+                v-if="store.language === 'fr'"
+                class="w-2.5 h-2.5 rounded-full bg-violet-400 animate-pulse"
+              ></span>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-white">{{ $t('settings.languageSection.frOption') }}</h4>
+              <p class="text-[11px] text-gray-400 mt-0.5">Français (FR)</p>
+            </div>
+          </button>
+
+          <!-- 3. English -->
+          <button
+            type="button"
+            @click="selectLanguage('en')"
+            :class="[
+              'p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex flex-col justify-between gap-3 select-none',
+              store.language === 'en'
+                ? 'bg-violet-600/20 border-violet-500/50 shadow-lg shadow-violet-500/10'
+                : 'bg-gray-950/60 border-gray-800/80 hover:border-gray-700/80'
+            ]"
+          >
+            <div class="flex items-center justify-between w-full">
+              <span class="text-2xl">🇬🇧</span>
+              <span 
+                v-if="store.language === 'en'"
+                class="w-2.5 h-2.5 rounded-full bg-violet-400 animate-pulse"
+              ></span>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-white">{{ $t('settings.languageSection.enOption') }}</h4>
+              <p class="text-[11px] text-gray-400 mt-0.5">English (US / UK)</p>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 5 : SAUVEGARDE & MIGRATION                       -->
     <!-- ======================================================== -->
     <div v-show="activeSubTab === 'data'" class="space-y-6">
       <div class="glass-card p-5 sm:p-6 rounded-2xl space-y-5 border border-gray-800/80">
         <div>
-          <h3 class="text-sm font-bold text-violet-400 uppercase tracking-wider">Sauvegarde & Migration</h3>
-          <p class="text-xs text-gray-400 mt-1">Exportez ou restaurez l'intégralité de vos données (pesées, mensurations, paliers, profil BIA et balances) au format JSON.</p>
+          <h3 class="text-sm font-bold text-violet-400 uppercase tracking-wider">{{ $t('settings.dataSection.title') }}</h3>
+          <p class="text-xs text-gray-400 mt-1">{{ $t('settings.dataSection.desc') }}</p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
@@ -569,7 +676,7 @@
             class="py-3.5 px-4 rounded-2xl bg-gray-950 hover:bg-gray-900 active:scale-[0.98] text-gray-200 hover:text-white transition-all duration-200 text-xs font-semibold cursor-pointer border border-gray-800 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
           >
             <Download class="w-4 h-4 text-violet-400" />
-            <span>{{ exportLoading ? 'Exportation...' : 'Exporter toutes les données (JSON)' }}</span>
+            <span>{{ exportLoading ? $t('settings.dataSection.exportingBtn') : $t('settings.dataSection.exportBtn') }}</span>
           </button>
 
           <button
@@ -579,7 +686,7 @@
             class="py-3.5 px-4 rounded-2xl bg-gray-950 hover:bg-gray-900 active:scale-[0.98] text-gray-200 hover:text-white transition-all duration-200 text-xs font-semibold cursor-pointer border border-gray-800 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
           >
             <Upload class="w-4 h-4 text-violet-400" />
-            <span>{{ importLoading ? 'Restauration...' : 'Restaurer depuis un fichier (JSON)' }}</span>
+            <span>{{ importLoading ? $t('settings.dataSection.restoringBtn') : $t('settings.dataSection.restoreBtn') }}</span>
           </button>
           <input
             ref="fileInputRef"
@@ -593,14 +700,14 @@
         <div class="p-4 bg-gray-950/60 border border-gray-800/80 rounded-2xl flex items-start gap-3">
           <Database class="w-5 h-5 text-violet-400 shrink-0 mt-0.5" />
           <div class="text-xs text-gray-300 leading-relaxed">
-            Le fichier de sauvegarde JSON contient l'historique complet de vos pesées, l'ensemble de vos mensurations, vos paliers d'objectifs, votre profil corporel BIA et vos balances connectées configurées.
+            {{ $t('settings.dataSection.jsonNotice') }}
           </div>
         </div>
       </div>
     </div>
 
     <!-- ======================================================== -->
-    <!-- SECTION 5 : PRÉFÉRENCES D'AFFICHAGE (CARTES & GRAPHES)   -->
+    <!-- SECTION 6 : PRÉFÉRENCES D'AFFICHAGE (CARTES & GRAPHES)   -->
     <!-- ======================================================== -->
     <div v-show="activeSubTab === 'display'">
       <SettingsDisplayTab />
@@ -622,17 +729,31 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { 
   ArrowLeft, Trash2, Plus, CheckCircle, Download, Upload, 
-  Target, User, Scale, Database, Sparkles, Bluetooth, Search, RefreshCw, Smartphone, AlertTriangle, LayoutGrid
+  Target, User, Scale, Database, Sparkles, Bluetooth, Search, RefreshCw, Smartphone, AlertTriangle, LayoutGrid, Globe
 } from 'lucide-vue-next';
 import { useBodyGraphStore, calculateAge } from '../stores/bodyGraph';
 import { BleService } from '../services/ble/bleService';
 import { ScaleManager } from '../services/ble/scaleManager';
+import { useI18n, detectBrowserLanguage } from '../i18n';
+import { useToast } from '../composables/useToast';
 import ScalePairingModal from './ScalePairingModal.vue';
 import SettingsDisplayTab from './SettingsDisplayTab.vue';
 
 const store = useBodyGraphStore();
+const { t } = useI18n();
+const toast = useToast();
 
-const activeSubTab = ref('goals'); // 'goals' | 'display' | 'profile' | 'devices' | 'data'
+const activeSubTab = ref('goals'); // 'goals' | 'display' | 'profile' | 'devices' | 'language' | 'data'
+
+// Language State
+const detectedBrowserLang = computed(() => {
+  return detectBrowserLanguage();
+});
+
+const selectLanguage = async (lang) => {
+  await store.updateLanguage(lang);
+  toast.showToast(t('settings.languageSection.toastSuccess'), 'success');
+};
 
 // Goals state
 const paliers = ref([]);
@@ -760,12 +881,12 @@ const handleSaveGoals = async () => {
     const fatVal = p.fat === '' ? null : Number(p.fat);
 
     if (massVal !== null && (isNaN(massVal) || massVal <= 0)) {
-      errorMsg.value = `Palier ${i + 1} : Le poids doit être un nombre positif`;
+      errorMsg.value = t('settings.goalsSection.weightPositiveError', { index: i + 1 });
       goalsLoading.value = false;
       return;
     }
     if (fatVal !== null && (isNaN(fatVal) || fatVal < 0 || fatVal > 100)) {
-      errorMsg.value = `Palier ${i + 1} : Le taux de graisse doit être compris entre 0 et 100%`;
+      errorMsg.value = t('settings.goalsSection.fatRangeError', { index: i + 1 });
       goalsLoading.value = false;
       return;
     }
@@ -780,12 +901,12 @@ const handleSaveGoals = async () => {
 
   try {
     await store.updatePaliers(formattedPaliers);
-    successMsg.value = 'Objectifs sauvegardés avec succès !';
+    successMsg.value = t('settings.goalsSection.saveSuccess');
     setTimeout(() => {
       successMsg.value = '';
     }, 2500);
   } catch (error) {
-    errorMsg.value = 'Échec de la sauvegarde des paliers : ' + error.message;
+    errorMsg.value = t('settings.goalsSection.saveFailed') + error.message;
   } finally {
     goalsLoading.value = false;
   }
@@ -799,20 +920,20 @@ const handleSaveProfile = async () => {
 
   try {
     if (!profileForm.value.gender || (profileForm.value.gender !== 'male' && profileForm.value.gender !== 'female')) {
-      errorMsg.value = 'Veuillez sélectionner votre sexe biologique (Homme ou Femme).';
+      errorMsg.value = t('settings.profileSection.genderLabel');
       profileLoading.value = false;
       return;
     }
 
     if (!profileForm.value.birthDate || calculatedAge.value === null || calculatedAge.value < 5 || calculatedAge.value > 120) {
-      errorMsg.value = 'Veuillez renseigner une date de naissance valide.';
+      errorMsg.value = t('settings.profileSection.birthdateLabel');
       profileLoading.value = false;
       return;
     }
 
     const hVal = Number(profileForm.value.height);
     if (!profileForm.value.height || isNaN(hVal) || hVal < 50 || hVal > 250) {
-      errorMsg.value = 'Veuillez saisir une taille valide (entre 50 et 250 cm).';
+      errorMsg.value = t('settings.profileSection.heightLabel');
       profileLoading.value = false;
       return;
     }
@@ -823,12 +944,12 @@ const handleSaveProfile = async () => {
       height: hVal
     });
 
-    successMsg.value = 'Profil BIA sauvegardé avec succès !';
+    successMsg.value = t('settings.profileSection.saveSuccess');
     setTimeout(() => {
       successMsg.value = '';
     }, 2500);
   } catch (error) {
-    errorMsg.value = 'Échec de la sauvegarde du profil : ' + error.message;
+    errorMsg.value = t('settings.profileSection.saveFailed') + error.message;
   } finally {
     profileLoading.value = false;
   }
@@ -850,12 +971,12 @@ const handleResetProfile = async () => {
       birthDate: null,
       height: null
     });
-    successMsg.value = 'Profil BIA effacé et désactivé.';
+    successMsg.value = t('settings.profileSection.resetSuccess');
     setTimeout(() => {
       successMsg.value = '';
     }, 2500);
   } catch (error) {
-    errorMsg.value = 'Échec de la réinitialisation : ' + error.message;
+    errorMsg.value = t('settings.profileSection.saveFailed') + error.message;
   } finally {
     profileLoading.value = false;
   }
@@ -953,12 +1074,12 @@ const onDeviceSuccessfullyPaired = (device) => {
 const handleRemoveDevice = async (deviceId) => {
   try {
     await store.removePairedDevice(deviceId);
-    successMsg.value = 'Balance dissociée.';
+    successMsg.value = t('settings.devicesSection.unpairSuccess');
     setTimeout(() => {
       successMsg.value = '';
     }, 2000);
   } catch (err) {
-    errorMsg.value = 'Échec de la suppression : ' + (err.message || err);
+    errorMsg.value = t('settings.devicesSection.unpairFailed') + (err.message || err);
   }
 };
 
@@ -972,12 +1093,10 @@ const handleExport = async () => {
   errorMsg.value = '';
   successMsg.value = '';
   try {
-    const data = await store.exportData();
-    const totalLogs = data.logs?.length || 0;
-    const totalM = data.measurements?.length || 0;
-    successMsg.value = `Export réussi (${totalLogs} pesées, ${totalM} mensurations, profil inclus) !`;
+    await store.exportData();
+    successMsg.value = t('settings.dataSection.exportSuccess');
   } catch (err) {
-    errorMsg.value = "Échec de l'export : " + (err.message || err);
+    errorMsg.value = t('settings.dataSection.exportFailed') + (err.message || err);
   } finally {
     exportLoading.value = false;
   }
@@ -1002,17 +1121,17 @@ const handleFileImport = async (event) => {
   reader.onload = async (e) => {
     try {
       const content = e.target.result;
-      const res = await store.importData(content);
-      successMsg.value = `Import réussi : ${res.importedLogsCount} pesées, ${res.importedMeasurementsCount} mensurations restaurées !`;
+      await store.importData(content);
+      successMsg.value = t('settings.dataSection.importSuccess');
       loadFromStore();
     } catch (err) {
-      errorMsg.value = "Échec de l'import : " + (err.message || err);
+      errorMsg.value = t('settings.dataSection.importFailed') + (err.message || err);
     } finally {
       importLoading.value = false;
     }
   };
   reader.onerror = () => {
-    errorMsg.value = 'Erreur lors de la lecture du fichier.';
+    errorMsg.value = t('settings.dataSection.invalidJsonError');
     importLoading.value = false;
   };
   reader.readAsText(file);

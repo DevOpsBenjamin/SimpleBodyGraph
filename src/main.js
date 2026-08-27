@@ -2,9 +2,11 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import './style.css'
 import App from './App.vue'
+import { i18nPlugin } from './i18n'
 
 const app = createApp(App)
 app.use(createPinia())
+app.use(i18nPlugin)
 app.mount('#app')
 
 // Register Service Worker for offline-first capabilities

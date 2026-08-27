@@ -270,7 +270,7 @@ export async function bulkWrite(storeName, { puts = [], deletes = [] }) {
 }
 
 // Export all data for backup / migration
-export async function exportAllData(userId = 'guest', paliers = [], profile = null, displayPreferences = null) {
+export async function exportAllData(userId = 'guest', paliers = [], profile = null, displayPreferences = null, language = null) {
   const logs = await getAllLogs(userId);
   const measurements = await getAllMeasurements(userId);
   return {
@@ -279,6 +279,7 @@ export async function exportAllData(userId = 'guest', paliers = [], profile = nu
     paliers: paliers || [],
     profile: profile || null,
     displayPreferences: displayPreferences || null,
+    language: language || null,
     logs: logs.map(l => ({
       id: l.id,
       date: l.date,
@@ -309,6 +310,7 @@ export async function importAllData(data, userId = 'guest') {
   const paliersToImport = Array.isArray(data.paliers) ? data.paliers : [];
   const profileToImport = (data.profile && typeof data.profile === 'object') ? data.profile : null;
   const displayPreferencesToImport = (data.displayPreferences && typeof data.displayPreferences === 'object') ? data.displayPreferences : null;
+  const languageToImport = (data.language === 'fr' || data.language === 'en') ? data.language : null;
 
   const validLogs = [];
   for (const log of logsToImport) {
@@ -354,7 +356,8 @@ export async function importAllData(data, userId = 'guest') {
     importedMeasurementsCount: validMeasurements.length,
     paliers: paliersToImport,
     profile: profileToImport,
-    displayPreferences: displayPreferencesToImport
+    displayPreferences: displayPreferencesToImport,
+    language: languageToImport
   };
 }
 

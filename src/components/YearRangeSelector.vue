@@ -5,8 +5,8 @@
         <Calendar class="w-4 h-4 sm:w-5 sm:h-5" />
       </div>
       <div>
-        <h4 class="text-xs sm:text-sm font-bold text-white leading-tight">Filtre Années</h4>
-        <p class="text-[10px] sm:text-xs text-gray-400 hidden xs:block">Période des graphiques</p>
+        <h4 class="text-xs sm:text-sm font-bold text-white leading-tight">{{ $t('yearFilter.title') }}</h4>
+        <p class="text-[10px] sm:text-xs text-gray-400 hidden xs:block">{{ $t('yearFilter.subtitle') }}</p>
       </div>
     </div>
 
@@ -16,7 +16,7 @@
         <select
           v-model="store.startYear"
           class="bg-gray-950 border border-gray-800 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-white focus:outline-none focus:border-violet-500 cursor-pointer"
-          aria-label="Année de départ"
+          :aria-label="$t('yearFilter.startYearAria')"
         >
           <option v-for="yr in store.availableYears.slice().reverse()" :key="yr" :value="yr">{{ yr }}</option>
         </select>
@@ -28,7 +28,7 @@
         <select
           v-model="store.endYear"
           class="bg-gray-950 border border-gray-800 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-white focus:outline-none focus:border-violet-500 cursor-pointer"
-          aria-label="Année de fin"
+          :aria-label="$t('yearFilter.endYearAria')"
         >
           <option v-for="yr in store.availableYears" :key="yr" :value="yr" :disabled="yr < store.startYear">{{ yr }}</option>
         </select>

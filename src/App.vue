@@ -11,18 +11,19 @@
     >
       <span class="text-xl">📱</span>
       <div class="flex-1 min-w-0">
-        <p class="text-xs font-semibold text-white leading-tight">Une app native est disponible !</p>
-        <p class="text-[10px] text-gray-400">Installe l'APK pour une meilleure expérience</p>
+        <p class="text-xs font-semibold text-white leading-tight">{{ $t('apkBanner.title') }}</p>
+        <p class="text-[10px] text-gray-400">{{ $t('apkBanner.subtitle') }}</p>
       </div>
       <a
         href="https://devopsbenjamin.github.io/SimpleBodyGraph/"
         class="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white transition-colors"
       >
-        Télécharger
+        {{ $t('apkBanner.download') }}
       </a>
       <button
         @click="apkBannerDismissed = true"
         class="shrink-0 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+        :aria-label="$t('common.close')"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
@@ -64,11 +65,11 @@
                 ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
                 : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
             ]"
-            title="Tendance mensuelle"
-            aria-label="Mois"
+            :title="$t('nav.monthlyTitle')"
+            :aria-label="$t('nav.monthly')"
           >
             <TrendingUp class="w-3.5 h-3.5" />
-            <span>Mois</span>
+            <span>{{ $t('nav.monthly') }}</span>
           </button>
           <button 
             @click="store.activeView = 'dashboard'; store.activeTab = 'weekly'"
@@ -78,11 +79,11 @@
                 ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
                 : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
             ]"
-            title="Tendance hebdomadaire"
-            aria-label="Semaine"
+            :title="$t('nav.weeklyTitle')"
+            :aria-label="$t('nav.weekly')"
           >
             <CalendarDays class="w-3.5 h-3.5" />
-            <span>Semaine</span>
+            <span>{{ $t('nav.weekly') }}</span>
           </button>
           <button 
             @click="store.activeView = 'dashboard'; store.activeTab = 'history'"
@@ -92,11 +93,11 @@
                 ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
                 : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
             ]"
-            title="Historique des logs"
-            aria-label="Logs"
+            :title="$t('nav.historyTitle')"
+            :aria-label="$t('nav.history')"
           >
             <History class="w-3.5 h-3.5" />
-            <span>Logs</span>
+            <span>{{ $t('nav.history') }}</span>
           </button>
           <button
             @click="store.activeView = 'dashboard'; store.activeTab = 'measurements'"
@@ -106,11 +107,11 @@
                 ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
                 : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
             ]"
-            title="Mensurations ruban"
-            aria-label="Mesures"
+            :title="$t('nav.measurementsTitle')"
+            :aria-label="$t('nav.measurements')"
           >
             <Ruler class="w-3.5 h-3.5" />
-            <span>Mesures</span>
+            <span>{{ $t('nav.measurements') }}</span>
           </button>
           <button
             @click="store.activeView = 'settings'"
@@ -120,11 +121,11 @@
                 ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30 scale-[1.02]' 
                 : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
             ]"
-            title="Settings & Goals"
-            aria-label="Paramètres"
+            :title="$t('nav.settingsTitle')"
+            :aria-label="$t('nav.settings')"
           >
             <Settings class="w-3.5 h-3.5" />
-            <span>Paramètres</span>
+            <span>{{ $t('nav.settings') }}</span>
           </button>
         </div>
       </section>
@@ -172,10 +173,10 @@
               v-if="store.pairedDevices.length > 0"
               @click="store.showLiveWeighInModal = true; showQuickActions = false"
               class="flex items-center gap-2.5 group cursor-pointer"
-              title="Pesée Bluetooth"
+              :title="$t('fab.bleWeighInTitle')"
             >
               <span class="px-2.5 py-1 rounded-xl bg-gray-900/90 border border-gray-800 text-xs font-semibold text-gray-200 shadow-lg group-hover:text-white transition-colors">
-                Pesée Bluetooth en direct
+                {{ $t('fab.liveBleWeighIn') }}
               </span>
               <div class="w-12 h-12 rounded-full bg-violet-600 hover:bg-violet-500 text-white flex items-center justify-center shadow-lg shadow-violet-600/30 transition-transform group-hover:scale-105 active:scale-95 relative">
                 <Scale class="w-5 h-5" />
@@ -189,11 +190,11 @@
             <button
               @click="store.showAddMeasurementModal = true; showQuickActions = false"
               class="flex items-center gap-2.5 group cursor-pointer"
-              title="Add Measurement"
-              aria-label="Add Measurement"
+              :title="$t('fab.addMeasurementTitle')"
+              :aria-label="$t('fab.addMeasurementTitle')"
             >
               <span class="px-2.5 py-1 rounded-xl bg-gray-900/90 border border-gray-800 text-xs font-semibold text-gray-200 shadow-lg group-hover:text-white transition-colors">
-                Nouvelles Mensurations
+                {{ $t('fab.newMeasurements') }}
               </span>
               <div class="w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30 transition-transform group-hover:scale-105 active:scale-95">
                 <Ruler class="w-5 h-5" />
@@ -204,11 +205,11 @@
             <button
               @click="store.showAddModal = true; showQuickActions = false"
               class="flex items-center gap-2.5 group cursor-pointer"
-              title="Add Log Entry"
-              aria-label="Add Log Entry"
+              :title="$t('fab.addLogTitle')"
+              :aria-label="$t('fab.addLogTitle')"
             >
               <span class="px-2.5 py-1 rounded-xl bg-gray-900/90 border border-gray-800 text-xs font-semibold text-gray-200 shadow-lg group-hover:text-white transition-colors">
-                Pesée Manuelle
+                {{ $t('fab.manualWeighIn') }}
               </span>
               <div class="w-12 h-12 rounded-full bg-violet-600 hover:bg-violet-500 text-white flex items-center justify-center shadow-lg shadow-violet-600/30 transition-transform group-hover:scale-105 active:scale-95">
                 <Plus class="w-5 h-5" />
@@ -227,8 +228,8 @@
                   ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/40 hover:scale-105'
                   : 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-600/40 hover:scale-105'
             ]"
-            :title="store.activeTab === 'measurements' ? 'Add Measurement' : 'Add Log Entry'"
-            :aria-label="store.activeTab === 'measurements' ? 'Add Measurement' : 'Add Log Entry'"
+            :title="store.activeTab === 'measurements' ? $t('fab.addMeasurementTitle') : $t('fab.addLogTitle')"
+            :aria-label="store.activeTab === 'measurements' ? $t('fab.addMeasurementTitle') : $t('fab.addLogTitle')"
           >
             <Plus class="w-7 h-7 transition-transform duration-200" />
           </button>
@@ -238,7 +239,7 @@
       <!-- Mobile Bottom Navigation Bar (Always visible on mobile) -->
       <nav 
         class="fixed bottom-0 left-0 right-0 z-40 bg-gray-950/90 backdrop-blur-xl border-t border-gray-800/80 px-2 py-1.5 sm:hidden flex items-center justify-around shadow-2xl shadow-black"
-        aria-label="Navigation mobile"
+        :aria-label="$t('nav.mobileNavigation')"
       >
         <button
           @click="store.activeView = 'dashboard'; store.activeTab = 'monthly'"
@@ -248,10 +249,10 @@
               ? 'text-violet-400 font-bold scale-105'
               : 'text-gray-400 hover:text-gray-200'
           ]"
-          aria-label="Mois"
+          :aria-label="$t('nav.monthly')"
         >
           <TrendingUp class="w-5 h-5" />
-          <span class="text-[10px] tracking-tight">Mois</span>
+          <span class="text-[10px] tracking-tight">{{ $t('nav.monthly') }}</span>
           <span v-if="store.activeView === 'dashboard' && store.activeTab === 'monthly'" class="w-1 h-1 rounded-full bg-violet-400"></span>
         </button>
 
@@ -263,10 +264,10 @@
               ? 'text-violet-400 font-bold scale-105'
               : 'text-gray-400 hover:text-gray-200'
           ]"
-          aria-label="Semaine"
+          :aria-label="$t('nav.weekly')"
         >
           <CalendarDays class="w-5 h-5" />
-          <span class="text-[10px] tracking-tight">Semaine</span>
+          <span class="text-[10px] tracking-tight">{{ $t('nav.weekly') }}</span>
           <span v-if="store.activeView === 'dashboard' && store.activeTab === 'weekly'" class="w-1 h-1 rounded-full bg-violet-400"></span>
         </button>
 
@@ -278,10 +279,10 @@
               ? 'text-violet-400 font-bold scale-105'
               : 'text-gray-400 hover:text-gray-200'
           ]"
-          aria-label="Logs"
+          :aria-label="$t('nav.history')"
         >
           <History class="w-5 h-5" />
-          <span class="text-[10px] tracking-tight">Logs</span>
+          <span class="text-[10px] tracking-tight">{{ $t('nav.history') }}</span>
           <span v-if="store.activeView === 'dashboard' && store.activeTab === 'history'" class="w-1 h-1 rounded-full bg-violet-400"></span>
         </button>
 
@@ -293,10 +294,10 @@
               ? 'text-violet-400 font-bold scale-105'
               : 'text-gray-400 hover:text-gray-200'
           ]"
-          aria-label="Mesures"
+          :aria-label="$t('nav.measurements')"
         >
           <Ruler class="w-5 h-5" />
-          <span class="text-[10px] tracking-tight">Mesures</span>
+          <span class="text-[10px] tracking-tight">{{ $t('nav.measurements') }}</span>
           <span v-if="store.activeView === 'dashboard' && store.activeTab === 'measurements'" class="w-1 h-1 rounded-full bg-violet-400"></span>
         </button>
 
@@ -308,11 +309,11 @@
               ? 'text-violet-400 font-bold scale-105'
               : 'text-gray-400 hover:text-gray-200'
           ]"
-          title="Paramètres & Objectifs"
-          aria-label="Réglages"
+          :title="$t('nav.settingsTitle')"
+          :aria-label="$t('nav.settings')"
         >
           <Settings class="w-5 h-5" />
-          <span class="text-[10px] tracking-tight">Réglages</span>
+          <span class="text-[10px] tracking-tight">{{ $t('nav.settings') }}</span>
           <span v-if="store.activeView === 'settings'" class="w-1 h-1 rounded-full bg-violet-400"></span>
         </button>
       </nav>

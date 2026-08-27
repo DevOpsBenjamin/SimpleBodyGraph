@@ -23,9 +23,9 @@
           </div>
           <div>
             <h3 id="pairing-modal-title" class="text-base font-extrabold text-white tracking-tight">
-              Assistant d'Appairage
+              {{ $t('pairing.wizardTitle') }}
             </h3>
-            <p class="text-xs text-gray-400">{{ device?.name || 'Balance Connectée' }}</p>
+            <p class="text-xs text-gray-400">{{ device?.name || $t('pairing.defaultDeviceName') }}</p>
           </div>
         </div>
 
@@ -33,7 +33,8 @@
           type="button" 
           @click="handleCancel"
           class="p-2 rounded-xl text-gray-500 hover:text-gray-300 hover:bg-gray-800/60 transition-colors cursor-pointer"
-          title="Fermer"
+          :title="$t('common.close')"
+          :aria-label="$t('common.close')"
         >
           <X class="w-4 h-4" />
         </button>
@@ -44,16 +45,16 @@
         <div class="p-4 bg-violet-950/20 border border-violet-500/30 rounded-2xl space-y-2">
           <div class="flex items-center gap-2 text-xs font-bold text-violet-300">
             <HelpCircle class="w-4 h-4" />
-            <span>Adresse MAC physique requise</span>
+            <span>{{ $t('pairing.macRequiredTitle') }}</span>
           </div>
           <p class="text-xs text-gray-300 leading-relaxed">
-            Pour dériver la clé cryptographique unique de votre balance, veuillez confirmer ou saisir l'adresse MAC inscrite sur l'étiquette au dos de l'appareil.
+            {{ $t('pairing.macRequiredDesc') }}
           </p>
         </div>
 
         <div class="space-y-1.5">
           <label for="mac-address-input" class="text-xs font-bold text-gray-400 uppercase tracking-wider block">
-            Adresse MAC (Format XX:XX:XX:XX:XX:XX)
+            {{ $t('pairing.macLabel') }}
           </label>
           <input
             id="mac-address-input"
@@ -71,7 +72,7 @@
             @click="handleCancel"
             class="flex-1 py-2.5 px-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold transition-all cursor-pointer"
           >
-            Annuler
+            {{ $t('common.cancel') }}
           </button>
           <button
             type="button"
@@ -79,7 +80,7 @@
             :disabled="!inputMac"
             class="flex-1 py-2.5 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold transition-all cursor-pointer disabled:opacity-50"
           >
-            Continuer
+            {{ $t('common.continue') }}
           </button>
         </div>
       </div>
@@ -123,7 +124,7 @@
             <div class="space-y-1 flex-1 min-w-0">
               <div class="flex items-center justify-between">
                 <h4 class="text-sm font-bold text-white tracking-tight truncate">
-                  {{ isComplete ? 'Appairage Terminé !' : isError ? 'Erreur d\'appairage' : currentStep?.title || 'Initialisation...' }}
+                  {{ isComplete ? $t('pairing.pairingComplete') : isError ? $t('pairing.pairingError') : currentStep?.title || $t('pairing.initializing') }}
                 </h4>
                 <span 
                   :class="[
@@ -137,11 +138,11 @@
                           : 'bg-violet-500/20 text-violet-400'
                   ]"
                 >
-                  {{ isComplete ? 'Succès' : isError ? 'Échec' : currentStep?.status === 'waiting_user_action' ? 'Action Requise' : 'En cours' }}
+                  {{ isComplete ? $t('pairing.successBadge') : isError ? $t('pairing.failedBadge') : currentStep?.status === 'waiting_user_action' ? $t('pairing.actionRequiredBadge') : $t('pairing.inProgressBadge') }}
                 </span>
               </div>
               <p class="text-xs text-gray-300 leading-relaxed">
-                {{ isComplete ? 'Votre balance est désormais configurée et étalonnée. Vous pouvez réaliser vos pesées quotidiennes.' : isError ? errorMessage : currentStep?.message }}
+                {{ isComplete ? $t('pairing.successDesc') : isError ? errorMessage : currentStep?.message }}
               </p>
             </div>
           </div>
@@ -158,7 +159,7 @@
 
         <!-- History of completed steps -->
         <div v-if="completedSteps.length > 0" class="space-y-2 pt-2 border-t border-gray-800/80">
-          <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Étapes validées</span>
+          <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">{{ $t('pairing.completedStepsTitle') }}</span>
           <div class="space-y-1.5">
             <div 
               v-for="step in completedSteps" 
@@ -179,7 +180,7 @@
             @click="handleCancel"
             class="w-full py-2.5 px-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold transition-all cursor-pointer"
           >
-            Annuler l'appairage
+            {{ $t('pairing.cancelPairing') }}
           </button>
 
           <button
@@ -189,7 +190,7 @@
             class="flex-1 py-2.5 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold transition-all cursor-pointer shadow-lg shadow-violet-500/20 flex items-center justify-center gap-1.5"
           >
             <RefreshCw class="w-3.5 h-3.5" />
-            <span>Réessayer</span>
+            <span>{{ $t('pairing.retry') }}</span>
           </button>
           <button
             v-if="isError"
@@ -197,7 +198,7 @@
             @click="handleCancel"
             class="flex-1 py-2.5 px-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold transition-all cursor-pointer"
           >
-            Fermer
+            {{ $t('common.close') }}
           </button>
 
           <button
@@ -206,7 +207,7 @@
             @click="handleDone"
             class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all cursor-pointer shadow-lg shadow-emerald-500/20"
           >
-            Terminer et Enregistrer
+            {{ $t('pairing.finishAndSave') }}
           </button>
         </div>
       </div>
@@ -219,6 +220,7 @@ import { ref, computed } from 'vue';
 import { Bluetooth, Scale, CheckCircle, AlertTriangle, RefreshCw, X, HelpCircle, Sparkles } from 'lucide-vue-next';
 import { useModalAccessibility } from '../composables/useModalAccessibility';
 import { isValidMac } from '../services/ble/drivers/huaweiScale3Crypto';
+import { useI18n } from '../i18n';
 
 const props = defineProps({
   isOpen: { type: Boolean, default: false },
@@ -226,6 +228,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close', 'paired']);
+const { t } = useI18n();
 
 const modalContainer = ref(null);
 const currentStep = ref(null);
@@ -251,8 +254,8 @@ useModalAccessibility({
 const startPairingSession = () => {
   currentStep.value = {
     stepId: 'init',
-    title: 'Initialisation...',
-    message: 'Préparation de la session BLE et vérification des paramètres...',
+    title: t('pairing.initializing'),
+    message: t('pairing.initDesc'),
     status: 'in_progress'
   };
   completedSteps.value = [];
@@ -291,13 +294,13 @@ const setSuccess = (pairedData) => {
 
 const setError = (error) => {
   isError.value = true;
-  errorMessage.value = error.message || 'Une erreur inattendue est survenue lors de l\'appairage.';
+  errorMessage.value = error.message || t('pairing.unexpectedError');
 };
 
 const submitMac = () => {
   const cleanMac = inputMac.value.trim().toUpperCase().replace(/-/g, ':');
   if (!isValidMac(cleanMac)) {
-    macError.value = 'Format MAC invalide (attendu : XX:XX:XX:XX:XX:XX)';
+    macError.value = t('pairing.invalidMacFormat');
     return;
   }
   macError.value = '';

@@ -29,12 +29,12 @@
             <path d="M11 21.95V18a2 2 0 0 0-2-2h0a2 2 0 0 1-2-2v0a2 2 0 0 0-2-2h0a2 2 0 0 1-2-2v0a2 2 0 0 0-2-2h0a2 2 0 0 1-2-2V2.05"></path>
             <circle cx="12" cy="12" r="10"></circle>
           </svg>
-          {{ store.editingMeasurement ? 'Edit Measurements' : 'Log Measurements' }}
+          {{ store.editingMeasurement ? $t('measurementForm.titleEdit') : $t('measurementForm.titleAdd') }}
         </h2>
         <button
           @click="closeModal"
           class="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer active:scale-95"
-          aria-label="Fermer la fenêtre"
+          :aria-label="$t('measurementForm.closeModalAria')"
         >
           <X class="w-5 h-5" />
         </button>
@@ -44,7 +44,7 @@
       <form @submit.prevent="handleSubmit" class="space-y-5">
         <!-- Date Field -->
         <div class="space-y-1.5">
-          <label for="meas-date" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Date</label>
+          <label for="meas-date" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ $t('measurementForm.dateLabel') }}</label>
           <input
             id="meas-date"
             type="date"
@@ -58,12 +58,12 @@
         <div class="grid grid-cols-2 gap-4">
           <!-- Waist Input -->
           <div class="space-y-1.5">
-            <label for="meas-waist" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Waist (cm)</label>
+            <label for="meas-waist" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ $t('measurementForm.waistLabel') }}</label>
             <input
               id="meas-waist"
               type="number"
               v-model.number="form.waist"
-              placeholder="e.g. 85.0"
+              :placeholder="$t('measurementForm.waistPlaceholder')"
               step="0.1"
               min="20"
               max="200"
@@ -73,12 +73,12 @@
 
           <!-- Chest Input -->
           <div class="space-y-1.5">
-            <label for="meas-chest" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Chest (cm)</label>
+            <label for="meas-chest" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ $t('measurementForm.chestLabel') }}</label>
             <input
               id="meas-chest"
               type="number"
               v-model.number="form.chest"
-              placeholder="e.g. 100.5"
+              :placeholder="$t('measurementForm.chestPlaceholder')"
               step="0.1"
               min="20"
               max="200"
@@ -88,12 +88,12 @@
 
           <!-- Arms Input -->
           <div class="space-y-1.5">
-            <label for="meas-arms" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Arms (cm)</label>
+            <label for="meas-arms" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ $t('measurementForm.armsLabel') }}</label>
             <input
               id="meas-arms"
               type="number"
               v-model.number="form.arms"
-              placeholder="e.g. 35.0"
+              :placeholder="$t('measurementForm.armsPlaceholder')"
               step="0.1"
               min="10"
               max="100"
@@ -103,12 +103,12 @@
 
           <!-- Thighs Input -->
           <div class="space-y-1.5">
-            <label for="meas-thighs" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Thighs (cm)</label>
+            <label for="meas-thighs" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ $t('measurementForm.thighsLabel') }}</label>
             <input
               id="meas-thighs"
               type="number"
               v-model.number="form.thighs"
-              placeholder="e.g. 60.0"
+              :placeholder="$t('measurementForm.thighsPlaceholder')"
               step="0.1"
               min="20"
               max="120"
@@ -117,8 +117,6 @@
           </div>
         </div>
 
-
-
         <!-- Submit Button -->
         <div class="pt-4 flex gap-3">
           <button
@@ -126,13 +124,13 @@
             @click="closeModal"
             class="flex-1 py-3 text-sm font-semibold rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-300 hover:text-white transition-all duration-200 border border-gray-700/50 cursor-pointer"
           >
-            Cancel
+            {{ $t('common.cancel') }}
           </button>
           <button
             type="submit"
             class="flex-1 py-3 text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/30 transition-all duration-200 cursor-pointer"
           >
-            Save Measurements
+            {{ $t('measurementForm.save') }}
           </button>
         </div>
       </form>
@@ -146,9 +144,11 @@ import { X } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 import { useToast } from '../composables/useToast';
 import { useModalAccessibility } from '../composables/useModalAccessibility';
+import { useI18n } from '../i18n';
 
 const store = useBodyGraphStore();
 const toast = useToast();
+const { t } = useI18n();
 const modalCardRef = ref(null);
 
 useModalAccessibility({
@@ -204,7 +204,7 @@ watch(() => store.showAddMeasurementModal, (newVal) => {
 
 const handleSubmit = async () => {
   if (!form.waist && !form.chest && !form.arms && !form.thighs) {
-    toast.warning('Veuillez renseigner au moins une mesure.');
+    toast.warning(t('measurements.atLeastOneRequired'));
     return;
   }
   try {
@@ -216,9 +216,9 @@ const handleSubmit = async () => {
       arms: form.arms,
       thighs: form.thighs
     });
-    toast.success('Mensurations enregistrées avec succès.');
+    toast.success(t('measurements.saveSuccessToast'));
   } catch (error) {
-    toast.error("Échec de l'enregistrement : " + error.message);
+    toast.error(t('measurements.saveErrorToast') + error.message);
   }
 };
 </script>
