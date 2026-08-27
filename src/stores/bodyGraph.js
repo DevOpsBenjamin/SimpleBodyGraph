@@ -1,9 +1,7 @@
 import { defineStore } from 'pinia';
-import { Capacitor } from '@capacitor/core';
-import { App as CapApp } from '@capacitor/app';
-import { Browser } from '@capacitor/browser';
-import { supabase, handleAuthCallbackUrl } from '../supabase';
-import { checkGitHubRelease, openApkDownload, CURRENT_APP_VERSION } from '../services/updateService';
+import { supabase } from '../supabase';
+import { setupAuthDeepLinks, signInWithGoogleOAuth } from '../services/authService';
+import { checkGitHubRelease, openApkDownload } from '../services/updateService';
 import { 
   getAllLogs, 
   saveLog, 
@@ -16,8 +14,6 @@ import {
   exportAllData,
   importAllData
 } from '../db';
-
-let deepLinksConfigured = false;
 
 export {
   getMondayOfDate,
@@ -47,10 +43,8 @@ import {
 
 import {
   resolveEffectiveLanguage,
-  setLanguage,
-  currentLanguage
+  setLanguage
 } from '../i18n';
-
 
 // Default display preferences
 export const DEFAULT_DISPLAY_PREFERENCES = {
@@ -276,7 +270,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
   },
 
   actions: {
-    // Select log entry to trigger editing mode
     setEditingLog(log) {
       this.editingLog = log;
       this.showAddModal = true;
@@ -287,7 +280,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       this.showAddMeasurementModal = true;
     },
 
-    // Navigation actions for months list
     goToPreviousMonth() {
       const maxIndex = this.groupedMonths.length - 1;
       if (this.selectedMonthIndex < maxIndex) {
@@ -301,7 +293,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       }
     },
 
-    // Navigation actions for weeks list
     goToPreviousWeek() {
       const maxIndex = this.groupedWeeks.length - 1;
       if (this.selectedWeekIndex < maxIndex) {
@@ -315,9 +306,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       }
     },
 
-    // Initialize Auth Session & listeners
     async initAuth() {
-      // Load local goals & profile first (guest / fallback)
       this.targetMass = localStorage.getItem('bodygraph_target_mass') ? Number(localStorage.getItem('bodygraph_target_mass')) : null;
       this.targetFat = localStorage.getItem('bodygraph_target_fat') ? Number(localStorage.getItem('bodygraph_target_fat')) : null;
 
@@ -352,7 +341,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           this.paliers = [];
         }
       } else {
-        // Fallback or migration for single goal to multiple paliers
         if (this.targetMass !== null || this.targetFat !== null) {
           this.paliers = [{
             id: crypto.randomUUID(),
@@ -402,7 +390,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       }
 
       try {
-        await this.setupAuthDeepLinks();
+        await setupAuthDeepLinks(() => {
+          this.showAuthModal = false;
+        });
+
         const { data } = await supabase.auth.getSession();
         this.session = data.session;
         this.user = data.session?.user || null;
@@ -423,7 +414,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
             };
             localStorage.setItem('bodygraph_profile', JSON.stringify(this.profile));
           } else if (this.profile.gender || this.profile.birthDate || this.profile.height) {
-            // Upload local guest profile to cloud on initial session discovery
             await supabase.auth.updateUser({ data: { profile: this.profile } });
           }
 
@@ -496,7 +486,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
             }
             await this.migrateGuestLogs(session.user.id);
           } else {
-            // Revert to local goals & profile
             this.targetMass = localStorage.getItem('bodygraph_target_mass') ? Number(localStorage.getItem('bodygraph_target_mass')) : null;
             this.targetFat = localStorage.getItem('bodygraph_target_fat') ? Number(localStorage.getItem('bodygraph_target_fat')) : null;
             const savedP = localStorage.getItem('bodygraph_profile');
@@ -588,10 +577,8 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         }
       };
 
-      // Offline-first persistence
       localStorage.setItem('bodygraph_display_preferences', JSON.stringify(this.displayPreferences));
 
-      // Cloud sync if authenticated
       if (supabase && this.user) {
         try {
           await supabase.auth.updateUser({
@@ -633,7 +620,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           : null
       };
 
-      // Always save to localStorage (offline-first)
       localStorage.setItem('bodygraph_profile', JSON.stringify(this.profile));
 
       if (this.user && supabase) {
@@ -710,7 +696,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       this.paliers = paliersList;
       this.syncSingleGoalsFromActivePalier();
 
-      // Always persist to localStorage
       localStorage.setItem('bodygraph_paliers', JSON.stringify(this.paliers));
       if (this.targetMass !== null) {
         localStorage.setItem('bodygraph_target_mass', this.targetMass);
@@ -723,7 +708,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         localStorage.removeItem('bodygraph_target_fat');
       }
 
-      // Sync to Supabase if logged in
       if (this.user && supabase) {
         try {
           const { data, error } = await supabase.auth.updateUser({
@@ -743,7 +727,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async updateGoals(mass, fat) {
-      // Legacy support, also creates or updates first palier
       this.targetMass = mass ? Number(mass) : null;
       this.targetFat = fat ? Number(fat) : null;
 
@@ -794,76 +777,13 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async setupAuthDeepLinks() {
-      if (!Capacitor.isNativePlatform() || !supabase) return;
-
-      try {
-        // Cold start deep link check
-        const launchUrl = await CapApp.getLaunchUrl();
-        if (launchUrl?.url && launchUrl.url.includes('auth-callback')) {
-          if (Capacitor.isPluginAvailable('Browser')) {
-            await Browser.close().catch(() => {});
-          }
-          await handleAuthCallbackUrl(launchUrl.url);
-          this.showAuthModal = false;
-        }
-
-        if (!deepLinksConfigured) {
-          deepLinksConfigured = true;
-          // Warm / background start deep link listener
-          CapApp.addListener('appUrlOpen', async ({ url }) => {
-            if (url && url.includes('auth-callback')) {
-              if (Capacitor.isPluginAvailable('Browser')) {
-                await Browser.close().catch(() => {});
-              }
-              try {
-                await handleAuthCallbackUrl(url);
-                this.showAuthModal = false;
-              } catch (err) {
-                console.error('Deep link auth callback failed:', err);
-              }
-            }
-          });
-        }
-      } catch (e) {
-        console.warn('Failed to setup native auth deep links:', e);
-      }
+      return setupAuthDeepLinks(() => {
+        this.showAuthModal = false;
+      });
     },
 
     async signInWithGoogle() {
-      if (!supabase) return;
-      try {
-        const isNative = Capacitor.isNativePlatform();
-        const redirectTo = isNative
-          ? 'com.devopsbenjamin.simplebodygraph://auth-callback'
-          : window.location.origin;
-
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo,
-            skipBrowserRedirect: isNative
-          }
-        });
-        if (error) throw error;
-
-        if (isNative && data?.url) {
-          if (Capacitor.isPluginAvailable('Browser')) {
-            try {
-              await Browser.open({ url: data.url, windowName: '_self' });
-            } catch (browserErr) {
-              console.warn('Browser.open failed, falling back to window.open:', browserErr);
-              window.open(data.url, '_system');
-            }
-          } else {
-            console.warn('Capacitor Browser plugin not compiled into native APK, falling back to window.open');
-            window.open(data.url, '_system');
-          }
-        }
-        return data;
-      } catch (error) {
-        console.error('Google OAuth failed:', error);
-        throw error;
-      }
+      return signInWithGoogleOAuth();
     },
 
     async logout() {
@@ -900,18 +820,16 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     updateYearsAndClamps() {
-      // Initialize start and end years if not set or if they are no longer in availableYears
       const years = this.availableYears;
       if (years.length > 0) {
         if (this.startYear === null || !years.includes(this.startYear)) {
-          this.startYear = years[years.length - 1]; // Oldest year
+          this.startYear = years[years.length - 1];
         }
         if (this.endYear === null || !years.includes(this.endYear)) {
-          this.endYear = years[0]; // Newest year
+          this.endYear = years[0];
         }
       }
 
-      // Cleanly clamp selected indices after loading logs to keep bounds valid
       const maxMonthIndex = this.groupedMonths.length - 1;
       if (this.selectedMonthIndex > maxMonthIndex) {
         this.selectedMonthIndex = Math.max(0, maxMonthIndex);
@@ -933,7 +851,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       }
     },
 
-    // Save or update a log entry
     async checkAndAutoValidatePaliers() {
       const { changed, updatedPaliers } = evaluatePalierAutoValidation(this.paliers, this.logsWithEstimates);
       if (changed) {
@@ -958,7 +875,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       try {
         await saveLog(log, this.currentUserId);
 
-        // Optimistically update logs in-memory
         const logWithUserId = { ...log, user_id: this.currentUserId };
         const existingIndex = this.logs.findIndex(l => l.id === log.id);
         if (existingIndex !== -1) {
@@ -967,7 +883,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           this.logs.push(logWithUserId);
         }
 
-        // Sort descending by date
         this.logs.sort((a, b) => b.date.localeCompare(a.date));
 
         this.updateYearsAndClamps();
@@ -986,7 +901,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       try {
         await deleteLog(id, this.currentUserId);
 
-        // Optimistically delete in-memory
         this.logs = this.logs.filter(l => l.id !== id);
 
         this.updateYearsAndClamps();
@@ -1011,7 +925,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       try {
         await saveMeasurement(log, this.currentUserId);
 
-        // Optimistically update measurements in-memory
         const logWithUserId = { ...log, user_id: this.currentUserId };
         const existingIndex = this.measurements.findIndex(m => m.id === log.id);
         if (existingIndex !== -1) {
@@ -1020,7 +933,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           this.measurements.push(logWithUserId);
         }
 
-        // Sort descending by date
         this.measurements.sort((a, b) => b.date.localeCompare(a.date));
 
         this.updateYearsAndClamps();
@@ -1038,7 +950,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       try {
         await deleteMeasurement(id, this.currentUserId);
 
-        // Optimistically delete in-memory
         this.measurements = this.measurements.filter(m => m.id !== id);
 
         this.updateYearsAndClamps();
