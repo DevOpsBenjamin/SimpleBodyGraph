@@ -265,28 +265,7 @@ const renderChart = async () => {
             boxWidth: 8
           }
         },
-        tooltip: {
-          backgroundColor: 'rgba(17, 24, 39, 0.9)',
-          titleColor: '#e5e7eb',
-          bodyColor: '#cbd5e1',
-          borderColor: 'rgba(55, 65, 81, 0.8)',
-          borderWidth: 1,
-          padding: 10,
-          cornerRadius: 12,
-          displayColors: true,
-          callbacks: {
-            label: function(context) {
-              let label = context.dataset.label || '';
-              if (label) {
-                label += ': ';
-              }
-              if (context.parsed.y !== null) {
-                label += context.parsed.y + ' cm';
-              }
-              return label;
-            }
-          }
-        }
+        tooltip: { enabled: false }
       },
       scales: {
         x: {
