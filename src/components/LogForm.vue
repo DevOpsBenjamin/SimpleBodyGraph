@@ -27,12 +27,12 @@
             <path d="M12 20h9"></path>
             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
           </svg>
-          {{ store.editingLog ? 'Edit Log Entry' : 'Log Body Metrics' }}
+          {{ store.editingLog ? $t('logForm.titleEdit') : $t('logForm.titleAdd') }}
         </h2>
         <button 
           @click="closeModal" 
           class="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer active:scale-95"
-          aria-label="Fermer la fenêtre"
+          :aria-label="$t('logForm.closeModalAria')"
         >
           <X class="w-5 h-5" />
         </button>
@@ -42,7 +42,7 @@
       <form @submit.prevent="handleSubmit" class="space-y-5">
         <!-- Date Field -->
         <div class="space-y-1.5">
-          <label for="log-date" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Date</label>
+          <label for="log-date" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ $t('logForm.dateLabel') }}</label>
           <input 
             id="log-date"
             type="date" 
@@ -56,12 +56,12 @@
         <div class="grid grid-cols-2 gap-4">
           <!-- Mass Input -->
           <div class="space-y-1.5">
-            <label for="log-mass" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Mass (kg)</label>
+            <label for="log-mass" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ $t('logForm.massLabel') }}</label>
             <input 
               id="log-mass"
               type="number" 
               v-model.number="form.mass" 
-              placeholder="e.g. 78.50" 
+              :placeholder="$t('logForm.massPlaceholder')" 
               step="0.01" 
               min="20" 
               max="300" 
@@ -72,12 +72,12 @@
 
           <!-- Body Fat Input -->
           <div class="space-y-1.5">
-            <label for="log-fat" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Body Fat (%)</label>
+            <label for="log-fat" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ $t('logForm.fatLabel') }}</label>
             <input 
               id="log-fat"
               type="number" 
               v-model.number="form.body_fat" 
-              placeholder="e.g. 14.2" 
+              :placeholder="$t('logForm.fatPlaceholder')" 
               step="0.1" 
               min="1" 
               max="70" 
@@ -94,13 +94,13 @@
             @click="closeModal"
             class="flex-1 py-3 text-sm font-semibold rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-300 hover:text-white transition-all duration-200 border border-gray-700/50 cursor-pointer"
           >
-            Cancel
+            {{ $t('common.cancel') }}
           </button>
           <button 
             type="submit" 
             class="flex-1 py-3 text-sm font-semibold rounded-xl bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white shadow-lg shadow-violet-600/20 hover:shadow-violet-600/30 transition-all duration-200 cursor-pointer"
           >
-            Save Entry
+            {{ $t('logForm.save') }}
           </button>
         </div>
       </form>
@@ -114,9 +114,11 @@ import { X } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 import { useToast } from '../composables/useToast';
 import { useModalAccessibility } from '../composables/useModalAccessibility';
+import { useI18n } from '../i18n';
 
 const store = useBodyGraphStore();
 const toast = useToast();
+const { t } = useI18n();
 const modalCardRef = ref(null);
 
 useModalAccessibility({
@@ -169,9 +171,9 @@ const handleSubmit = async () => {
       bodyFat: form.body_fat,
       date: form.date
     });
-    toast.success('Pesée enregistrée avec succès.');
+    toast.success(t('logForm.saveSuccess'));
   } catch (error) {
-    toast.error("Échec de l'enregistrement : " + error.message);
+    toast.error(t('logForm.saveFailed') + error.message);
   }
 };
 </script>

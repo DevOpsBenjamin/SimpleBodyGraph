@@ -10,12 +10,12 @@
         </div>
         <div>
           <h4 class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-            Synthèse BIA Médiane — {{ periodLabel }}
+            {{ $t('bia.summaryTitle', { period: periodLabel }) }}
             <span class="text-[10px] px-2 py-0.5 rounded-md bg-violet-500/20 text-violet-300 font-normal">
-              {{ biaLogsCount }} mesure{{ biaLogsCount > 1 ? 's' : '' }} BIA
+              {{ biaLogsCount > 1 ? $t('bia.measurementsCountPlural', { count: biaLogsCount }) : $t('bia.measurementsCount', { count: biaLogsCount }) }}
             </span>
           </h4>
-          <p class="text-[11px] text-gray-400">Métriques de bio-impédance DEXA lissées sur la période</p>
+          <p class="text-[11px] text-gray-400">{{ $t('bia.dexaMetricsSmoothed') }}</p>
         </div>
       </div>
 
@@ -24,7 +24,7 @@
         @click="isModalOpen = true"
         class="py-1.5 px-3 rounded-xl bg-violet-600 hover:bg-violet-500 active:scale-95 text-white font-bold text-xs cursor-pointer transition-all duration-150 shadow-md shadow-violet-600/20 flex items-center gap-1.5 shrink-0"
       >
-        <span>Rapport Complet</span>
+        <span>{{ $t('bia.fullReport') }}</span>
         <ChevronRight class="w-3.5 h-3.5" />
       </button>
     </div>
@@ -32,27 +32,27 @@
     <!-- Quick Stats Grid -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-center">
       <div class="p-2.5 rounded-xl bg-gray-950/60 border border-gray-800/80">
-        <span class="text-[10px] text-gray-400 block">Muscle SMM</span>
-        <span class="text-sm font-bold text-violet-300">{{ computedPeriodBia.body_composition?.skeletal_muscle_mass_kg }} kg</span>
+        <span class="text-[10px] text-gray-400 block">{{ $t('bia.smmMuscle') }}</span>
+        <span class="text-sm font-bold text-violet-300">{{ computedPeriodBia.body_composition?.skeletal_muscle_mass_kg }} {{ $t('common.kg') }}</span>
       </div>
       <div class="p-2.5 rounded-xl bg-gray-950/60 border border-gray-800/80">
-        <span class="text-[10px] text-gray-400 block">Eau Corporelle</span>
-        <span class="text-sm font-bold text-blue-300">{{ computedPeriodBia.body_composition?.total_water_kg }} kg</span>
+        <span class="text-[10px] text-gray-400 block">{{ $t('bia.totalWater') }}</span>
+        <span class="text-sm font-bold text-blue-300">{{ computedPeriodBia.body_composition?.total_water_kg }} {{ $t('common.kg') }}</span>
       </div>
       <div class="p-2.5 rounded-xl bg-gray-950/60 border border-gray-800/80">
-        <span class="text-[10px] text-gray-400 block">Graisse Viscérale</span>
-        <span class="text-sm font-bold text-amber-300">Niv. {{ computedPeriodBia.body_composition?.visceral_fat_level }}</span>
+        <span class="text-[10px] text-gray-400 block">{{ $t('bia.visceralFat') }}</span>
+        <span class="text-sm font-bold text-amber-300">{{ $t('bia.visceralLevel', { level: computedPeriodBia.body_composition?.visceral_fat_level }) }}</span>
       </div>
       <div class="p-2.5 rounded-xl bg-gray-950/60 border border-gray-800/80">
-        <span class="text-[10px] text-gray-400 block">Score / Âge</span>
-        <span class="text-sm font-bold text-emerald-300">{{ computedPeriodBia.body_composition?.health_body_score }}/100 · {{ computedPeriodBia.body_composition?.metabolic_body_age }}a</span>
+        <span class="text-[10px] text-gray-400 block">{{ $t('bia.scoreAndAge') }}</span>
+        <span class="text-sm font-bold text-emerald-300">{{ $t('bia.scoreAgeDisplay', { score: computedPeriodBia.body_composition?.health_body_score, age: computedPeriodBia.body_composition?.metabolic_body_age }) }}</span>
       </div>
     </div>
 
     <!-- Full BIA Modal -->
     <BiaDetailModal
       :is-open="isModalOpen"
-      :title="`Synthèse BIA Médiane — ${periodLabel}`"
+      :title="$t('bia.summaryTitle', { period: periodLabel })"
       :bia-data="computedPeriodBia"
       @close="isModalOpen = false"
     />

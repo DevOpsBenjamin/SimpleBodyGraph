@@ -12,15 +12,15 @@
         <div class="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
           <CheckCircle2 class="w-8 h-8 text-emerald-400" />
         </div>
-        <h2 class="text-xl font-bold text-white mb-2">Check Your Email</h2>
+        <h2 class="text-xl font-bold text-white mb-2">{{ $t('onboarding.checkEmailTitle') }}</h2>
         <p class="text-sm text-gray-400 leading-relaxed mb-6">
-          We have sent a verification link to <strong class="text-violet-300">{{ email }}</strong>. Please check your inbox and click the link to confirm your account.
+          {{ $t('onboarding.checkEmailDesc', { email }) }}
         </p>
         <button 
           @click="signupSuccess = false; showEmailForm = false"
           class="w-full py-3 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 active:scale-[0.98] text-white font-semibold transition-all duration-200 cursor-pointer shadow-lg shadow-violet-500/10"
         >
-          Return to Login
+          {{ $t('onboarding.returnToLogin') }}
         </button>
       </div>
 
@@ -31,23 +31,23 @@
           @click="showEmailForm = false"
           class="flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-white transition-colors duration-200 cursor-pointer"
         >
-          <ArrowLeft class="w-4 h-4" /> Back to options
+          <ArrowLeft class="w-4 h-4" /> {{ $t('onboarding.backToOptions') }}
         </button>
 
         <!-- Form Title -->
         <div>
           <h2 class="text-2xl font-black tracking-tight text-white leading-tight">
-            {{ isSignUp ? 'Create Account' : 'Sign In' }}
+            {{ isSignUp ? $t('onboarding.createAccountTitle') : $t('onboarding.signInTitle') }}
           </h2>
           <p class="text-xs text-gray-400 mt-1">
-            {{ isSignUp ? 'Create a secure cloud profile to sync your data' : 'Sign in to access your sync settings' }}
+            {{ isSignUp ? $t('onboarding.createAccountSubtitle') : $t('onboarding.signInSubtitle') }}
           </p>
         </div>
 
         <!-- Form Fields -->
         <form @submit.prevent="handleEmailAuth" class="space-y-4">
           <div class="space-y-1">
-            <label for="email" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Email Address</label>
+            <label for="email" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ $t('onboarding.emailLabel') }}</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
                 <Mail class="w-4 h-4" />
@@ -57,14 +57,14 @@
                 type="email" 
                 v-model="email"
                 required
-                placeholder="you@example.com"
+                :placeholder="$t('onboarding.emailPlaceholder')"
                 class="w-full pl-10 pr-4 py-3 rounded-xl glass-input text-sm text-white"
               />
             </div>
           </div>
 
           <div class="space-y-1">
-            <label for="password" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Password</label>
+            <label for="password" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ $t('onboarding.passwordLabel') }}</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
                 <Lock class="w-4 h-4" />
@@ -74,7 +74,7 @@
                 type="password" 
                 v-model="password"
                 required
-                placeholder="••••••••"
+                :placeholder="$t('onboarding.passwordPlaceholder')"
                 minlength="6"
                 class="w-full pl-10 pr-4 py-3 rounded-xl glass-input text-sm text-white"
               />
@@ -83,12 +83,12 @@
 
           <!-- Submit Button -->
           <button 
-            type="submit"
+            type="submit" 
             :disabled="loading"
             class="w-full py-3 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 active:scale-[0.98] text-white font-semibold transition-all duration-200 cursor-pointer shadow-lg shadow-violet-500/10 flex items-center justify-center gap-2 mt-4 disabled:opacity-50"
           >
             <span v-if="loading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-            <span>{{ isSignUp ? 'Create Account' : 'Sign In' }}</span>
+            <span>{{ isSignUp ? $t('onboarding.createAccountTitle') : $t('onboarding.signInTitle') }}</span>
           </button>
         </form>
 
@@ -98,7 +98,7 @@
             @click="isSignUp = !isSignUp"
             class="text-xs font-semibold text-violet-400 hover:text-violet-300 transition-colors duration-200 cursor-pointer"
           >
-            {{ isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up" }}
+            {{ isSignUp ? $t('onboarding.alreadyHaveAccount') : $t('onboarding.dontHaveAccount') }}
           </button>
         </div>
       </div>
@@ -116,13 +116,13 @@
             </svg>
           </div>
           <h1 class="text-3xl font-black tracking-tight text-white font-sans bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
-            SimpleBodyGraph
+            {{ $t('onboarding.brandTitle') }}
           </h1>
           <p class="text-xs text-violet-400 font-semibold tracking-widest uppercase mt-1">
-            Offline-First Progress Tracker
+            {{ $t('onboarding.brandTagline') }}
           </p>
           <p class="text-sm text-gray-400 mt-3 leading-relaxed max-w-xs">
-            Log your daily body mass & fat percentage, view beautiful progress charts, and copy weekly averages for your Hevy workouts.
+            {{ $t('onboarding.brandDesc') }}
           </p>
         </div>
 
@@ -142,7 +142,7 @@
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
             </svg>
-            {{ loadingGoogle ? 'Connecting...' : 'Sign In with Google' }}
+            {{ loadingGoogle ? $t('onboarding.googleConnecting') : $t('onboarding.googleSignIn') }}
           </button>
 
           <!-- Option 2: Email & Password (Replacing Anonymous Backup) -->
@@ -156,8 +156,8 @@
                 <Mail class="w-5 h-5" />
               </div>
               <div>
-                <div class="text-sm font-bold text-white leading-tight">Email & Password</div>
-                <div class="text-[11px] text-gray-400 mt-0.5">Sign in or register a new profile</div>
+                <div class="text-sm font-bold text-white leading-tight">{{ $t('onboarding.emailPasswordOption') }}</div>
+                <div class="text-[11px] text-gray-400 mt-0.5">{{ $t('onboarding.emailPasswordSubtitle') }}</div>
               </div>
             </div>
             <ArrowRight class="w-4 h-4 text-gray-500 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all duration-200" />
@@ -166,7 +166,7 @@
           <!-- Separator -->
           <div class="relative flex py-2 items-center">
             <div class="flex-grow border-t border-gray-900"></div>
-            <span class="flex-shrink mx-4 text-gray-600 text-[10px] uppercase tracking-widest font-bold">Or</span>
+            <span class="flex-shrink mx-4 text-gray-600 text-[10px] uppercase tracking-widest font-bold">{{ $t('common.or') }}</span>
             <div class="flex-grow border-t border-gray-900"></div>
           </div>
 
@@ -184,8 +184,8 @@
                 </svg>
               </div>
               <div>
-                <div class="text-sm font-bold text-gray-300 leading-tight">Continue as Guest</div>
-                <div class="text-[11px] text-gray-500 mt-0.5">Local Offline-First Mode only</div>
+                <div class="text-sm font-bold text-gray-300 leading-tight">{{ $t('onboarding.guestOption') }}</div>
+                <div class="text-[11px] text-gray-500 mt-0.5">{{ $t('onboarding.guestSubtitle') }}</div>
               </div>
             </div>
             <ArrowRight class="w-4 h-4 text-gray-650 group-hover:text-gray-400 group-hover:translate-x-0.5 transition-all duration-200" />
@@ -196,7 +196,7 @@
         <!-- Security / Footer reassurance info -->
         <div class="mt-8 flex items-center justify-center gap-2 text-[10px] text-gray-500">
           <ShieldCheck class="w-4 h-4 text-emerald-500/70" />
-          <span>Local data can be linked to the cloud at any time.</span>
+          <span>{{ $t('onboarding.footerReassurance') }}</span>
         </div>
         
       </div>
@@ -209,9 +209,11 @@ import { ref } from 'vue';
 import { Mail, Lock, ArrowLeft, ShieldCheck, CheckCircle2, ArrowRight } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 import { useToast } from '../composables/useToast';
+import { useI18n } from '../i18n';
 
 const store = useBodyGraphStore();
 const toast = useToast();
+const { t } = useI18n();
 const loading = ref(false);
 const loadingGoogle = ref(false);
 
@@ -228,7 +230,7 @@ const handleGoogleSignIn = async () => {
   try {
     await store.signInWithGoogle();
   } catch (error) {
-    toast.error("Échec de l'initialisation Google Sign In : " + error.message);
+    toast.error(t('onboarding.googleError') + error.message);
   } finally {
     loading.value = false;
     loadingGoogle.value = false;
@@ -252,7 +254,7 @@ const handleEmailAuth = async () => {
       await store.signInWithEmail(email.value, password.value);
     }
   } catch (error) {
-    toast.error(`Échec de l'authentification : ${error.message}`);
+    toast.error(t('onboarding.authError') + error.message);
   } finally {
     loading.value = false;
   }

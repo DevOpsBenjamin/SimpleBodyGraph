@@ -6,10 +6,10 @@
         <div>
           <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
             <LayoutGrid class="w-4 h-4 text-violet-400" />
-            Cartes de Synthèse (KPIs Dashboard)
+            {{ $t('settingsDisplay.cardsSectionTitle') }}
           </h3>
           <p class="text-xs text-gray-400 mt-0.5">
-            Choisissez les métriques à afficher dans les cartes en haut du tableau de bord.
+            {{ $t('settingsDisplay.cardsSectionDesc') }}
           </p>
         </div>
       </div>
@@ -22,8 +22,8 @@
               <Scale class="w-4 h-4" />
             </div>
             <div>
-              <span class="text-xs font-bold text-white block">Poids Total</span>
-              <span class="text-[10px] text-gray-400">Masse globale en kg</span>
+              <span class="text-xs font-bold text-white block">{{ $t('settingsDisplay.cardMassTitle') }}</span>
+              <span class="text-[10px] text-gray-400">{{ $t('settingsDisplay.cardMassDesc') }}</span>
             </div>
           </div>
           <input 
@@ -41,8 +41,8 @@
               <Flame class="w-4 h-4" />
             </div>
             <div>
-              <span class="text-xs font-bold text-white block">Masse Grasse (kg)</span>
-              <span class="text-[10px] text-gray-400">Poids du tissu adipeux</span>
+              <span class="text-xs font-bold text-white block">{{ $t('settingsDisplay.cardFatMassTitle') }}</span>
+              <span class="text-[10px] text-gray-400">{{ $t('settingsDisplay.cardFatMassDesc') }}</span>
             </div>
           </div>
           <input 
@@ -60,8 +60,8 @@
               <Percent class="w-4 h-4" />
             </div>
             <div>
-              <span class="text-xs font-bold text-white block">% Masse Grasse</span>
-              <span class="text-[10px] text-gray-400">Taux d'adiposité en %</span>
+              <span class="text-xs font-bold text-white block">{{ $t('settingsDisplay.cardBodyFatTitle') }}</span>
+              <span class="text-[10px] text-gray-400">{{ $t('settingsDisplay.cardBodyFatDesc') }}</span>
             </div>
           </div>
           <input 
@@ -79,8 +79,8 @@
               <Dumbbell class="w-4 h-4" />
             </div>
             <div>
-              <span class="text-xs font-bold text-white block">Masse Maigre (kg)</span>
-              <span class="text-[10px] text-gray-400">Muscles, os, eau et organes</span>
+              <span class="text-xs font-bold text-white block">{{ $t('settingsDisplay.cardLeanMassTitle') }}</span>
+              <span class="text-[10px] text-gray-400">{{ $t('settingsDisplay.cardLeanMassDesc') }}</span>
             </div>
           </div>
           <input 
@@ -99,10 +99,10 @@
         <div>
           <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
             <LineChart class="w-4 h-4 text-violet-400" />
-            Courbes du Graphique Principal (en kg)
+            {{ $t('settingsDisplay.chartsSectionTitle') }}
           </h3>
           <p class="text-xs text-gray-400 mt-0.5">
-            Sélectionnez les courbes actives par défaut sur le graphique unifié.
+            {{ $t('settingsDisplay.chartsSectionDesc') }}
           </p>
         </div>
       </div>
@@ -112,7 +112,7 @@
         <label class="flex items-center justify-between p-3 rounded-2xl bg-gray-950/60 border border-gray-800/80 cursor-pointer select-none">
           <span class="text-xs font-semibold text-gray-200 flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-violet-400"></span>
-            Poids Total
+            {{ $t('settingsDisplay.cardMassTitle') }}
           </span>
           <input 
             type="checkbox" 
@@ -126,7 +126,7 @@
         <label class="flex items-center justify-between p-3 rounded-2xl bg-gray-950/60 border border-gray-800/80 cursor-pointer select-none">
           <span class="text-xs font-semibold text-gray-200 flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-            Masse Grasse
+            {{ $t('history.fatMass') }}
           </span>
           <input 
             type="checkbox" 
@@ -140,7 +140,7 @@
         <label class="flex items-center justify-between p-3 rounded-2xl bg-gray-950/60 border border-gray-800/80 cursor-pointer select-none">
           <span class="text-xs font-semibold text-gray-200 flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-            Masse Maigre
+            {{ $t('history.leanMass') }}
           </span>
           <input 
             type="checkbox" 
@@ -155,8 +155,8 @@
       <div class="pt-3 border-t border-gray-800/60 space-y-3">
         <label class="flex items-center justify-between p-3.5 rounded-2xl bg-gray-950/60 border border-gray-800/80 hover:border-violet-500/30 transition-all cursor-pointer select-none">
           <div>
-            <span class="text-xs font-bold text-white block">Graphique Secondaire : % Masse Grasse</span>
-            <span class="text-[10px] text-gray-400">Affiche un graphique dédié au pourcentage de graisse</span>
+            <span class="text-xs font-bold text-white block">{{ $t('settingsDisplay.secondaryFatChartTitle') }}</span>
+            <span class="text-[10px] text-gray-400">{{ $t('settingsDisplay.secondaryFatChartDesc') }}</span>
           </div>
           <input 
             type="checkbox" 
@@ -169,8 +169,8 @@
         <!-- BIA Muscle Segmental -->
         <label class="flex items-center justify-between p-3.5 rounded-2xl bg-gray-950/60 border border-gray-800/80 hover:border-emerald-500/30 transition-all cursor-pointer select-none">
           <div>
-            <span class="text-xs font-bold text-white block">Graphique BIA : Muscle Segmentaire (5 zones)</span>
-            <span class="text-[10px] text-gray-400">Évolution musculaire détaillée : Tronc, Bras D/G, Jambes D/G</span>
+            <span class="text-xs font-bold text-white block">{{ $t('settingsDisplay.biaMuscleChartTitle') }}</span>
+            <span class="text-[10px] text-gray-400">{{ $t('settingsDisplay.biaMuscleChartDesc') }}</span>
           </div>
           <input 
             type="checkbox" 
@@ -183,8 +183,8 @@
         <!-- BIA Fat Segmental -->
         <label class="flex items-center justify-between p-3.5 rounded-2xl bg-gray-950/60 border border-gray-800/80 hover:border-amber-500/30 transition-all cursor-pointer select-none">
           <div>
-            <span class="text-xs font-bold text-white block">Graphique BIA : Masse Grasse Segmentaire (5 zones)</span>
-            <span class="text-[10px] text-gray-400">Évolution du tissu adipeux par zone anatomique</span>
+            <span class="text-xs font-bold text-white block">{{ $t('settingsDisplay.biaFatChartTitle') }}</span>
+            <span class="text-[10px] text-gray-400">{{ $t('settingsDisplay.biaFatChartDesc') }}</span>
           </div>
           <input 
             type="checkbox" 
@@ -202,10 +202,10 @@
         <div>
           <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
             <Palette class="w-4 h-4 text-emerald-400" />
-            Personnalisation BIA Muscle (Couleurs & Segments)
+            {{ $t('settingsDisplay.biaCustomizationTitle') }}
           </h3>
           <p class="text-xs text-gray-400 mt-0.5">
-            Configurez la visibilité par défaut et la couleur de chaque segment anatomique.
+            {{ $t('settingsDisplay.biaCustomizationDesc') }}
           </p>
         </div>
 
@@ -215,14 +215,14 @@
           class="text-[11px] font-semibold text-gray-400 hover:text-white px-3 py-1.5 rounded-xl bg-gray-800/50 hover:bg-gray-800 border border-gray-700/60 transition-colors flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
         >
           <RotateCcw class="w-3.5 h-3.5" />
-          Réinitialiser les couleurs
+          {{ $t('settingsDisplay.resetColors') }}
         </button>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
         <!-- Segment Item Loops -->
         <div 
-          v-for="seg in muscleSegmentDefs" 
+          v-for="seg in muscleSegments" 
           :key="seg.key"
           class="flex items-center justify-between p-3.5 rounded-2xl bg-gray-950/60 border border-gray-800/80 hover:border-gray-700/80 transition-colors"
         >
@@ -230,7 +230,7 @@
           <label class="flex items-center gap-3 cursor-pointer select-none">
             <input 
               type="checkbox" 
-              v-model="localPrefs.segmentalVisibility.muscle[seg.key]"
+              v-model="localPrefs.segmentalVisibility.muscle[seg.key]" 
               @change="savePreferences"
               class="w-4 h-4 rounded text-violet-600 accent-violet-600"
             />
@@ -265,22 +265,24 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue';
+import { reactive, computed, watch } from 'vue';
 import { LayoutGrid, Scale, Flame, Percent, Dumbbell, LineChart, Palette, RotateCcw } from 'lucide-vue-next';
 import { useBodyGraphStore, DEFAULT_DISPLAY_PREFERENCES } from '../stores/bodyGraph';
 import { useToast } from '../composables/useToast';
+import { useI18n } from '../i18n';
 
 const store = useBodyGraphStore();
 const toast = useToast();
+const { t } = useI18n();
 
-const muscleSegmentDefs = [
-  { key: 'total', label: 'Total Muscle SMM', desc: 'Masse musculaire squelettique globale' },
-  { key: 'trunk', label: 'Tronc', desc: 'Musculature pectorale, dos et sangle abdominale' },
-  { key: 'rightArm', label: 'Bras Droit', desc: 'Biceps, triceps et avant-bras droit' },
-  { key: 'leftArm', label: 'Bras Gauche', desc: 'Biceps, triceps et avant-bras gauche' },
-  { key: 'rightLeg', label: 'Jambe Droite', desc: 'Quadriceps, ischio-jambiers et mollet droit' },
-  { key: 'leftLeg', label: 'Jambe Gauche', desc: 'Quadriceps, ischio-jambiers et mollet gauche' }
-];
+const muscleSegments = computed(() => [
+  { key: 'total', label: t('settingsDisplay.segmentLabels.total'), desc: t('settingsDisplay.segmentDescs.total') },
+  { key: 'trunk', label: t('settingsDisplay.segmentLabels.trunk'), desc: t('settingsDisplay.segmentDescs.trunk') },
+  { key: 'rightArm', label: t('settingsDisplay.segmentLabels.rightArm'), desc: t('settingsDisplay.segmentDescs.rightArm') },
+  { key: 'leftArm', label: t('settingsDisplay.segmentLabels.leftArm'), desc: t('settingsDisplay.segmentDescs.leftArm') },
+  { key: 'rightLeg', label: t('settingsDisplay.segmentLabels.rightLeg'), desc: t('settingsDisplay.segmentDescs.rightLeg') },
+  { key: 'leftLeg', label: t('settingsDisplay.segmentLabels.leftLeg'), desc: t('settingsDisplay.segmentDescs.leftLeg') }
+]);
 
 const localPrefs = reactive({
   cards: { ...store.displayPreferences.cards },
@@ -311,15 +313,15 @@ watch(() => store.displayPreferences, (newPrefs) => {
 const resetMuscleColors = async () => {
   localPrefs.segmentalColors.muscle = { ...DEFAULT_DISPLAY_PREFERENCES.segmentalColors.muscle };
   await savePreferences();
-  toast.showToast('Couleurs musculaires réinitialisées par défaut', 'info');
+  toast.showToast(t('settingsDisplay.resetColorsSuccess'), 'info');
 };
 
 const savePreferences = async () => {
   try {
     await store.updateDisplayPreferences(localPrefs);
-    toast.showToast('Préférences d\'affichage enregistrées', 'success');
+    toast.showToast(t('settingsDisplay.saveSuccess'), 'success');
   } catch (err) {
-    toast.showToast('Erreur lors de l\'enregistrement des préférences', 'error');
+    toast.showToast(t('settingsDisplay.saveError'), 'error');
   }
 };
 </script>

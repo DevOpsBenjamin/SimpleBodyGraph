@@ -24,12 +24,12 @@
       <div class="flex items-center justify-between mb-4">
         <h2 id="auth-modal-title" class="text-xl font-bold text-white flex items-center gap-2">
           <Cloud class="w-5 h-5 text-violet-400" />
-          Cloud Backup & Sync
+          {{ $t('authModal.title') }}
         </h2>
         <button 
-          @click="closeModal"
+          @click="closeModal" 
           class="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 cursor-pointer active:scale-95"
-          aria-label="Fermer la fenêtre"
+          :aria-label="$t('common.close')"
         >
           <X class="w-5 h-5" />
         </button>
@@ -40,15 +40,15 @@
         <div class="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto">
           <CheckCircle2 class="w-6 h-6 text-emerald-400" />
         </div>
-        <h3 class="text-lg font-bold text-white">Verification Sent</h3>
+        <h3 class="text-lg font-bold text-white">{{ $t('authModal.verificationSentTitle') }}</h3>
         <p class="text-xs text-gray-400 leading-relaxed">
-          We have sent a verification link to <strong class="text-violet-300">{{ email }}</strong>. Please check your email inbox and verify to complete setup.
+          {{ $t('authModal.verificationSentDesc', { email }) }}
         </p>
         <button 
           @click="signupSuccess = false; showEmailForm = false; store.showAuthModal = false"
           class="w-full py-2.5 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 active:scale-[0.98] text-white font-semibold transition-all duration-200 text-sm cursor-pointer"
         >
-          Close
+          {{ $t('common.close') }}
         </button>
       </div>
 
@@ -58,16 +58,16 @@
           @click="showEmailForm = false"
           class="flex items-center gap-1 text-xs font-semibold text-gray-400 hover:text-white transition-colors duration-200 cursor-pointer"
         >
-          <ArrowLeft class="w-3.5 h-3.5" /> Back to options
+          <ArrowLeft class="w-3.5 h-3.5" /> {{ $t('onboarding.backToOptions') }}
         </button>
 
         <h3 class="text-sm font-bold text-white mt-1">
-          {{ isSignUp ? 'Create Cloud Account' : 'Sign In with Email' }}
+          {{ isSignUp ? $t('authModal.createCloudAccount') : $t('authModal.signInWithEmail') }}
         </h3>
 
         <form @submit.prevent="handleEmailAuth" class="space-y-3">
           <div class="space-y-1">
-            <label for="modal-email" class="block text-[9px] font-bold text-gray-400 uppercase tracking-wider">Email</label>
+            <label for="modal-email" class="block text-[9px] font-bold text-gray-400 uppercase tracking-wider">{{ $t('onboarding.emailLabel') }}</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
                 <Mail class="w-4 h-4" />
@@ -77,14 +77,14 @@
                 type="email" 
                 v-model="email"
                 required
-                placeholder="you@example.com"
+                :placeholder="$t('onboarding.emailPlaceholder')"
                 class="w-full pl-9 pr-4 py-2.5 rounded-xl glass-input text-xs text-white"
               />
             </div>
           </div>
 
           <div class="space-y-1">
-            <label for="modal-password" class="block text-[9px] font-bold text-gray-400 uppercase tracking-wider">Password</label>
+            <label for="modal-password" class="block text-[9px] font-bold text-gray-400 uppercase tracking-wider">{{ $t('onboarding.passwordLabel') }}</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
                 <Lock class="w-4 h-4" />
@@ -94,7 +94,7 @@
                 type="password" 
                 v-model="password"
                 required
-                placeholder="••••••••"
+                :placeholder="$t('onboarding.passwordPlaceholder')"
                 minlength="6"
                 class="w-full pl-9 pr-4 py-2.5 rounded-xl glass-input text-xs text-white"
               />
@@ -102,12 +102,12 @@
           </div>
 
           <button 
-            type="submit"
+            type="submit" 
             :disabled="loading"
             class="w-full py-2.5 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 active:scale-[0.98] text-white font-semibold text-xs transition-all duration-200 cursor-pointer shadow-lg shadow-violet-500/10 flex items-center justify-center gap-1.5 mt-2"
           >
             <span v-if="loading" class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-            <span>{{ isSignUp ? 'Register Account' : 'Login' }}</span>
+            <span>{{ isSignUp ? $t('authModal.registerAccount') : $t('authModal.login') }}</span>
           </button>
         </form>
 
@@ -116,7 +116,7 @@
             @click="isSignUp = !isSignUp"
             class="text-[11px] font-semibold text-violet-400 hover:text-violet-300 transition-colors duration-200 cursor-pointer"
           >
-            {{ isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up" }}
+            {{ isSignUp ? $t('onboarding.alreadyHaveAccount') : $t('onboarding.dontHaveAccount') }}
           </button>
         </div>
       </div>
@@ -124,7 +124,7 @@
       <!-- VIEW 3: OPTIONS LIST -->
       <div v-else class="space-y-4 pt-2">
         <p class="text-xs text-gray-400 leading-relaxed">
-          Link your offline guest logs to a secure profile to backup and sync your body metrics seamlessly across multiple devices.
+          {{ $t('authModal.backupSyncDesc') }}
         </p>
 
         <!-- Google Auth -->
@@ -140,7 +140,7 @@
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
           </svg>
-          Link with Google
+          {{ $t('authModal.linkGoogle') }}
         </button>
 
         <!-- Email & Password option -->
@@ -150,12 +150,12 @@
           class="w-full py-3 px-4 rounded-xl bg-gray-800 hover:bg-gray-750 border border-gray-700/50 text-white font-semibold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer text-sm"
         >
           <Mail class="w-4.5 h-4.5 text-violet-400" />
-          Link with Email & Password
+          {{ $t('authModal.linkEmail') }}
         </button>
 
         <div class="relative flex py-1 items-center">
           <div class="flex-grow border-t border-gray-800/80"></div>
-          <span class="flex-shrink mx-3 text-gray-500 text-[10px] uppercase tracking-widest font-bold">Or</span>
+          <span class="flex-shrink mx-3 text-gray-500 text-[10px] uppercase tracking-widest font-bold">{{ $t('common.or') }}</span>
           <div class="flex-grow border-t border-gray-800/80"></div>
         </div>
 
@@ -164,7 +164,7 @@
           @click="closeModal"
           class="w-full py-2.5 px-4 rounded-xl bg-transparent hover:bg-gray-800/30 border border-dashed border-gray-800 hover:border-gray-750 text-gray-400 hover:text-gray-200 font-medium transition-all duration-200 cursor-pointer text-xs"
         >
-          Stay Offline (Continue as Guest)
+          {{ $t('authModal.stayOffline') }}
         </button>
       </div>
     </div>
@@ -177,9 +177,11 @@ import { Cloud, X, Mail, Lock, ArrowLeft, CheckCircle2 } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 import { useToast } from '../composables/useToast';
 import { useModalAccessibility } from '../composables/useModalAccessibility';
+import { useI18n } from '../i18n';
 
 const store = useBodyGraphStore();
 const toast = useToast();
+const { t } = useI18n();
 const loading = ref(false);
 const modalCardRef = ref(null);
 
@@ -210,7 +212,7 @@ const handleGoogleSignIn = async () => {
     await store.signInWithGoogle();
     closeModal();
   } catch (error) {
-    toast.error("Échec de l'initialisation Google Sign In : " + error.message);
+    toast.error(t('onboarding.googleError') + error.message);
   } finally {
     loading.value = false;
   }
@@ -231,7 +233,7 @@ const handleEmailAuth = async () => {
       closeModal();
     }
   } catch (error) {
-    toast.error(`Échec de l'authentification : ${error.message}`);
+    toast.error(t('onboarding.authError') + error.message);
   } finally {
     loading.value = false;
   }

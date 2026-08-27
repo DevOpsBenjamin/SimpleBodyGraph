@@ -7,7 +7,7 @@
           <span class="w-2.5 h-2.5 rounded-full bg-violet-500 animate-pulse"></span>
           {{ title }}
         </h3>
-        <p class="text-[11px] text-gray-400">Évolution de la masse corporelle en kg</p>
+        <p class="text-[11px] text-gray-400">{{ $t('charts.bodyMassEvolution') }}</p>
       </div>
 
       <!-- Quick Toggles -->
@@ -24,7 +24,7 @@
           ]"
         >
           <span :class="['w-2 h-2 rounded-full', store.displayPreferences.charts.showMass ? 'bg-violet-400' : 'bg-gray-600']"></span>
-          Poids Total
+          {{ $t('charts.weightTotalPill') }}
         </button>
 
         <!-- Masse Grasse Pill -->
@@ -39,7 +39,7 @@
           ]"
         >
           <span :class="['w-2 h-2 rounded-full', store.displayPreferences.charts.showFatMass ? 'bg-amber-400' : 'bg-gray-600']"></span>
-          Masse Grasse
+          {{ $t('charts.fatMassPill') }}
         </button>
 
         <!-- Masse Maigre Pill -->
@@ -54,7 +54,7 @@
           ]"
         >
           <span :class="['w-2 h-2 rounded-full', store.displayPreferences.charts.showLeanMass ? 'bg-emerald-400' : 'bg-gray-600']"></span>
-          Masse Maigre
+          {{ $t('charts.leanMassPill') }}
         </button>
       </div>
     </div>
@@ -72,6 +72,7 @@ import { Chart, registerables } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import { useBodyGraphStore } from '../stores/bodyGraph';
 import { goalLinePlugin, getScaleLimits } from '../utils/chartHelpers';
+import { useI18n } from '../i18n';
 
 Chart.register(...registerables);
 
@@ -99,6 +100,7 @@ const props = defineProps({
 });
 
 const store = useBodyGraphStore();
+const { t, currentLanguage } = useI18n();
 const canvasRef = ref(null);
 let chartInstance = null;
 
@@ -134,7 +136,7 @@ const renderChart = () => {
 
   if (store.displayPreferences.charts.showMass && props.massData.length > 0) {
     datasets.push({
-      label: 'Poids Total (kg)',
+      label: t('charts.weightDatasetLabel'),
       data: props.massData,
       borderColor: violetGrad,
       backgroundColor: 'rgba(139, 92, 246, 0.08)',
@@ -149,7 +151,7 @@ const renderChart = () => {
 
   if (store.displayPreferences.charts.showFatMass && props.fatMassData.length > 0) {
     datasets.push({
-      label: 'Masse Grasse (kg)',
+      label: t('charts.fatMassDatasetLabel'),
       data: props.fatMassData,
       borderColor: amberGrad,
       backgroundColor: 'rgba(245, 158, 11, 0.06)',
@@ -164,7 +166,7 @@ const renderChart = () => {
 
   if (store.displayPreferences.charts.showLeanMass && props.leanMassData.length > 0) {
     datasets.push({
-      label: 'Masse Maigre (kg)',
+      label: t('charts.leanMassDatasetLabel'),
       data: props.leanMassData,
       borderColor: emeraldGrad,
       backgroundColor: 'rgba(16, 185, 129, 0.06)',
@@ -269,7 +271,8 @@ watch(
     props.fatMassData, 
     props.leanMassData, 
     store.displayPreferences.charts,
-    props.timeScaleOptions
+    props.timeScaleOptions,
+    currentLanguage.value
   ],
   () => {
     nextTick(renderChart);

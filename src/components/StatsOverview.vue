@@ -10,14 +10,14 @@
     >
       <div class="flex items-center justify-between mb-2">
         <span class="text-xs text-violet-300/80 font-medium">
-          Poids Total
-          <span class="text-[10px] text-violet-400/60 font-sans font-normal ml-1">{{ periodStats.periodBadge }}</span>
+          {{ $t('stats.totalWeight') }}
+          <span class="text-[10px] text-violet-400/60 font-sans font-normal ml-1">{{ localizedPeriodBadge }}</span>
         </span>
         <Scale class="w-4 h-4 text-violet-400" />
       </div>
       <div>
         <div class="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-none">
-          {{ periodStats.currentMass !== null && periodStats.currentMass !== undefined ? periodStats.currentMass.toFixed(2) : '--.--' }} <span class="text-sm font-normal text-gray-400">kg</span>
+          {{ periodStats.currentMass !== null && periodStats.currentMass !== undefined ? periodStats.currentMass.toFixed(2) : '--.--' }} <span class="text-sm font-normal text-gray-400">{{ $t('common.kg') }}</span>
         </div>
 
         <div v-if="periodStats.massChange !== 0" class="flex items-center gap-1 mt-1.5 text-xs">
@@ -26,47 +26,47 @@
             :class="[massTrendClass, 'w-3 h-3']" 
           />
           <span :class="massTrendClass">
-            {{ periodStats.massChange > 0 ? '+' : '' }}{{ periodStats.massChange.toFixed(2) }} kg
+            {{ periodStats.massChange > 0 ? '+' : '' }}{{ periodStats.massChange.toFixed(2) }} {{ $t('common.kg') }}
           </span>
-          <span class="text-gray-500">{{ periodStats.comparisonLabel }}</span>
+          <span class="text-gray-500">{{ localizedComparisonLabel }}</span>
         </div>
-        <div v-else class="text-[11px] text-gray-500 mt-1.5">Stable ({{ periodStats.comparisonLabel }})</div>
+        <div v-else class="text-[11px] text-gray-500 mt-1.5">{{ $t('common.stable') }} ({{ localizedComparisonLabel }})</div>
       </div>
       <!-- Goal target info -->
       <div v-if="store.activePalier && store.targetMass !== null" class="flex flex-col gap-0.5 mt-2 pt-2 border-t border-violet-500/10 text-[10px] text-violet-300/60 font-medium font-sans">
         <div class="flex items-center justify-between">
-          <span class="text-violet-300 font-bold bg-violet-500/15 px-1.5 py-0.5 rounded">Palier {{ activePalierIndex + 1 }}</span>
+          <span class="text-violet-300 font-bold bg-violet-500/15 px-1.5 py-0.5 rounded">{{ $t('stats.stageLabel', { index: activePalierIndex + 1 }) }}</span>
           <span v-if="periodStats.currentMass">
             <span v-if="periodStats.currentMass > store.targetMass">
-              {{ (periodStats.currentMass - store.targetMass).toFixed(2) }} kg à perdre
+              {{ $t('stats.toLose', { amount: (periodStats.currentMass - store.targetMass).toFixed(2) }) }}
             </span>
             <span v-else-if="periodStats.currentMass < store.targetMass">
-              {{ (store.targetMass - periodStats.currentMass).toFixed(2) }} kg à prendre
+              {{ $t('stats.toGain', { amount: (store.targetMass - periodStats.currentMass).toFixed(2) }) }}
             </span>
             <span v-else class="text-emerald-400 font-bold">
-              🎉 Palier atteint !
+              {{ $t('stats.stageReached') }}
             </span>
           </span>
         </div>
         <div class="flex justify-between items-center text-[9px] text-violet-400/60">
-          <span>Cible: {{ store.targetMass.toFixed(2) }} kg ({{ store.targetFat ? store.targetFat.toFixed(1) + '%' : 'sans limite fat' }})</span>
+          <span>{{ $t('stats.targetPrefix', { target: store.targetMass.toFixed(2) }) }} {{ store.targetFat ? $t('stats.targetWithFat', { fat: store.targetFat.toFixed(1) }) : '(' + $t('stats.noFatLimit') + ')' }}</span>
         </div>
       </div>
       <div v-else-if="store.activePalier" class="flex flex-col gap-0.5 mt-2 pt-2 border-t border-violet-500/10 text-[10px] text-violet-300/60 font-medium font-sans">
         <div class="flex items-center justify-between">
-          <span class="text-violet-300 font-bold bg-violet-500/15 px-1.5 py-0.5 rounded">Palier {{ activePalierIndex + 1 }}</span>
-          <span class="text-emerald-400 font-bold">Sans objectif poids</span>
+          <span class="text-violet-300 font-bold bg-violet-500/15 px-1.5 py-0.5 rounded">{{ $t('stats.stageLabel', { index: activePalierIndex + 1 }) }}</span>
+          <span class="text-emerald-400 font-bold">{{ $t('stats.noWeightGoal') }}</span>
         </div>
       </div>
       <div v-else-if="store.paliers.length > 0 && !store.activePalier" class="mt-2 pt-2 border-t border-violet-500/10 text-[10px] text-emerald-400 font-bold font-sans text-center">
-        🎉 Tous les paliers validés !
+        {{ $t('stats.allPaliersValidated') }}
       </div>
       <button 
         v-else 
         @click="store.activeView = 'settings'"
         class="mt-2 pt-2 border-t border-dashed border-violet-500/10 text-[10px] text-violet-400/80 hover:text-violet-300 font-medium cursor-pointer w-full text-left transition-colors duration-150 font-sans"
       >
-        + Configurer les paliers
+        {{ $t('stats.configurePaliers') }}
       </button>
     </div>
 
@@ -77,14 +77,14 @@
     >
       <div class="flex items-center justify-between mb-2">
         <span class="text-xs text-amber-300/80 font-medium">
-          Masse Grasse
-          <span class="text-[10px] text-amber-400/60 font-sans font-normal ml-1">{{ periodStats.periodBadge }}</span>
+          {{ $t('stats.fatMass') }}
+          <span class="text-[10px] text-amber-400/60 font-sans font-normal ml-1">{{ localizedPeriodBadge }}</span>
         </span>
         <Flame class="w-4 h-4 text-amber-400" />
       </div>
       <div>
         <div class="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-none">
-          {{ periodStats.currentFatMass !== null && periodStats.currentFatMass !== undefined ? periodStats.currentFatMass.toFixed(2) : '--.--' }} <span class="text-sm font-normal text-gray-400">kg</span>
+          {{ periodStats.currentFatMass !== null && periodStats.currentFatMass !== undefined ? periodStats.currentFatMass.toFixed(2) : '--.--' }} <span class="text-sm font-normal text-gray-400">{{ $t('common.kg') }}</span>
         </div>
 
         <div v-if="periodStats.fatMassChange !== 0" class="flex items-center gap-1 mt-1.5 text-xs">
@@ -93,29 +93,29 @@
             :class="[fatMassTrendClass, 'w-3 h-3']" 
           />
           <span :class="fatMassTrendClass">
-            {{ periodStats.fatMassChange > 0 ? '+' : '' }}{{ periodStats.fatMassChange.toFixed(2) }} kg
+            {{ periodStats.fatMassChange > 0 ? '+' : '' }}{{ periodStats.fatMassChange.toFixed(2) }} {{ $t('common.kg') }}
           </span>
-          <span class="text-gray-500">{{ periodStats.comparisonLabel }}</span>
+          <span class="text-gray-500">{{ localizedComparisonLabel }}</span>
         </div>
-        <div v-else class="text-[11px] text-gray-500 mt-1.5">Stable ({{ periodStats.comparisonLabel }})</div>
+        <div v-else class="text-[11px] text-gray-500 mt-1.5">{{ $t('common.stable') }} ({{ localizedComparisonLabel }})</div>
       </div>
       <!-- Goal target info -->
       <div v-if="store.activePalier && store.targetFatMass !== null" class="flex items-center justify-between mt-2 pt-2 border-t border-amber-500/10 text-[10px] text-amber-300/60 font-medium font-sans">
-        <span>Cible: {{ store.targetFatMass.toFixed(2) }} kg</span>
+        <span>{{ $t('stats.targetFatMassPrefix', { target: store.targetFatMass.toFixed(2) }) }}</span>
         <span v-if="periodStats.currentFatMass">
           <span v-if="periodStats.currentFatMass > store.targetFatMass">
-            {{ (periodStats.currentFatMass - store.targetFatMass).toFixed(2) }} kg à perdre
+            {{ $t('stats.toLose', { amount: (periodStats.currentFatMass - store.targetFatMass).toFixed(2) }) }}
           </span>
           <span v-else-if="periodStats.currentFatMass < store.targetFatMass">
-            {{ (store.targetFatMass - periodStats.currentFatMass).toFixed(2) }} kg à prendre
+            {{ $t('stats.toGain', { amount: (store.targetFatMass - periodStats.currentFatMass).toFixed(2) }) }}
           </span>
           <span v-else class="text-emerald-400 font-bold">
-            🎉 Atteint !
+            {{ $t('stats.targetReached') }}
           </span>
         </span>
       </div>
       <div v-else class="mt-2 pt-2 border-t border-dashed border-amber-500/10 text-[10px] text-gray-500 font-medium font-sans">
-        Pas de limite fat
+        {{ $t('stats.noFatLimitDesc') }}
       </div>
     </div>
 
@@ -126,14 +126,14 @@
     >
       <div class="flex items-center justify-between mb-2">
         <span class="text-xs text-blue-300/80 font-medium">
-          % Gras
-          <span class="text-[10px] text-blue-400/60 font-sans font-normal ml-1">{{ periodStats.periodBadge }}</span>
+          {{ $t('stats.bodyFat') }}
+          <span class="text-[10px] text-blue-400/60 font-sans font-normal ml-1">{{ localizedPeriodBadge }}</span>
         </span>
         <Percent class="w-4 h-4 text-blue-400" />
       </div>
       <div>
         <div class="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-none">
-          {{ periodStats.currentFat !== null && periodStats.currentFat !== undefined ? periodStats.currentFat.toFixed(1) : '--.-' }} <span class="text-sm font-normal text-gray-400">%</span>
+          {{ periodStats.currentFat !== null && periodStats.currentFat !== undefined ? periodStats.currentFat.toFixed(1) : '--.-' }} <span class="text-sm font-normal text-gray-400">{{ $t('common.percent') }}</span>
         </div>
 
         <div v-if="periodStats.fatChange !== 0" class="flex items-center gap-1 mt-1.5 text-xs">
@@ -144,27 +144,27 @@
           <span :class="fatTrendClass">
             {{ periodStats.fatChange > 0 ? '+' : '' }}{{ periodStats.fatChange.toFixed(1) }}%
           </span>
-          <span class="text-gray-500">{{ periodStats.comparisonLabel }}</span>
+          <span class="text-gray-500">{{ localizedComparisonLabel }}</span>
         </div>
-        <div v-else class="text-[11px] text-gray-500 mt-1.5">Stable ({{ periodStats.comparisonLabel }})</div>
+        <div v-else class="text-[11px] text-gray-500 mt-1.5">{{ $t('common.stable') }} ({{ localizedComparisonLabel }})</div>
       </div>
       <!-- Goal target info -->
       <div v-if="store.activePalier && store.targetFat !== null" class="flex items-center justify-between mt-2 pt-2 border-t border-blue-500/10 text-[10px] text-blue-300/60 font-medium font-sans">
-        <span>Cible: {{ store.targetFat.toFixed(1) }}%</span>
+        <span>{{ $t('stats.targetFatPrefix', { target: store.targetFat.toFixed(1) }) }}</span>
         <span v-if="periodStats.currentFat">
           <span v-if="periodStats.currentFat > store.targetFat">
-            {{ (periodStats.currentFat - store.targetFat).toFixed(1) }}% à perdre
+            {{ $t('stats.toLosePercent', { amount: (periodStats.currentFat - store.targetFat).toFixed(1) }) }}
           </span>
           <span v-else-if="periodStats.currentFat < store.targetFat">
-            {{ (store.targetFat - periodStats.currentFat).toFixed(1) }}% à prendre
+            {{ $t('stats.toGainPercent', { amount: (store.targetFat - periodStats.currentFat).toFixed(1) }) }}
           </span>
           <span v-else class="text-emerald-400 font-bold">
-            🎉 Atteint !
+            {{ $t('stats.targetReached') }}
           </span>
         </span>
       </div>
       <div v-else class="mt-2 pt-2 border-t border-dashed border-blue-500/10 text-[10px] text-gray-500 font-medium font-sans">
-        Pas d'objectif set
+        {{ $t('stats.noTargetSetDesc') }}
       </div>
     </div>
 
@@ -175,14 +175,14 @@
     >
       <div class="flex items-center justify-between mb-2">
         <span class="text-xs text-emerald-300/80 font-medium">
-          Masse Maigre
-          <span class="text-[10px] text-emerald-400/60 font-sans font-normal ml-1">{{ periodStats.periodBadge }}</span>
+          {{ $t('stats.leanMass') }}
+          <span class="text-[10px] text-emerald-400/60 font-sans font-normal ml-1">{{ localizedPeriodBadge }}</span>
         </span>
         <Dumbbell class="w-4 h-4 text-emerald-400" />
       </div>
       <div>
         <div class="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-none">
-          {{ periodStats.currentLeanMass !== null && periodStats.currentLeanMass !== undefined ? periodStats.currentLeanMass.toFixed(2) : '--.--' }} <span class="text-sm font-normal text-gray-400">kg</span>
+          {{ periodStats.currentLeanMass !== null && periodStats.currentLeanMass !== undefined ? periodStats.currentLeanMass.toFixed(2) : '--.--' }} <span class="text-sm font-normal text-gray-400">{{ $t('common.kg') }}</span>
         </div>
 
         <div v-if="periodStats.leanMassChange !== 0" class="flex items-center gap-1 mt-1.5 text-xs">
@@ -191,19 +191,19 @@
             :class="[leanMassTrendClass, 'w-3 h-3']" 
           />
           <span :class="leanMassTrendClass">
-            {{ periodStats.leanMassChange > 0 ? '+' : '' }}{{ periodStats.leanMassChange.toFixed(2) }} kg
+            {{ periodStats.leanMassChange > 0 ? '+' : '' }}{{ periodStats.leanMassChange.toFixed(2) }} {{ $t('common.kg') }}
           </span>
-          <span class="text-gray-500">{{ periodStats.comparisonLabel }}</span>
+          <span class="text-gray-500">{{ localizedComparisonLabel }}</span>
         </div>
-        <div v-else class="text-[11px] text-gray-500 mt-1.5">Stable ({{ periodStats.comparisonLabel }})</div>
+        <div v-else class="text-[11px] text-gray-500 mt-1.5">{{ $t('common.stable') }} ({{ localizedComparisonLabel }})</div>
       </div>
       <!-- Goal target info -->
       <div v-if="store.activePalier && store.targetLeanMass !== null" class="flex items-center justify-between mt-2 pt-2 border-t border-emerald-500/10 text-[10px] text-emerald-300/60 font-medium font-sans">
-        <span>Cible: {{ store.targetLeanMass.toFixed(2) }} kg</span>
-        <span class="text-emerald-400 font-bold">Maintien lean</span>
+        <span>{{ $t('stats.targetLeanMassPrefix', { target: store.targetLeanMass.toFixed(2) }) }}</span>
+        <span class="text-emerald-400 font-bold">{{ $t('stats.leanMaintenance') }}</span>
       </div>
       <div v-else class="mt-2 pt-2 border-t border-dashed border-emerald-500/10 text-[10px] text-gray-500 font-medium font-sans">
-        Masse musculaire & vitale
+        {{ $t('stats.leanMassVitalDesc') }}
       </div>
     </div>
   </section>
@@ -213,10 +213,20 @@
 import { computed } from 'vue';
 import { Scale, Flame, Percent, Dumbbell, TrendingUp, TrendingDown } from 'lucide-vue-next';
 import { useBodyGraphStore } from '../stores/bodyGraph';
+import { useI18n } from '../i18n';
 
 const store = useBodyGraphStore();
+const { t } = useI18n();
 
 const periodStats = computed(() => store.periodStats);
+
+const localizedPeriodBadge = computed(() => {
+  return store.activeTab === 'monthly' ? t('stats.periodMonthBadge') : t('stats.period7dBadge');
+});
+
+const localizedComparisonLabel = computed(() => {
+  return store.activeTab === 'monthly' ? t('stats.prevMonthComp') : t('stats.sevenDaysAgoComp');
+});
 
 const visibleCardCount = computed(() => {
   const c = store.displayPreferences?.cards || {};
@@ -281,3 +291,4 @@ const leanMassTrendClass = computed(() => {
   return change >= 0 ? 'text-emerald-400' : 'text-amber-400';
 });
 </script>
+

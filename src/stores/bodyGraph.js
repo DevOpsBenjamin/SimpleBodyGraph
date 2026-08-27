@@ -44,6 +44,13 @@ import {
   evaluatePalierAutoValidation
 } from '../services/goals/palierService';
 
+import {
+  resolveEffectiveLanguage,
+  setLanguage,
+  currentLanguage
+} from '../i18n';
+
+
 // Default display preferences
 export const DEFAULT_DISPLAY_PREFERENCES = {
   cards: {
@@ -136,11 +143,17 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     editingLog: null,
     editingMeasurement: null,
 
+    // Language preference ('fr' | 'en' | null for auto-detect from browser)
+    language: null,
+
     // Display and visibility preferences (Cards & Charts & BIA Segments)
     displayPreferences: JSON.parse(JSON.stringify(DEFAULT_DISPLAY_PREFERENCES))
   }),
 
   getters: {
+    effectiveLanguage(state) {
+      return resolveEffectiveLanguage(state.language);
+    },
     userAge(state) {
       return calculateAge(state.profile.birthDate);
     },
@@ -346,6 +359,14 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         }
       }
 
+      const savedLang = localStorage.getItem('bodygraph_language');
+      if (savedLang === 'fr' || savedLang === 'en') {
+        this.language = savedLang;
+      } else {
+        this.language = null;
+      }
+      setLanguage(this.language);
+
       const savedDisplayPrefs = localStorage.getItem('bodygraph_display_preferences');
       if (savedDisplayPrefs) {
         try {
@@ -381,6 +402,11 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         this.user = data.session?.user || null;
         
         if (this.user) {
+          if (this.user.user_metadata?.language) {
+            this.language = this.user.user_metadata.language;
+            setLanguage(this.language);
+            localStorage.setItem('bodygraph_language', this.language);
+          }
           this.targetMass = this.user.user_metadata?.target_mass || null;
           this.targetFat = this.user.user_metadata?.target_fat || null;
           if (this.user.user_metadata?.profile) {
@@ -424,6 +450,11 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           this.user = session?.user || null;
           
           if (session?.user) {
+            if (session.user.user_metadata?.language) {
+              this.language = session.user.user_metadata.language;
+              setLanguage(this.language);
+              localStorage.setItem('bodygraph_language', this.language);
+            }
             this.targetMass = session.user.user_metadata?.target_mass || null;
             this.targetFat = session.user.user_metadata?.target_fat || null;
             if (session.user.user_metadata?.profile) {
@@ -561,6 +592,27 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           });
         } catch (error) {
           console.warn('Failed to sync display preferences to cloud:', error);
+        }
+      }
+    },
+
+    async updateLanguage(lang) {
+      this.language = (lang === 'fr' || lang === 'en') ? lang : null;
+      setLanguage(this.language);
+
+      if (this.language) {
+        localStorage.setItem('bodygraph_language', this.language);
+      } else {
+        localStorage.removeItem('bodygraph_language');
+      }
+
+      if (supabase && this.user) {
+        try {
+          await supabase.auth.updateUser({
+            data: { language: this.language }
+          });
+        } catch (error) {
+          console.warn('Failed to sync language preference to cloud:', error);
         }
       }
     },
@@ -1018,7 +1070,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async exportData() {
-      const data = await exportAllData(this.currentUserId, this.paliers, this.profile, this.displayPreferences);
+      const data = await exportAllData(this.currentUserId, this.paliers, this.profile, this.displayPreferences, this.language);
       const jsonStr = JSON.stringify(data, null, 2);
       if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -1059,6 +1111,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
       if (result.displayPreferences && typeof result.displayPreferences === 'object') {
         await this.updateDisplayPreferences(result.displayPreferences);
+      }
+
+      if (result.language) {
+        await this.updateLanguage(result.language);
       }
 
       await this.loadLogs();

@@ -4,13 +4,13 @@
     <div class="w-16 h-16 bg-gray-950 rounded-2xl flex items-center justify-center border border-gray-800/60 text-gray-500 mb-4">
       <Scale class="w-8 h-8" />
     </div>
-    <h3 class="text-lg font-semibold text-white mb-1">Aucune donnée disponible</h3>
-    <p class="text-sm text-gray-400 max-w-xs mb-6">Commencez par ajouter ou synchroniser des pesées pour afficher vos graphiques de progression.</p>
+    <h3 class="text-lg font-semibold text-white mb-1">{{ $t('charts.emptyTitle') }}</h3>
+    <p class="text-sm text-gray-400 max-w-xs mb-6">{{ $t('charts.emptyDesc') }}</p>
     <button 
       @click="store.showAddModal = true"
       class="px-4 py-2 bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white font-medium rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer shadow-lg shadow-violet-500/10"
     >
-      <Plus class="w-4 h-4" /> Ajouter une pesée
+      <Plus class="w-4 h-4" /> {{ $t('charts.addLog') }}
     </button>
   </div>
 
@@ -28,8 +28,8 @@
       <!-- MONTH NAVIGATION BAR -->
       <PeriodFocusBar
         v-if="store.activeMonth"
-        title="Mois sélectionné"
-        :label="store.activeMonth.label"
+        :title="$t('focusBar.selectedMonth')"
+        :label="localizedActiveMonthLabel"
         period-name="month"
         :can-prev="store.selectedMonthIndex < store.groupedMonths.length - 1"
         :can-next="store.selectedMonthIndex > 0"
@@ -38,24 +38,24 @@
       />
 
       <!-- Touch Swipe tip -->
-      <p class="text-center text-[10px] text-gray-500 select-none">💡 Glissez vers la gauche/droite pour naviguer entre les mois</p>
+      <p class="text-center text-[10px] text-gray-500 select-none">{{ $t('focusBar.swipeTipMonth') }}</p>
 
       <!-- BIA PERIOD SUMMARY (IF BIA DATA PRESENT) -->
       <BiaPeriodSummaryCard
         v-if="store.activeMonth"
         :period-item="store.activeMonth"
-        :period-label="store.activeMonth.label"
+        :period-label="localizedActiveMonthLabel"
       />
 
       <!-- HEVY SYNC HELPER FOR ACTIVE MONTH -->
       <HevyFocusCard
         :item="store.activeMonth"
-        period-label="Monthly"
+        :period-label="$t('nav.monthly')"
       />
 
       <!-- UNIFIED COMPOSITION CHART (MONTHLY) -->
       <UnifiedCompositionChart
-        title="Progression Mensuelle (Médianes)"
+        :title="$t('charts.monthlyTitle')"
         :mass-data="monthlyChartData.weight.median"
         :fat-mass-data="monthlyChartData.fatMass.median"
         :lean-mass-data="monthlyChartData.lean.median"
@@ -65,7 +65,7 @@
       <!-- BIA SEGMENTAL MUSCLE CHART (MONTHLY) -->
       <BiaSegmentalChart
         v-if="store.displayPreferences?.charts?.showBiaMuscleChart && monthlyBiaSegmentalData.length > 0"
-        title="Masse Musculaire Segmentaire Mensuelle (kg)"
+        :title="$t('charts.segmentalMuscleMonthly')"
         type="muscle"
         :data="monthlyBiaSegmentalData"
         :time-scale-options="commonMonthlyTimeScaleOptions"
@@ -74,7 +74,7 @@
       <!-- BIA SEGMENTAL FAT CHART (MONTHLY) -->
       <BiaSegmentalChart
         v-if="store.displayPreferences?.charts?.showBiaFatChart && monthlyBiaSegmentalData.length > 0"
-        title="Masse Grasse Segmentaire Mensuelle (kg)"
+        :title="$t('charts.segmentalFatMonthly')"
         type="fat"
         :data="monthlyBiaSegmentalData"
         :time-scale-options="commonMonthlyTimeScaleOptions"
@@ -83,12 +83,12 @@
       <!-- OPTIONAL BODY FAT % CHART -->
       <div v-if="store.displayPreferences?.charts?.showFatPercentChart" class="pt-2">
         <MetricChartCard
-          title="Taux de Masse Grasse Mensuel (%)"
+          :title="$t('charts.fatPercentMonthlyTitle')"
           metric-type="fat"
           color-type="emerald"
           unit="%"
-          median-label="Médiane Mensuelle"
-          average-label="Moyenne Mensuelle"
+          :median-label="$t('charts.monthlyMedian')"
+          :average-label="$t('charts.monthlyAverage')"
           :median-data="monthlyChartData.fat.median"
           :average-data="monthlyChartData.fat.avg"
           :paliers="store.paliersSorted"
@@ -114,8 +114,8 @@
       <!-- WEEK NAVIGATION BAR -->
       <PeriodFocusBar
         v-if="store.activeWeek"
-        title="Semaine sélectionnée"
-        :label="store.activeWeek.label"
+        :title="$t('focusBar.selectedWeek')"
+        :label="localizedActiveWeekLabel"
         period-name="week"
         :can-prev="store.selectedWeekIndex < store.groupedWeeks.length - 1"
         :can-next="store.selectedWeekIndex > 0"
@@ -124,24 +124,24 @@
       />
 
       <!-- Touch Swipe tip -->
-      <p class="text-center text-[10px] text-gray-500 select-none">💡 Glissez vers la gauche/droite pour naviguer entre les semaines</p>
+      <p class="text-center text-[10px] text-gray-500 select-none">{{ $t('focusBar.swipeTipWeek') }}</p>
 
       <!-- BIA PERIOD SUMMARY (IF BIA DATA PRESENT) -->
       <BiaPeriodSummaryCard
         v-if="store.activeWeek"
         :period-item="store.activeWeek"
-        :period-label="store.activeWeek.label"
+        :period-label="localizedActiveWeekLabel"
       />
 
       <!-- HEVY SYNC HELPER FOR ACTIVE WEEK -->
       <HevyFocusCard
         :item="store.activeWeek"
-        period-label="Weekly"
+        :period-label="$t('nav.weekly')"
       />
 
       <!-- UNIFIED COMPOSITION CHART (WEEKLY) -->
       <UnifiedCompositionChart
-        title="Progression Hebdomadaire (Médianes 7j)"
+        :title="$t('charts.weeklyTitle')"
         :mass-data="weeklyChartData.weight.median"
         :fat-mass-data="weeklyChartData.fatMass.median"
         :lean-mass-data="weeklyChartData.lean.median"
@@ -151,7 +151,7 @@
       <!-- BIA SEGMENTAL MUSCLE CHART (WEEKLY) -->
       <BiaSegmentalChart
         v-if="store.displayPreferences?.charts?.showBiaMuscleChart && weeklyBiaSegmentalData.length > 0"
-        title="Masse Musculaire Segmentaire Hebdomadaire (kg)"
+        :title="$t('charts.segmentalMuscleWeekly')"
         type="muscle"
         :data="weeklyBiaSegmentalData"
         :time-scale-options="commonWeeklyTimeScaleOptions"
@@ -160,7 +160,7 @@
       <!-- BIA SEGMENTAL FAT CHART (WEEKLY) -->
       <BiaSegmentalChart
         v-if="store.displayPreferences?.charts?.showBiaFatChart && weeklyBiaSegmentalData.length > 0"
-        title="Masse Grasse Segmentaire Hebdomadaire (kg)"
+        :title="$t('charts.segmentalFatWeekly')"
         type="fat"
         :data="weeklyBiaSegmentalData"
         :time-scale-options="commonWeeklyTimeScaleOptions"
@@ -169,12 +169,12 @@
       <!-- OPTIONAL BODY FAT % CHART -->
       <div v-if="store.displayPreferences?.charts?.showFatPercentChart" class="pt-2">
         <MetricChartCard
-          title="Taux de Masse Grasse Hebdomadaire (%)"
+          :title="$t('charts.fatPercentWeeklyTitle')"
           metric-type="fat"
           color-type="emerald"
           unit="%"
-          median-label="Médiane Hebdomadaire"
-          average-label="Moyenne Hebdomadaire"
+          :median-label="$t('charts.weeklyMedian')"
+          :average-label="$t('charts.weeklyAverage')"
           :median-data="weeklyChartData.fat.median"
           :average-data="weeklyChartData.fat.avg"
           :paliers="store.paliersSorted"
@@ -196,6 +196,7 @@
 import { computed } from 'vue';
 import { Scale, Plus } from 'lucide-vue-next';
 import { useBodyGraphStore, calculateMedian } from '../stores/bodyGraph';
+import { useI18n } from '../i18n';
 import YearRangeSelector from './YearRangeSelector.vue';
 import PeriodFocusBar from './PeriodFocusBar.vue';
 import HevyFocusCard from './HevyFocusCard.vue';
@@ -211,6 +212,17 @@ import {
 } from '../utils/chartHelpers';
 
 const store = useBodyGraphStore();
+const { formatMonthYear, formatWeekRange } = useI18n();
+
+const localizedActiveMonthLabel = computed(() => {
+  if (!store.activeMonth) return '';
+  return formatMonthYear(store.activeMonth.startDate);
+});
+
+const localizedActiveWeekLabel = computed(() => {
+  if (!store.activeWeek) return '';
+  return formatWeekRange(store.activeWeek.monday, store.activeWeek.sunday);
+});
 
 // Swipe navigation controls
 let touchStartX = 0;

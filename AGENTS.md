@@ -31,4 +31,11 @@ Le jeu de données officiel est défini dans `tests/db-helper.js` (`MOCK_LOGS` e
 
 ---
 
+## GitHub CLI Authentication & Multi-Account Management
+* **Préfixe obligatoire** : Toute commande `gh` exécutée sur ce projet doit impérativement être préfixée avec `GH_TOKEN=$(gh auth token --user DevOpsBenjamin)` afin d'utiliser le compte `DevOpsBenjamin` sans modifier le compte actif global du système (`bledrappier`).
+  * Exemple : `GH_TOKEN=$(gh auth token --user DevOpsBenjamin) gh pr list`
+
+---
+
 En suivant ces consignes, les tests resteront petits, rapides, lisibles, extrêmement robustes et toujours alignés sur une réalité clinique/physique cohérente de 3 mois de suivi.
+

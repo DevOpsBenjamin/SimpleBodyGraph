@@ -5,8 +5,8 @@
       @click="$emit('prev')"
       :disabled="!canPrev"
       class="p-1.5 rounded-xl bg-gray-900/60 hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer transition-all duration-200 active:scale-95"
-      :title="'Précédent ' + periodName"
-      :aria-label="'Précédent ' + periodName"
+      :title="$t('focusBar.prevPeriod', { period: periodName })"
+      :aria-label="$t('focusBar.prevPeriod', { period: periodName })"
     >
       <ChevronLeft class="w-5 h-5 text-violet-400" />
     </button>
@@ -22,8 +22,8 @@
       @click="$emit('next')"
       :disabled="!canNext"
       class="p-1.5 rounded-xl bg-gray-900/60 hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer transition-all duration-200 active:scale-95"
-      :title="'Suivant ' + periodName"
-      :aria-label="'Suivant ' + periodName"
+      :title="$t('focusBar.nextPeriod', { period: periodName })"
+      :aria-label="$t('focusBar.nextPeriod', { period: periodName })"
     >
       <ChevronRight class="w-5 h-5 text-violet-400" />
     </button>
