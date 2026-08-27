@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useBodyGraphStore } from '../src/stores/bodyGraph';
+import { useSettingsStore } from '../src/stores/settings';
 import { ScaleManager } from '../src/services/ble/scaleManager';
 import '../src/services/ble/drivers/huaweiScale3Driver';
 import { MOCK_LOGS, MOCK_MEASUREMENTS } from './db-helper';
@@ -21,13 +22,16 @@ vi.mock('../src/db', () => ({
 
 describe('Live Weigh-In Workflow & State Management (Mode 2)', () => {
   let store;
+  let settingsStore;
 
   beforeEach(() => {
     setActivePinia(createPinia());
     store = useBodyGraphStore();
+    settingsStore = useSettingsStore();
+
     store.logs = [...MOCK_LOGS];
     store.measurements = [...MOCK_MEASUREMENTS];
-    store.pairedDevices = [
+    settingsStore.pairedDevices = [
       {
         id: 'scale_1',
         deviceId: '50:FB:19:F8:0C:21',
@@ -37,7 +41,7 @@ describe('Live Weigh-In Workflow & State Management (Mode 2)', () => {
         huid: '30033000012345678'
       }
     ];
-    store.profile = {
+    settingsStore.profile = {
       gender: 'male',
       birthDate: '1995-05-15',
       height: 180
@@ -54,7 +58,7 @@ describe('Live Weigh-In Workflow & State Management (Mode 2)', () => {
     const onComplete = vi.fn();
 
     const measurement = await ScaleManager.startMeasurement(
-      store.pairedDevices[0],
+      settingsStore.pairedDevices[0],
       { gender: 'male', age: 31, heightCm: 180, lastWeightKg: 82.5 },
       { onStateChange, onLiveWeight, onComplete }
     );
