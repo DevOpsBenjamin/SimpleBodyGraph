@@ -95,6 +95,10 @@ class ScaleManagerClass {
     }
 
     try {
+      driver.deviceId = device.deviceId;
+      if (device.mac) driver.physicalMac = device.mac;
+      if (device.huid) driver.huid = device.huid;
+
       if (callbacks && typeof callbacks.onStateChange === 'function') {
         callbacks.onStateChange('connecting', `Connexion à ${driver.name}...`);
       }
