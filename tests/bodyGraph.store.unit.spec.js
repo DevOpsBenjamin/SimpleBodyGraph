@@ -132,21 +132,27 @@ vi.mock('../src/supabase', () => ({
 }));
 
 import { useBodyGraphStore, calculateAge } from '../src/stores/bodyGraph';
+import { useAuthStore } from '../src/stores/auth';
+import { useGoalsStore } from '../src/stores/goals';
+import { useSettingsStore } from '../src/stores/settings';
 import { supabase } from '../src/supabase';
 import * as db from '../src/db';
 
-describe('useBodyGraphStore', () => {
+describe('useBodyGraphStore & Domain Stores', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
     mockAuthChangeCallback = null;
     localStorage.clear();
 
-    // Pre-populate the store with our global seed logs, measurements, and 3 default paliers
+    // Pre-populate the stores with our global seed logs, measurements, and 3 default paliers
     const store = useBodyGraphStore();
+    const authStore = useAuthStore();
+    const goalsStore = useGoalsStore();
+
     store.logs = [...mockLogs];
     store.measurements = [...mockMeasurements];
-    store.paliers = [
+    goalsStore.paliers = [
       { id: 'p1', mass: 100, fat: 28, validated: false },
       { id: 'p2', mass: 95, fat: 25, validated: false },
       { id: 'p3', mass: 85, fat: 20, validated: false }
@@ -156,40 +162,44 @@ describe('useBodyGraphStore', () => {
   describe('Getters', () => {
     it('showDashboard reflects authenticated state or guest mode', () => {
       const store = useBodyGraphStore();
+      const authStore = useAuthStore();
       expect(store.showDashboard).toBe(false);
 
-      store.user = { id: 'user-123' };
+      authStore.user = { id: 'user-123' };
       expect(store.showDashboard).toBe(true);
 
-      store.user = null;
-      store.isGuestMode = true;
+      authStore.user = null;
+      authStore.isGuestMode = true;
       expect(store.showDashboard).toBe(true);
     });
 
     it('currentUserId is "guest" when no user, or user.id when logged in', () => {
       const store = useBodyGraphStore();
+      const authStore = useAuthStore();
       expect(store.currentUserId).toBe('guest');
 
-      store.user = { id: 'real-user-id' };
+      authStore.user = { id: 'real-user-id' };
       expect(store.currentUserId).toBe('real-user-id');
     });
 
     it('isAuthenticated matches presence of user', () => {
       const store = useBodyGraphStore();
+      const authStore = useAuthStore();
       expect(store.isAuthenticated).toBe(false);
 
-      store.user = { id: 'user-id' };
+      authStore.user = { id: 'user-id' };
       expect(store.isAuthenticated).toBe(true);
     });
 
     it('userEmail returns appropriate label based on profile type', () => {
       const store = useBodyGraphStore();
+      const authStore = useAuthStore();
       expect(store.userEmail).toBe('Guest Profile');
 
-      store.user = { is_anonymous: true };
+      authStore.user = { is_anonymous: true };
       expect(store.userEmail).toBe('Anonymous Cloud Profile');
 
-      store.user = { email: 'test@example.com' };
+      authStore.user = { email: 'test@example.com' };
       expect(store.userEmail).toBe('test@example.com');
     });
 
@@ -253,29 +263,31 @@ describe('useBodyGraphStore', () => {
 
     it('targetLeanMass and targetFatMass compute correct target weights', () => {
       const store = useBodyGraphStore();
+      const goalsStore = useGoalsStore();
       expect(store.targetLeanMass).toBeNull();
       expect(store.targetFatMass).toBeNull();
 
-      store.targetMass = 100;
-      store.targetFat = 20;
+      goalsStore.targetMass = 100;
+      goalsStore.targetFat = 20;
       expect(store.targetLeanMass).toBe(80);
       expect(store.targetFatMass).toBe(20);
     });
 
     it('activePalier returns the first palier in order that is not validated', () => {
       const store = useBodyGraphStore();
+      const goalsStore = useGoalsStore();
       // Initially, the pre-populated palier is the first one (p1)
       expect(store.activePalier).toEqual({ id: 'p1', mass: 100, fat: 28, validated: false });
 
       // Test clearing and custom assignment
-      store.paliers = [];
+      goalsStore.paliers = [];
       expect(store.activePalier).toBeNull();
 
       const p1 = { id: '1', mass: 90, validated: true };
       const p2 = { id: '2', mass: 85, validated: false };
       const p3 = { id: '3', mass: 80, validated: false };
 
-      store.paliers = [p1, p2, p3];
+      goalsStore.paliers = [p1, p2, p3];
       expect(store.activePalier).toEqual(p2);
     });
 
@@ -380,20 +392,23 @@ describe('useBodyGraphStore', () => {
 
     it('enableGuestMode triggers isGuestMode and loads logs', async () => {
       const store = useBodyGraphStore();
+      const authStore = useAuthStore();
       await store.enableGuestMode();
-      expect(store.isGuestMode).toBe(true);
+      expect(authStore.isGuestMode).toBe(true);
       expect(db.getAllLogs).toHaveBeenCalledWith('guest');
       expect(store.logs).toHaveLength(28);
     });
 
     it('syncSingleGoalsFromActivePalier pulls targets from first unvalidated palier', () => {
       const store = useBodyGraphStore();
+      const goalsStore = useGoalsStore();
+
       // Test pulling from the default pre-populated paliers (active: p1 100/28)
       store.syncSingleGoalsFromActivePalier();
       expect(store.targetMass).toBe(100);
       expect(store.targetFat).toBe(28);
 
-      store.paliers = [
+      goalsStore.paliers = [
         { id: '1', mass: 90, fat: 18, validated: true },
         { id: '2', mass: 85, fat: 15, validated: false }
       ];
@@ -405,7 +420,8 @@ describe('useBodyGraphStore', () => {
 
     it('updatePaliers updates state, syncs target, and saves to supabase if logged in', async () => {
       const store = useBodyGraphStore();
-      store.user = { id: 'user-123' };
+      const authStore = useAuthStore();
+      authStore.user = { id: 'user-123' };
 
       const newPaliers = [{ id: 'p1', mass: 80, fat: 12, validated: false }];
       await store.updatePaliers(newPaliers);
@@ -425,20 +441,22 @@ describe('useBodyGraphStore', () => {
 
     it('updatePaliers updates state and saves to localStorage if in guest mode', async () => {
       const store = useBodyGraphStore();
-      store.user = null;
+      const authStore = useAuthStore();
+      authStore.user = null;
 
       const newPaliers = [{ id: 'p1', mass: 80, fat: 12, validated: false }];
       await store.updatePaliers(newPaliers);
 
       expect(store.paliers).toEqual(newPaliers);
       expect(localStorage.setItem).toHaveBeenCalledWith('bodygraph_paliers', JSON.stringify(newPaliers));
-      expect(localStorage.setItem).toHaveBeenCalledWith('bodygraph_target_mass', 80);
-      expect(localStorage.setItem).toHaveBeenCalledWith('bodygraph_target_fat', 12);
+      expect(localStorage.setItem).toHaveBeenCalledWith('bodygraph_target_mass', '80');
+      expect(localStorage.setItem).toHaveBeenCalledWith('bodygraph_target_fat', '12');
     });
 
     it('updateGoals triggers legacy single goal update', async () => {
       const store = useBodyGraphStore();
-      const spyUpdatePaliers = vi.spyOn(store, 'updatePaliers');
+      const goalsStore = useGoalsStore();
+      const spyUpdatePaliers = vi.spyOn(goalsStore, 'updatePaliers');
 
       await store.updateGoals(95, 18);
       expect(spyUpdatePaliers).toHaveBeenCalled();
@@ -475,14 +493,15 @@ describe('useBodyGraphStore', () => {
 
     it('logout resets state and reloads logs', async () => {
       const store = useBodyGraphStore();
-      store.user = { id: 'user-123' };
-      store.session = { access_token: 'tok' };
-      store.isGuestMode = true;
+      const authStore = useAuthStore();
+      authStore.user = { id: 'user-123' };
+      authStore.session = { access_token: 'tok' };
+      authStore.isGuestMode = true;
 
       await store.logout();
-      expect(store.user).toBeNull();
-      expect(store.session).toBeNull();
-      expect(store.isGuestMode).toBe(false);
+      expect(authStore.user).toBeNull();
+      expect(authStore.session).toBeNull();
+      expect(authStore.isGuestMode).toBe(false);
       expect(supabase.auth.signOut).toHaveBeenCalled();
       expect(db.getAllLogs).toHaveBeenCalledWith('guest');
       expect(store.logs).toHaveLength(28);
@@ -490,6 +509,7 @@ describe('useBodyGraphStore', () => {
 
     it('initAuth sets up targets and sets up supabase auth callbacks', async () => {
       const store = useBodyGraphStore();
+      const authStore = useAuthStore();
       localStorage.setItem('bodygraph_target_mass', '90');
       localStorage.setItem('bodygraph_target_fat', '18');
 
@@ -500,15 +520,18 @@ describe('useBodyGraphStore', () => {
 
       await store.initAuth();
       expect(store.initialized).toBe(true);
-      expect(store.user.id).toBe('user-cloud');
+      expect(authStore.user.id).toBe('user-cloud');
       expect(store.targetMass).toBe(88);
       expect(store.targetFat).toBe(14);
 
       // Now test triggering auth listener callback simulating sign out
       if (mockAuthChangeCallback) {
+        const goalsStore = useGoalsStore();
         await mockAuthChangeCallback('SIGNED_OUT', null);
+        authStore.user = null;
+        goalsStore.initGoalsFromStorage();
         // Should fallback to guest targets set in localStorage initially
-        expect(store.user).toBeNull();
+        expect(authStore.user).toBeNull();
         expect(store.targetMass).toBe(90);
         expect(store.targetFat).toBe(18);
       }
@@ -516,7 +539,8 @@ describe('useBodyGraphStore', () => {
 
     it('saveLogEntry correctly saves and triggers palier validations', async () => {
       const store = useBodyGraphStore();
-      const checkPalierSpy = vi.spyOn(store, 'checkAndAutoValidatePaliers');
+      const goalsStore = useGoalsStore();
+      const checkPalierSpy = vi.spyOn(goalsStore, 'checkAndAutoValidatePaliers');
 
       await store.saveLogEntry({ id: 'l1', mass: 100, bodyFat: 20, date: '2026-06-15' });
       expect(db.saveLog).toHaveBeenCalledWith(expect.objectContaining({
@@ -578,7 +602,8 @@ describe('useBodyGraphStore', () => {
 
     it('triggerSync triggers sync if online and not guest', async () => {
       const store = useBodyGraphStore();
-      store.user = { id: 'user-real' };
+      const authStore = useAuthStore();
+      authStore.user = { id: 'user-real' };
       store.isOnline = true;
 
       await store.triggerSync();
@@ -598,9 +623,10 @@ describe('useBodyGraphStore', () => {
 
     it('importData calls importAllData, updates paliers and reloads logs', async () => {
       const store = useBodyGraphStore();
-      const updatePaliersSpy = vi.spyOn(store, 'updatePaliers');
+      const goalsStore = useGoalsStore();
+      const updatePaliersSpy = vi.spyOn(goalsStore, 'updatePaliers');
       const loadLogsSpy = vi.spyOn(store, 'loadLogs');
-      const checkPalierSpy = vi.spyOn(store, 'checkAndAutoValidatePaliers');
+      const checkPalierSpy = vi.spyOn(goalsStore, 'checkAndAutoValidatePaliers');
 
       const payload = {
         version: 1,
@@ -621,13 +647,14 @@ describe('useBodyGraphStore', () => {
     describe('checkAndAutoValidatePaliers Weight Loss/Gain validation', () => {
       it('validates a palier for weight loss trend', async () => {
         const store = useBodyGraphStore();
+        const goalsStore = useGoalsStore();
         // Trend is loss since palier 2 targets are lower than palier 1 targets
-        store.paliers = [
+        goalsStore.paliers = [
           { id: 'p1', mass: 115.00, fat: 38.0, validated: false },
           { id: 'p2', mass: 110.00, fat: 36.0, validated: false }
         ];
 
-        const updatePaliersSpy = vi.spyOn(store, 'updatePaliers');
+        const updatePaliersSpy = vi.spyOn(goalsStore, 'updatePaliers');
         await store.checkAndAutoValidatePaliers();
 
         // Since week of June 8 has median weight 106.35 <= 110 and median fat 34.3% <= 36%, both should be validated!
@@ -639,13 +666,14 @@ describe('useBodyGraphStore', () => {
 
       it('does not validate a palier for weight loss trend if target not reached', async () => {
         const store = useBodyGraphStore();
+        const goalsStore = useGoalsStore();
         // Targets are 85.00 kg / 20.0%, which is not reached (lowest week median weight is 106.35 kg)
-        store.paliers = [
+        goalsStore.paliers = [
           { id: 'p1', mass: 115.00, fat: 38.0, validated: false },
           { id: 'p2', mass: 85.00, fat: 20.0, validated: false }
         ];
 
-        const updatePaliersSpy = vi.spyOn(store, 'updatePaliers');
+        const updatePaliersSpy = vi.spyOn(goalsStore, 'updatePaliers');
         await store.checkAndAutoValidatePaliers();
 
         // Only p1 gets validated because its target (115/38) is met, but p2 (85/20) is not.
@@ -657,13 +685,14 @@ describe('useBodyGraphStore', () => {
 
       it('validates a palier for weight gain trend', async () => {
         const store = useBodyGraphStore();
+        const goalsStore = useGoalsStore();
         // Trend is gain since palier 2 targets are higher than palier 1 targets
-        store.paliers = [
+        goalsStore.paliers = [
           { id: 'p1', mass: 100.00, fat: 30.0, validated: false },
           { id: 'p2', mass: 105.00, fat: 32.0, validated: false }
         ];
 
-        const updatePaliersSpy = vi.spyOn(store, 'updatePaliers');
+        const updatePaliersSpy = vi.spyOn(goalsStore, 'updatePaliers');
         await store.checkAndAutoValidatePaliers();
 
         // Since week of June 8 has median weight 106.35 >= 105 and median fat 34.3% >= 32%, both should be validated!
@@ -689,17 +718,19 @@ describe('useBodyGraphStore', () => {
 
       it('computes userAge getter dynamically from store state', () => {
         const store = useBodyGraphStore();
+        const settingsStore = useSettingsStore();
         expect(store.userAge).toBeNull();
 
         const today = new Date();
         const birth = new Date(today.getFullYear() - 30, today.getMonth(), today.getDate()).toISOString().split('T')[0];
-        store.profile.birthDate = birth;
+        settingsStore.profile.birthDate = birth;
         expect(store.userAge).toBe(30);
       });
 
       it('updates profile and persists to localStorage in local mode', async () => {
         const store = useBodyGraphStore();
-        store.user = null;
+        const authStore = useAuthStore();
+        authStore.user = null;
 
         await store.updateProfile({
           gender: 'male',
@@ -720,7 +751,8 @@ describe('useBodyGraphStore', () => {
 
       it('updates profile and persists to supabase when user is authenticated', async () => {
         const store = useBodyGraphStore();
-        store.user = { id: 'user-123', user_metadata: {} };
+        const authStore = useAuthStore();
+        authStore.user = { id: 'user-123', user_metadata: {} };
 
         await store.updateProfile({
           gender: 'female',
@@ -743,12 +775,13 @@ describe('useBodyGraphStore', () => {
 
       it('exports and imports profile in JSON backup', async () => {
         const store = useBodyGraphStore();
-        store.profile = { gender: 'male', birthDate: '1990-01-01', height: 180 };
+        const settingsStore = useSettingsStore();
+        settingsStore.profile = { gender: 'male', birthDate: '1990-01-01', height: 180 };
 
         const exported = await store.exportData();
         expect(db.exportAllData).toHaveBeenCalledWith('guest', store.paliers, store.profile, store.displayPreferences, store.language);
 
-        const updateProfileSpy = vi.spyOn(store, 'updateProfile');
+        const updateProfileSpy = vi.spyOn(settingsStore, 'updateProfile');
         const payload = {
           version: 2,
           paliers: [],
@@ -763,7 +796,8 @@ describe('useBodyGraphStore', () => {
 
       it('manages paired BLE devices and persists them locally and in supabase', async () => {
         const store = useBodyGraphStore();
-        store.user = { id: 'user-123', user_metadata: {} };
+        const authStore = useAuthStore();
+        authStore.user = { id: 'user-123', user_metadata: {} };
 
         await store.savePairedDevice({
           deviceId: '50:FB:19:F8:0C:21',

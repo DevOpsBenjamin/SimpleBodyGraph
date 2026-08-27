@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia';
 import { supabase } from '../supabase';
-import { setupAuthDeepLinks, signInWithGoogleOAuth } from '../services/authService';
-import { checkGitHubRelease, openApkDownload } from '../services/updateService';
 import { 
   getAllLogs, 
   saveLog, 
@@ -37,96 +35,26 @@ import {
   computePeriodStats
 } from '../services/stats/groupingService';
 
-import {
-  evaluatePalierAutoValidation
-} from '../services/goals/palierService';
+import { useAuthStore } from './auth';
+import { useGoalsStore } from './goals';
+import { useSettingsStore, DEFAULT_DISPLAY_PREFERENCES } from './settings';
 
-import {
-  resolveEffectiveLanguage,
-  setLanguage
-} from '../i18n';
-
-// Default display preferences
-export const DEFAULT_DISPLAY_PREFERENCES = {
-  cards: {
-    mass: true,
-    fatMass: true,
-    bodyFat: true,
-    leanMass: true
-  },
-  charts: {
-    showMass: true,
-    showFatMass: true,
-    showLeanMass: false,
-    showFatPercentChart: false,
-    showBiaMuscleChart: true,
-    showBiaFatChart: false
-  },
-  segmentalColors: {
-    muscle: {
-      total: '#a78bfa',
-      trunk: '#fbbf24',
-      rightArm: '#22d3ee',
-      leftArm: '#38bdf8',
-      rightLeg: '#34d399',
-      leftLeg: '#a3e635'
-    },
-    fat: {
-      total: '#c084fc',
-      trunk: '#f59e0b',
-      rightArm: '#06b6d4',
-      leftArm: '#0ea5e9',
-      rightLeg: '#10b981',
-      leftLeg: '#84cc16'
-    }
-  },
-  segmentalVisibility: {
-    muscle: {
-      total: true,
-      trunk: true,
-      rightArm: true,
-      leftArm: true,
-      rightLeg: true,
-      leftLeg: true
-    },
-    fat: {
-      total: true,
-      trunk: true,
-      rightArm: true,
-      leftArm: true,
-      rightLeg: true,
-      leftLeg: true
-    }
-  }
-};
+export { DEFAULT_DISPLAY_PREFERENCES };
 
 export const useBodyGraphStore = defineStore('bodyGraph', {
   state: () => ({
     logs: [],
     measurements: [],
-    user: null,
-    session: null,
-    isOnline: navigator.onLine,
+    isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
     isSyncing: false,
     activeView: 'dashboard', // 'dashboard' | 'settings'
     activeTab: 'monthly',
     showAddModal: false,
     showAddMeasurementModal: false,
     showLiveWeighInModal: false,
-    showAuthModal: false,
     showSettingsModal: false,
     initialized: false,
     syncError: null,
-    isGuestMode: false,
-    targetMass: null,
-    targetFat: null,
-    paliers: [],
-    profile: {
-      gender: null,    // 'male' | 'female' | null
-      birthDate: null, // 'YYYY-MM-DD' | null
-      height: null     // number in cm | null
-    },
-    pairedDevices: [], // [{ id, deviceId, name, type, mac, pairedAt }]
     startYear: null,
     endYear: null,
     
@@ -136,26 +64,72 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     selectedWeekIndex: 0,
     // Active log record being edited, null if creating a new one
     editingLog: null,
-    editingMeasurement: null,
-
-    // Language preference ('fr' | 'en' | null for auto-detect from browser)
-    language: null,
-
-    // Display and visibility preferences (Cards & Charts & BIA Segments)
-    displayPreferences: JSON.parse(JSON.stringify(DEFAULT_DISPLAY_PREFERENCES)),
-
-    // App updates & GitHub Releases
-    availableApkUpdate: null,
-    isCheckingForUpdates: false,
-    apkUpdateDismissed: false
+    editingMeasurement: null
   }),
 
   getters: {
-    effectiveLanguage(state) {
-      return resolveEffectiveLanguage(state.language);
+    // Delegated auth getters for backward compatibility
+    user() {
+      return useAuthStore().user;
     },
-    userAge(state) {
-      return calculateAge(state.profile.birthDate);
+    session() {
+      return useAuthStore().session;
+    },
+    isGuestMode() {
+      return useAuthStore().isGuestMode;
+    },
+    showAuthModal() {
+      return useAuthStore().showAuthModal;
+    },
+    effectiveLanguage() {
+      return useSettingsStore().effectiveLanguage;
+    },
+    language() {
+      return useSettingsStore().language;
+    },
+    userAge() {
+      return useSettingsStore().userAge;
+    },
+    profile() {
+      return useSettingsStore().profile;
+    },
+    pairedDevices() {
+      return useSettingsStore().pairedDevices;
+    },
+    displayPreferences() {
+      return useSettingsStore().displayPreferences;
+    },
+    availableApkUpdate() {
+      return useSettingsStore().availableApkUpdate;
+    },
+    isCheckingForUpdates() {
+      return useSettingsStore().isCheckingForUpdates;
+    },
+    apkUpdateDismissed() {
+      return useSettingsStore().apkUpdateDismissed;
+    },
+
+    // Delegated goals getters
+    targetMass() {
+      return useGoalsStore().targetMass;
+    },
+    targetFat() {
+      return useGoalsStore().targetFat;
+    },
+    paliers() {
+      return useGoalsStore().paliers;
+    },
+    targetLeanMass() {
+      return useGoalsStore().targetLeanMass;
+    },
+    targetFatMass() {
+      return useGoalsStore().targetFatMass;
+    },
+    paliersSorted() {
+      return useGoalsStore().paliersSorted;
+    },
+    activePalier() {
+      return useGoalsStore().activePalier;
     },
 
     availableYears(state) {
@@ -171,33 +145,28 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       }
       return Array.from(yearsSet).sort((a, b) => b - a);
     },
-    showDashboard: (state) => {
-      return !!state.user || state.isGuestMode;
+
+    showDashboard() {
+      return useAuthStore().showDashboard;
     },
 
-    isCloudConfigured: () => {
-      return !!supabase;
+    isCloudConfigured() {
+      return useSettingsStore().isCloudConfigured;
     },
 
-    currentUserId: (state) => {
-      return state.user?.id || 'guest';
+    currentUserId() {
+      return useAuthStore().currentUserId;
     },
 
-    isAuthenticated: (state) => {
-      return !!state.user;
+    isAuthenticated() {
+      return useAuthStore().isAuthenticated;
     },
 
-    userEmail: (state) => {
-      if (state.user) {
-        if (state.user.is_anonymous) {
-          return 'Anonymous Cloud Profile';
-        }
-        return state.user.email;
-      }
-      return 'Guest Profile';
+    userEmail() {
+      return useAuthStore().userEmail;
     },
 
-    logsWithEstimates: (state) => {
+    logsWithEstimates(state) {
       return computeLogsWithEstimates(state.logs);
     },
 
@@ -229,28 +198,6 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       return weeks[safeIndex];
     },
 
-    targetLeanMass: (state) => {
-      return (state.targetMass !== null && state.targetFat !== null)
-        ? state.targetMass - (state.targetMass * (state.targetFat / 100))
-        : null;
-    },
-
-    targetFatMass: (state) => {
-      return (state.targetMass !== null && state.targetFat !== null)
-        ? state.targetMass * (state.targetFat / 100)
-        : null;
-    },
-
-    paliersSorted(state) {
-      return [...state.paliers];
-    },
-
-    activePalier() {
-      const paliers = this.paliersSorted;
-      if (paliers.length === 0) return null;
-      return paliers.find(p => !p.validated) || null;
-    },
-
     stats() {
       return computeRollingStats(this.logsWithEstimates);
     },
@@ -270,6 +217,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
   },
 
   actions: {
+    setShowAuthModal(val) {
+      useAuthStore().showAuthModal = val;
+    },
+
     setEditingLog(log) {
       this.editingLog = log;
       this.showAddModal = true;
@@ -307,516 +258,85 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async initAuth() {
-      this.targetMass = localStorage.getItem('bodygraph_target_mass') ? Number(localStorage.getItem('bodygraph_target_mass')) : null;
-      this.targetFat = localStorage.getItem('bodygraph_target_fat') ? Number(localStorage.getItem('bodygraph_target_fat')) : null;
+      const authStore = useAuthStore();
+      await authStore.initAuth();
+      await this.loadLogs();
+      this.initialized = true;
 
-      const savedProfile = localStorage.getItem('bodygraph_profile');
-      if (savedProfile) {
-        try {
-          const parsed = JSON.parse(savedProfile);
-          this.profile = {
-            gender: parsed?.gender ?? null,
-            birthDate: parsed?.birthDate ?? null,
-            height: parsed?.height ? Number(parsed.height) : null
-          };
-        } catch (e) {
-          this.profile = { gender: null, birthDate: null, height: null };
-        }
-      }
-
-      const savedDevices = localStorage.getItem('bodygraph_devices');
-      if (savedDevices) {
-        try {
-          this.pairedDevices = JSON.parse(savedDevices);
-        } catch (e) {
-          this.pairedDevices = [];
-        }
-      }
-
-      const savedPaliers = localStorage.getItem('bodygraph_paliers');
-      if (savedPaliers) {
-        try {
-          this.paliers = JSON.parse(savedPaliers);
-        } catch (e) {
-          this.paliers = [];
-        }
-      } else {
-        if (this.targetMass !== null || this.targetFat !== null) {
-          this.paliers = [{
-            id: crypto.randomUUID(),
-            mass: this.targetMass,
-            fat: this.targetFat,
-            validated: false
-          }];
-        } else {
-          this.paliers = [];
-        }
-      }
-
-      const savedLang = localStorage.getItem('bodygraph_language');
-      if (savedLang === 'fr' || savedLang === 'en') {
-        this.language = savedLang;
-      } else {
-        this.language = null;
-      }
-      setLanguage(this.language);
-
-      const savedDisplayPrefs = localStorage.getItem('bodygraph_display_preferences');
-      if (savedDisplayPrefs) {
-        try {
-          const parsed = JSON.parse(savedDisplayPrefs);
-          this.displayPreferences = {
-            cards: { ...DEFAULT_DISPLAY_PREFERENCES.cards, ...(parsed?.cards || {}) },
-            charts: { ...DEFAULT_DISPLAY_PREFERENCES.charts, ...(parsed?.charts || {}) },
-            segmentalColors: {
-              muscle: { ...DEFAULT_DISPLAY_PREFERENCES.segmentalColors.muscle, ...(parsed?.segmentalColors?.muscle || {}) },
-              fat: { ...DEFAULT_DISPLAY_PREFERENCES.segmentalColors.fat, ...(parsed?.segmentalColors?.fat || {}) }
-            },
-            segmentalVisibility: {
-              muscle: { ...DEFAULT_DISPLAY_PREFERENCES.segmentalVisibility.muscle, ...(parsed?.segmentalVisibility?.muscle || {}) },
-              fat: { ...DEFAULT_DISPLAY_PREFERENCES.segmentalVisibility.fat, ...(parsed?.segmentalVisibility?.fat || {}) }
-            }
-          };
-        } catch (e) {
-          console.warn('Failed to parse saved display preferences:', e);
-        }
-      }
-
-      if (!supabase) {
-        await this.loadLogs();
-        this.initialized = true;
-        this.syncSingleGoalsFromActivePalier();
-        return;
-      }
-
-      try {
-        await setupAuthDeepLinks(() => {
-          this.showAuthModal = false;
-        });
-
-        const { data } = await supabase.auth.getSession();
-        this.session = data.session;
-        this.user = data.session?.user || null;
-        
-        if (this.user) {
-          if (this.user.user_metadata?.language) {
-            this.language = this.user.user_metadata.language;
-            setLanguage(this.language);
-            localStorage.setItem('bodygraph_language', this.language);
-          }
-          this.targetMass = this.user.user_metadata?.target_mass || null;
-          this.targetFat = this.user.user_metadata?.target_fat || null;
-          if (this.user.user_metadata?.profile) {
-            this.profile = {
-              gender: this.user.user_metadata.profile.gender ?? null,
-              birthDate: this.user.user_metadata.profile.birthDate ?? null,
-              height: this.user.user_metadata.profile.height ? Number(this.user.user_metadata.profile.height) : null
-            };
-            localStorage.setItem('bodygraph_profile', JSON.stringify(this.profile));
-          } else if (this.profile.gender || this.profile.birthDate || this.profile.height) {
-            await supabase.auth.updateUser({ data: { profile: this.profile } });
-          }
-
-          if (this.user.user_metadata?.paired_devices) {
-            this.pairedDevices = this.user.user_metadata.paired_devices;
-            localStorage.setItem('bodygraph_devices', JSON.stringify(this.pairedDevices));
-          } else if (this.pairedDevices.length > 0) {
-            await supabase.auth.updateUser({ data: { paired_devices: this.pairedDevices } });
-          }
-
-          if (this.user.user_metadata?.paliers) {
-            this.paliers = this.user.user_metadata.paliers;
-            localStorage.setItem('bodygraph_paliers', JSON.stringify(this.paliers));
-          } else if (this.targetMass !== null || this.targetFat !== null) {
-            this.paliers = [{
-              id: crypto.randomUUID(),
-              mass: this.targetMass,
-              fat: this.targetFat,
-              validated: false
-            }];
-          } else {
-            this.paliers = [];
-          }
-        }
-        
-        await this.loadLogs();
-
-        supabase.auth.onAuthStateChange(async (event, session) => {
-          this.session = session;
-          this.user = session?.user || null;
-          
-          if (session?.user) {
-            if (session.user.user_metadata?.language) {
-              this.language = session.user.user_metadata.language;
-              setLanguage(this.language);
-              localStorage.setItem('bodygraph_language', this.language);
-            }
-            this.targetMass = session.user.user_metadata?.target_mass || null;
-            this.targetFat = session.user.user_metadata?.target_fat || null;
-            if (session.user.user_metadata?.profile) {
-              this.profile = {
-                gender: session.user.user_metadata.profile.gender ?? null,
-                birthDate: session.user.user_metadata.profile.birthDate ?? null,
-                height: session.user.user_metadata.profile.height ? Number(session.user.user_metadata.profile.height) : null
-              };
-              localStorage.setItem('bodygraph_profile', JSON.stringify(this.profile));
-            } else if (this.profile.gender || this.profile.birthDate || this.profile.height) {
-              await supabase.auth.updateUser({ data: { profile: this.profile } });
-            }
-
-            if (session.user.user_metadata?.paired_devices) {
-              this.pairedDevices = session.user.user_metadata.paired_devices;
-              localStorage.setItem('bodygraph_devices', JSON.stringify(this.pairedDevices));
-            } else if (this.pairedDevices.length > 0) {
-              await supabase.auth.updateUser({ data: { paired_devices: this.pairedDevices } });
-            }
-
-            if (session.user.user_metadata?.paliers) {
-              this.paliers = session.user.user_metadata.paliers;
-              localStorage.setItem('bodygraph_paliers', JSON.stringify(this.paliers));
-            } else if (this.targetMass !== null || this.targetFat !== null) {
-              this.paliers = [{
-                id: crypto.randomUUID(),
-                mass: this.targetMass,
-                fat: this.targetFat,
-                validated: false
-              }];
-            } else {
-              this.paliers = [];
-            }
-            await this.migrateGuestLogs(session.user.id);
-          } else {
-            this.targetMass = localStorage.getItem('bodygraph_target_mass') ? Number(localStorage.getItem('bodygraph_target_mass')) : null;
-            this.targetFat = localStorage.getItem('bodygraph_target_fat') ? Number(localStorage.getItem('bodygraph_target_fat')) : null;
-            const savedP = localStorage.getItem('bodygraph_profile');
-            if (savedP) {
-              try {
-                const parsed = JSON.parse(savedP);
-                this.profile = {
-                  gender: parsed?.gender ?? null,
-                  birthDate: parsed?.birthDate ?? null,
-                  height: parsed?.height ? Number(parsed.height) : null
-                };
-              } catch (e) {
-                this.profile = { gender: null, birthDate: null, height: null };
-              }
-            } else {
-              this.profile = { gender: null, birthDate: null, height: null };
-            }
-            const savedD = localStorage.getItem('bodygraph_devices');
-            if (savedD) {
-              try {
-                this.pairedDevices = JSON.parse(savedD);
-              } catch (e) {
-                this.pairedDevices = [];
-              }
-            } else {
-              this.pairedDevices = [];
-            }
-            const saved = localStorage.getItem('bodygraph_paliers');
-            if (saved) {
-              try {
-                this.paliers = JSON.parse(saved);
-              } catch (e) {
-                this.paliers = [];
-              }
-            } else if (this.targetMass !== null || this.targetFat !== null) {
-              this.paliers = [{
-                id: crypto.randomUUID(),
-                mass: this.targetMass,
-                fat: this.targetFat,
-                validated: false
-              }];
-            } else {
-              this.paliers = [];
-            }
-          }
-          
-          this.syncSingleGoalsFromActivePalier();
+      // Subscribe to auth state changes to reload logs if user changes
+      if (supabase) {
+        supabase.auth.onAuthStateChange(async () => {
           await this.loadLogs();
           this.triggerSync();
         });
-
-      } catch (error) {
-        console.error('Auth initialization failed:', error);
-        await this.loadLogs();
-      } finally {
-        this.initialized = true;
-        this.syncSingleGoalsFromActivePalier();
-        this.checkForApkUpdates();
       }
+
+      this.checkForApkUpdates();
     },
 
-    enableGuestMode() {
-      this.isGuestMode = true;
-      this.loadLogs();
+    async enableGuestMode() {
+      const authStore = useAuthStore();
+      authStore.enableGuestMode();
+      await this.loadLogs();
     },
 
     syncSingleGoalsFromActivePalier() {
-      const active = this.activePalier;
-      if (active) {
-        this.targetMass = active.mass !== null ? Number(active.mass) : null;
-        this.targetFat = active.fat !== null ? Number(active.fat) : null;
-      } else {
-        this.targetMass = null;
-        this.targetFat = null;
-      }
+      useGoalsStore().syncSingleGoalsFromActivePalier();
     },
 
     async updateDisplayPreferences(newPrefs) {
-      this.displayPreferences = {
-        cards: { ...this.displayPreferences.cards, ...(newPrefs?.cards || {}) },
-        charts: { ...this.displayPreferences.charts, ...(newPrefs?.charts || {}) },
-        segmentalColors: {
-          muscle: { ...this.displayPreferences.segmentalColors?.muscle, ...(newPrefs?.segmentalColors?.muscle || {}) },
-          fat: { ...this.displayPreferences.segmentalColors?.fat, ...(newPrefs?.segmentalColors?.fat || {}) }
-        },
-        segmentalVisibility: {
-          muscle: { ...this.displayPreferences.segmentalVisibility?.muscle, ...(newPrefs?.segmentalVisibility?.muscle || {}) },
-          fat: { ...this.displayPreferences.segmentalVisibility?.fat, ...(newPrefs?.segmentalVisibility?.fat || {}) }
-        }
-      };
-
-      localStorage.setItem('bodygraph_display_preferences', JSON.stringify(this.displayPreferences));
-
-      if (supabase && this.user) {
-        try {
-          await supabase.auth.updateUser({
-            data: { display_preferences: this.displayPreferences }
-          });
-        } catch (error) {
-          console.warn('Failed to sync display preferences to cloud:', error);
-        }
-      }
+      await useSettingsStore().updateDisplayPreferences(newPrefs);
     },
 
     async updateLanguage(lang) {
-      this.language = (lang === 'fr' || lang === 'en') ? lang : null;
-      setLanguage(this.language);
-
-      if (this.language) {
-        localStorage.setItem('bodygraph_language', this.language);
-      } else {
-        localStorage.removeItem('bodygraph_language');
-      }
-
-      if (supabase && this.user) {
-        try {
-          await supabase.auth.updateUser({
-            data: { language: this.language }
-          });
-        } catch (error) {
-          console.warn('Failed to sync language preference to cloud:', error);
-        }
-      }
+      await useSettingsStore().updateLanguage(lang);
     },
 
     async updateProfile(profileData) {
-      this.profile = {
-        gender: profileData?.gender ?? null,
-        birthDate: profileData?.birthDate ?? null,
-        height: profileData?.height !== null && profileData?.height !== undefined && profileData?.height !== ''
-          ? Number(profileData.height)
-          : null
-      };
-
-      localStorage.setItem('bodygraph_profile', JSON.stringify(this.profile));
-
-      if (this.user && supabase) {
-        try {
-          const { data, error } = await supabase.auth.updateUser({
-            data: {
-              profile: this.profile
-            }
-          });
-          if (error) throw error;
-          this.user = data.user;
-        } catch (error) {
-          console.error('Failed to update profile in supabase:', error);
-          throw error;
-        }
-      }
+      await useSettingsStore().updateProfile(profileData);
     },
 
     async savePairedDevice(device) {
-      const existingIndex = this.pairedDevices.findIndex(d => d.deviceId === device.deviceId);
-      const newDevice = {
-        id: device.id || crypto.randomUUID(),
-        deviceId: device.deviceId,
-        name: device.name || 'Balance Bluetooth',
-        type: device.type || 'huawei_scale_3',
-        mac: device.mac || device.deviceId,
-        pairedAt: device.pairedAt || new Date().toISOString()
-      };
-
-      if (existingIndex !== -1) {
-        this.pairedDevices[existingIndex] = newDevice;
-      } else {
-        this.pairedDevices.push(newDevice);
-      }
-
-      localStorage.setItem('bodygraph_devices', JSON.stringify(this.pairedDevices));
-
-      if (this.user && supabase) {
-        try {
-          const { data, error } = await supabase.auth.updateUser({
-            data: {
-              paired_devices: this.pairedDevices
-            }
-          });
-          if (error) throw error;
-          this.user = data.user;
-        } catch (err) {
-          console.warn('Failed to sync paired devices to supabase:', err);
-        }
-      }
-      return newDevice;
+      return await useSettingsStore().savePairedDevice(device);
     },
 
     async removePairedDevice(deviceId) {
-      this.pairedDevices = this.pairedDevices.filter(d => d.deviceId !== deviceId && d.id !== deviceId);
-      localStorage.setItem('bodygraph_devices', JSON.stringify(this.pairedDevices));
-
-      if (this.user && supabase) {
-        try {
-          const { data, error } = await supabase.auth.updateUser({
-            data: {
-              paired_devices: this.pairedDevices
-            }
-          });
-          if (error) throw error;
-          this.user = data.user;
-        } catch (err) {
-          console.warn('Failed to sync paired devices removal to supabase:', err);
-        }
-      }
+      await useSettingsStore().removePairedDevice(deviceId);
     },
 
     async updatePaliers(paliersList) {
-      this.paliers = paliersList;
-      this.syncSingleGoalsFromActivePalier();
-
-      localStorage.setItem('bodygraph_paliers', JSON.stringify(this.paliers));
-      if (this.targetMass !== null) {
-        localStorage.setItem('bodygraph_target_mass', this.targetMass);
-      } else {
-        localStorage.removeItem('bodygraph_target_mass');
-      }
-      if (this.targetFat !== null) {
-        localStorage.setItem('bodygraph_target_fat', this.targetFat);
-      } else {
-        localStorage.removeItem('bodygraph_target_fat');
-      }
-
-      if (this.user && supabase) {
-        try {
-          const { data, error } = await supabase.auth.updateUser({
-            data: {
-              target_mass: this.targetMass,
-              target_fat: this.targetFat,
-              paliers: this.paliers
-            }
-          });
-          if (error) throw error;
-          this.user = data.user;
-        } catch (error) {
-          console.error('Failed to update goals in supabase:', error);
-          throw error;
-        }
-      }
+      await useGoalsStore().updatePaliers(paliersList);
     },
 
     async updateGoals(mass, fat) {
-      this.targetMass = mass ? Number(mass) : null;
-      this.targetFat = fat ? Number(fat) : null;
-
-      if (this.paliers.length > 0) {
-        const active = this.paliers[0];
-        active.mass = this.targetMass;
-        active.fat = this.targetFat;
-      } else {
-        this.paliers = [{
-          id: crypto.randomUUID(),
-          mass: this.targetMass,
-          fat: this.targetFat,
-          validated: false
-        }];
-      }
-
-      await this.updatePaliers(this.paliers);
+      await useGoalsStore().updateGoals(mass, fat);
     },
 
     async signInWithEmail(email, password) {
-      if (!supabase) return;
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-        if (error) throw error;
-        return data;
-      } catch (error) {
-        console.error('Email sign in failed:', error);
-        throw error;
-      }
+      return await useAuthStore().signInWithEmail(email, password);
     },
 
     async signUpWithEmail(email, password) {
-      if (!supabase) return;
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password
-        });
-        if (error) throw error;
-        return data;
-      } catch (error) {
-        console.error('Email sign up failed:', error);
-        throw error;
-      }
+      return await useAuthStore().signUpWithEmail(email, password);
     },
 
     async setupAuthDeepLinks() {
-      return setupAuthDeepLinks(() => {
-        this.showAuthModal = false;
-      });
+      return await useAuthStore().setupAuthDeepLinks();
     },
 
     async signInWithGoogle() {
-      return signInWithGoogleOAuth();
+      return await useAuthStore().signInWithGoogle();
     },
 
     async logout() {
-      this.isGuestMode = false;
-      this.targetMass = localStorage.getItem('bodygraph_target_mass') ? Number(localStorage.getItem('bodygraph_target_mass')) : null;
-      this.targetFat = localStorage.getItem('bodygraph_target_fat') ? Number(localStorage.getItem('bodygraph_target_fat')) : null;
-      if (!supabase) {
-        this.user = null;
-        this.session = null;
-        this.activeTab = 'monthly';
-        this.selectedMonthIndex = 0;
-        this.selectedWeekIndex = 0;
-        this.editingLog = null;
-        await this.loadLogs();
-        return;
-      }
-      try {
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
-        
-        this.user = null;
-        this.session = null;
-        this.activeTab = 'monthly';
-        this.selectedMonthIndex = 0;
-        this.selectedWeekIndex = 0;
-        this.editingLog = null;
-        this.editingMeasurement = null;
-        
-        await this.loadLogs();
-      } catch (error) {
-        console.error('Logout failed:', error);
-        throw error;
-      }
+      const authStore = useAuthStore();
+      await authStore.logout();
+      this.activeTab = 'monthly';
+      this.selectedMonthIndex = 0;
+      this.selectedWeekIndex = 0;
+      this.editingLog = null;
+      this.editingMeasurement = null;
+      await this.loadLogs();
     },
 
     updateYearsAndClamps() {
@@ -842,9 +362,10 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async loadLogs() {
+      const authStore = useAuthStore();
       try {
-        this.logs = await getAllLogs(this.currentUserId);
-        this.measurements = await getAllMeasurements(this.currentUserId);
+        this.logs = await getAllLogs(authStore.currentUserId);
+        this.measurements = await getAllMeasurements(authStore.currentUserId);
         this.updateYearsAndClamps();
       } catch (error) {
         console.error('Store failed to load logs/measurements:', error);
@@ -852,13 +373,12 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async checkAndAutoValidatePaliers() {
-      const { changed, updatedPaliers } = evaluatePalierAutoValidation(this.paliers, this.logsWithEstimates);
-      if (changed) {
-        await this.updatePaliers(updatedPaliers);
-      }
+      const goalsStore = useGoalsStore();
+      await goalsStore.checkAndAutoValidatePaliers(this.logsWithEstimates);
     },
 
     async saveLogEntry({ id, mass, bodyFat, date, measuredAt, heartRate, impedances, scaleDeviceId }) {
+      const authStore = useAuthStore();
       const cleanImpedances = impedances ? JSON.parse(JSON.stringify(impedances)) : null;
       const log = {
         id: id || crypto.randomUUID(),
@@ -873,9 +393,9 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       };
 
       try {
-        await saveLog(log, this.currentUserId);
+        await saveLog(log, authStore.currentUserId);
 
-        const logWithUserId = { ...log, user_id: this.currentUserId };
+        const logWithUserId = { ...log, user_id: authStore.currentUserId };
         const existingIndex = this.logs.findIndex(l => l.id === log.id);
         if (existingIndex !== -1) {
           this.logs[existingIndex] = logWithUserId;
@@ -898,8 +418,9 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async deleteLogEntry(id) {
+      const authStore = useAuthStore();
       try {
-        await deleteLog(id, this.currentUserId);
+        await deleteLog(id, authStore.currentUserId);
 
         this.logs = this.logs.filter(l => l.id !== id);
 
@@ -912,6 +433,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async saveMeasurementEntry(measurementData) {
+      const authStore = useAuthStore();
       const log = {
         id: measurementData.id || crypto.randomUUID(),
         date: measurementData.date,
@@ -923,9 +445,9 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       };
 
       try {
-        await saveMeasurement(log, this.currentUserId);
+        await saveMeasurement(log, authStore.currentUserId);
 
-        const logWithUserId = { ...log, user_id: this.currentUserId };
+        const logWithUserId = { ...log, user_id: authStore.currentUserId };
         const existingIndex = this.measurements.findIndex(m => m.id === log.id);
         if (existingIndex !== -1) {
           this.measurements[existingIndex] = logWithUserId;
@@ -947,8 +469,9 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async deleteMeasurementEntry(id) {
+      const authStore = useAuthStore();
       try {
-        await deleteMeasurement(id, this.currentUserId);
+        await deleteMeasurement(id, authStore.currentUserId);
 
         this.measurements = this.measurements.filter(m => m.id !== id);
 
@@ -969,12 +492,13 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async triggerSync() {
-      if (this.currentUserId === 'guest' || !this.isOnline) return;
+      const authStore = useAuthStore();
+      if (authStore.currentUserId === 'guest' || !this.isOnline) return;
 
       this.isSyncing = true;
       this.syncError = null;
       try {
-        const result = await syncLogs(this.currentUserId);
+        const result = await syncLogs(authStore.currentUserId);
         if (result && !result.success) {
           this.syncError = result.error || 'Unknown sync error';
           console.warn('Store background sync failed:', this.syncError);
@@ -989,7 +513,17 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async exportData() {
-      const data = await exportAllData(this.currentUserId, this.paliers, this.profile, this.displayPreferences, this.language);
+      const authStore = useAuthStore();
+      const goalsStore = useGoalsStore();
+      const settingsStore = useSettingsStore();
+
+      const data = await exportAllData(
+        authStore.currentUserId,
+        goalsStore.paliers,
+        settingsStore.profile,
+        settingsStore.displayPreferences,
+        settingsStore.language
+      );
       const jsonStr = JSON.stringify(data, null, 2);
       if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -1018,22 +552,26 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         parsed = jsonContent;
       }
 
-      const result = await importAllData(parsed, this.currentUserId);
+      const authStore = useAuthStore();
+      const goalsStore = useGoalsStore();
+      const settingsStore = useSettingsStore();
+
+      const result = await importAllData(parsed, authStore.currentUserId);
 
       if (result.paliers && Array.isArray(result.paliers) && result.paliers.length > 0) {
-        await this.updatePaliers(result.paliers);
+        await goalsStore.updatePaliers(result.paliers);
       }
 
       if (result.profile && typeof result.profile === 'object') {
-        await this.updateProfile(result.profile);
+        await settingsStore.updateProfile(result.profile);
       }
 
       if (result.displayPreferences && typeof result.displayPreferences === 'object') {
-        await this.updateDisplayPreferences(result.displayPreferences);
+        await settingsStore.updateDisplayPreferences(result.displayPreferences);
       }
 
       if (result.language) {
-        await this.updateLanguage(result.language);
+        await settingsStore.updateLanguage(result.language);
       }
 
       await this.loadLogs();
@@ -1052,33 +590,15 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async checkForApkUpdates(options = {}) {
-      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-        return null;
-      }
-      this.isCheckingForUpdates = true;
-      try {
-        const result = await checkGitHubRelease(options);
-        if (result && result.hasUpdate) {
-          this.availableApkUpdate = result;
-          this.apkUpdateDismissed = false;
-        } else {
-          this.availableApkUpdate = null;
-        }
-        return result;
-      } catch (err) {
-        console.debug('[Store] checkGitHubRelease error:', err);
-        return null;
-      } finally {
-        this.isCheckingForUpdates = false;
-      }
+      return await useSettingsStore().checkForApkUpdates(options);
     },
 
     dismissApkUpdate() {
-      this.apkUpdateDismissed = true;
+      useSettingsStore().dismissApkUpdate();
     },
 
     downloadApk(url) {
-      openApkDownload(url || this.availableApkUpdate?.apkUrl);
+      useSettingsStore().downloadApk(url);
     }
   }
 });
