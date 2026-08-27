@@ -54,8 +54,8 @@ test('Seed user data and take screenshot', async ({ page }) => {
     await page.waitForTimeout(500);
 
     // Assert target header and tabs are visible
-    await expect(page.locator('text=Paramètres & Configuration, text=Settings & Configuration').first()).toBeVisible();
-    await expect(page.locator('text=Profil (BIA), text=Profile (BIA)').first()).toBeVisible();
+    await expect(page.getByText(/Paramètres & Configuration|Settings & Configuration/i).first()).toBeVisible();
+    await expect(page.getByText(/Profil \(BIA\)|Profile \(BIA\)/i).first()).toBeVisible();
 
     // Take screenshot of the settings modal
     const settingsScreenshotPath = 'settings_render.png';

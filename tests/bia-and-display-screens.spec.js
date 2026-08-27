@@ -58,7 +58,7 @@ test.describe('BIA & Display Preferences Visual Verification', () => {
     await page.waitForTimeout(1000);
 
     // Assert that KPIs reflect the latest month's progression (July 2026: ~75kg, ~12% fat)
-    const massCard = page.locator('text=Poids Total, text=Total Weight, text=Weight').first();
+    const massCard = page.getByText(/Poids Total|Total Weight|Weight/i).first();
     await expect(massCard).toBeVisible();
 
     // 1. Capture Monthly Dashboard with 4 cards, BIA Summary, Unified Chart, and Segmental Charts
