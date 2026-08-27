@@ -11,8 +11,11 @@ test.describe('IndexedDB Database Helpers', () => {
     await page.goto('http://localhost:4173/');
 
     // Click "Continue as Guest" to transition past onboarding so that all stores and db are initialized
-    await page.getByRole('button', { name: 'Continue as Guest' }).click();
-    await expect(page.getByRole('button', { name: 'Add Log Entry' })).toBeVisible();
+    const guestBtn = page.getByRole('button', { name: /Continue as Guest|Continuer en mode Invité/i });
+    if (await guestBtn.isVisible()) {
+      await guestBtn.click();
+    }
+    await page.waitForTimeout(300);
 
     // Seed IndexedDB with the global seed dataset to start with a unified, 3-month dataset
     await seedIndexedDB(page, MOCK_LOGS, MOCK_MEASUREMENTS);

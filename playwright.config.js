@@ -6,6 +6,7 @@ export default defineConfig({
   testIgnore: ['**/*.unit.spec.js'],
   use: {
     baseURL: 'http://localhost:4173',
+    locale: 'fr-FR',
   },
   webServer: {
     command: 'npm run preview',
