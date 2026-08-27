@@ -325,4 +325,42 @@ test.describe('IndexedDB Database Helpers', () => {
 
     expect(results.durationC).toBeLessThan(results.durationA); // bulkWrite should be significantly faster than individual transactions!
   });
+
+  test('saveLog safely handles reactive proxies and nested BIA impedances without DataCloneError', async ({ page }) => {
+    const saved = await page.evaluate(async () => {
+      const complexLog = {
+        date: '2026-07-28',
+        mass: 87.5,
+        body_fat: 20.5,
+        synced: false,
+        impedances: {
+          feet: [490, 500, 510],
+          hands: [590, 600, 610]
+        }
+      };
+
+      // Wrap inside a JavaScript Proxy to simulate Vue 3 reactivity
+      const proxyLog = new Proxy(complexLog, {
+        get(target, prop) {
+          if (prop === 'impedances') {
+            return new Proxy(target.impedances, {
+              get(t, p) {
+                return t[p];
+              }
+            });
+          }
+          return target[prop];
+        }
+      });
+
+      return await window.__db.saveLog(proxyLog, 'guest');
+    });
+
+    expect(saved.id).toBeDefined();
+    expect(saved.mass).toBe(87.5);
+    expect(saved.impedances).toEqual({
+      feet: [490, 500, 510],
+      hands: [590, 600, 610]
+    });
+  });
 });
