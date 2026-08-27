@@ -359,7 +359,7 @@ export default {
     dashboardBtn: 'Dashboard',
     title: 'Paramètres & Configuration',
     subtitle: 'Personnalisez vos objectifs, profil corporel BIA, préférences et périphériques BLE.',
-    version: 'SimpleBodyGraph v1.2.0',
+    version: 'SimpleBodyGraph v1.3.0',
     tabs: {
       goals: 'Objectifs',
       display: 'Affichage',
@@ -560,5 +560,11 @@ export default {
     cancelBtn: 'Annuler',
     saveSuccess: 'Pesée enregistrée avec succès !',
     saveFailed: "Échec de l'enregistrement de la pesée : "
+  },
+  updates: {
+    available: 'Nouvelle mise à jour disponible !',
+    updating: 'Mise à jour en cours...',
+    ready: "L'application est à jour.",
+    refreshNow: 'Mettre à jour'
   }
 };

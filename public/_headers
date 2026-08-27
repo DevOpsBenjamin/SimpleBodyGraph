@@ -1,0 +1,20 @@
+# Cloudflare Pages Custom HTTP Response Headers
+# Ensure entry files and service worker are never cached by browser/WebView
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+/manifest.json
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+# Hashed assets from Vite can be cached immutably for 1 year
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

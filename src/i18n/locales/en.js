@@ -359,7 +359,7 @@ export default {
     dashboardBtn: 'Dashboard',
     title: 'Settings & Configuration',
     subtitle: 'Customize your goals, BIA body profile, preferences, and BLE devices.',
-    version: 'SimpleBodyGraph v1.2.0',
+    version: 'SimpleBodyGraph v1.3.0',
     tabs: {
       goals: 'Goals',
       display: 'Display',
@@ -560,5 +560,11 @@ export default {
     cancelBtn: 'Cancel',
     saveSuccess: 'Weigh-in saved successfully!',
     saveFailed: 'Failed to save weigh-in: '
+  },
+  updates: {
+    available: 'New version available!',
+    updating: 'Updating...',
+    ready: 'Application is up to date.',
+    refreshNow: 'Update now'
   }
 };
