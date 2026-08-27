@@ -397,13 +397,14 @@ const handleSave = async () => {
   if (!measurement.value) return;
   isSaving.value = true;
   try {
+    const rawMeas = JSON.parse(JSON.stringify(measurement.value));
     await store.saveLogEntry({
       date: recordDate.value,
-      mass: measurement.value.weightKg,
-      bodyFat: measurement.value.fatPercentage,
-      measuredAt: measurement.value.timestamp,
-      heartRate: measurement.value.heartRateBpm,
-      impedances: measurement.value.impedances,
+      mass: rawMeas.weightKg,
+      bodyFat: rawMeas.fatPercentage,
+      measuredAt: rawMeas.timestamp,
+      heartRate: rawMeas.heartRateBpm,
+      impedances: rawMeas.impedances,
       scaleDeviceId: activeScale.value?.deviceId || null
     });
     showToast(t('scaleWeighIn.saveSuccessToast'), 'success');

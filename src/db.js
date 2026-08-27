@@ -85,21 +85,44 @@ export async function getAllLogs(userId = 'guest') {
   });
 }
 
+/**
+ * Ensures an object is safe for IndexedDB structured cloning by stripping
+ * Vue reactivity Proxies, non-serializable fields, getters, or circular references.
+ * @param {any} record
+ * @returns {any}
+ */
+export function sanitizeForIndexedDB(record) {
+  if (!record || typeof record !== 'object') return record;
+  try {
+    return JSON.parse(JSON.stringify(record));
+  } catch (e) {
+    const clean = Array.isArray(record) ? [] : {};
+    for (const key of Object.keys(record)) {
+      const val = record[key];
+      if (typeof val !== 'function' && typeof val !== 'symbol') {
+        clean[key] = val && typeof val === 'object' ? sanitizeForIndexedDB(val) : val;
+      }
+    }
+    return clean;
+  }
+}
+
 export async function saveLog(log, userId = 'guest') {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE_LOGS, 'readwrite');
     const store = transaction.objectStore(STORE_LOGS);
     
+    const cleanLog = sanitizeForIndexedDB(log);
     // Ensure ID is present
-    if (!log.id) {
-      log.id = crypto.randomUUID();
+    if (!cleanLog.id) {
+      cleanLog.id = crypto.randomUUID();
     }
-    log.user_id = userId;
+    cleanLog.user_id = userId;
     
-    const request = store.put(log);
+    const request = store.put(cleanLog);
 
-    request.onsuccess = () => resolve(log);
+    request.onsuccess = () => resolve(cleanLog);
     request.onerror = () => reject(request.error);
   });
 }
@@ -184,14 +207,15 @@ export async function saveMeasurement(log, userId = 'guest') {
     const transaction = db.transaction(STORE_MEASUREMENTS, 'readwrite');
     const store = transaction.objectStore(STORE_MEASUREMENTS);
 
-    if (!log.id) {
-      log.id = crypto.randomUUID();
+    const cleanLog = sanitizeForIndexedDB(log);
+    if (!cleanLog.id) {
+      cleanLog.id = crypto.randomUUID();
     }
-    log.user_id = userId;
+    cleanLog.user_id = userId;
 
-    const request = store.put(log);
+    const request = store.put(cleanLog);
 
-    request.onsuccess = () => resolve(log);
+    request.onsuccess = () => resolve(cleanLog);
     request.onerror = () => reject(request.error);
   });
 }
@@ -257,7 +281,7 @@ export async function bulkWrite(storeName, { puts = [], deletes = [] }) {
     const store = transaction.objectStore(storeName);
 
     for (const item of puts) {
-      store.put(item);
+      store.put(sanitizeForIndexedDB(item));
     }
     for (const id of deletes) {
       store.delete(id);
@@ -612,6 +636,7 @@ if (typeof window !== 'undefined') {
     syncLogs,
     bulkWrite,
     exportAllData,
-    importAllData
+    importAllData,
+    sanitizeForIndexedDB
   };
 }

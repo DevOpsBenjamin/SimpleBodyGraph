@@ -942,14 +942,15 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     async saveLogEntry({ id, mass, bodyFat, date, measuredAt, heartRate, impedances, scaleDeviceId }) {
+      const cleanImpedances = impedances ? JSON.parse(JSON.stringify(impedances)) : null;
       const log = {
         id: id || crypto.randomUUID(),
         date,
         mass: Number(mass),
         body_fat: bodyFat !== null && bodyFat !== undefined && bodyFat !== '' ? Number(bodyFat) : 0,
         measured_at: measuredAt || null,
-        heart_rate: heartRate || null,
-        impedances: impedances || null,
+        heart_rate: heartRate ? Number(heartRate) : null,
+        impedances: cleanImpedances,
         scale_device_id: scaleDeviceId || null,
         synced: false
       };
