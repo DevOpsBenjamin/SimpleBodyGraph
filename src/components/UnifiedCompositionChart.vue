@@ -208,19 +208,7 @@ const renderChart = () => {
             font: { size: 11, weight: '500' }
           }
         },
-        tooltip: {
-          backgroundColor: 'rgba(17, 24, 39, 0.95)',
-          titleColor: '#fff',
-          bodyColor: '#e5e7eb',
-          borderColor: 'rgba(255, 255, 255, 0.1)',
-          borderWidth: 1,
-          padding: 10,
-          callbacks: {
-            label(context) {
-              return ` ${context.dataset.label}: ${context.parsed.y.toFixed(2)} kg`;
-            }
-          }
-        },
+        tooltip: { enabled: false },
         goalLine: {
           lines: store.activePalier?.mass ? [{ value: store.activePalier.mass, label: `Objectif: ${store.activePalier.mass} kg`, color: '#a78bfa' }] : []
         }
