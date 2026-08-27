@@ -21,9 +21,16 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <span class="text-[10px] px-2.5 py-1 rounded-xl bg-violet-600/10 border border-violet-500/20 text-violet-300 font-semibold select-none hidden sm:inline-block">
-          {{ $t('settings.version') }}
-        </span>
+        <button
+          type="button"
+          @click="handleManualUpdateCheck"
+          :disabled="store.isCheckingForUpdates"
+          class="text-[10px] px-2.5 py-1 rounded-xl bg-violet-600/10 hover:bg-violet-600/20 border border-violet-500/20 text-violet-300 font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+          :title="$t('updates.checkUpdates')"
+        >
+          <RefreshCw class="w-3 h-3 text-violet-400" :class="{ 'animate-spin': store.isCheckingForUpdates }" />
+          <span>{{ $t('settings.version') }}</span>
+        </button>
       </div>
     </div>
 
@@ -122,6 +129,43 @@
     <div v-if="successMsg" class="text-xs text-emerald-400 font-medium bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl flex items-center gap-2">
       <CheckCircle class="w-4 h-4 shrink-0 text-emerald-400" />
       <span>{{ successMsg }}</span>
+    </div>
+
+    <!-- Available APK Update Notification Card -->
+    <div
+      v-if="store.availableApkUpdate"
+      class="p-4 rounded-2xl bg-gradient-to-r from-violet-950/40 via-gray-900/80 to-indigo-950/40 border border-violet-500/30 space-y-2 shadow-lg animate-fade-in"
+    >
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-start sm:items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+            <Sparkles class="w-4 h-4 text-violet-400" />
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h4 class="text-xs font-bold text-white">
+                {{ $t('updates.newVersionFound', { version: 'v' + store.availableApkUpdate.latestVersion }) }}
+              </h4>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold">
+                {{ $t('updates.latestRelease') }}
+              </span>
+            </div>
+            <p class="text-[10px] text-gray-400 mt-0.5">
+              {{ store.availableApkUpdate.releaseName || 'SimpleBodyGraph' }} ({{ $t('settings.version') }} &rarr; v{{ store.availableApkUpdate.latestVersion }})
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 self-end sm:self-auto">
+          <button
+            type="button"
+            @click="store.downloadApk()"
+            class="py-1.5 px-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shadow-lg shadow-violet-600/20 flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
+          >
+            <Download class="w-3.5 h-3.5" />
+            <span>{{ $t('updates.downloadApkShort') }}</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- ======================================================== -->
@@ -1135,6 +1179,28 @@ const handleFileImport = async (event) => {
     importLoading.value = false;
   };
   reader.readAsText(file);
+};
+
+// Check for updates handler
+const handleManualUpdateCheck = async () => {
+  errorMsg.value = '';
+  successMsg.value = '';
+  const result = await store.checkForApkUpdates({ manual: true });
+  if (result && result.hasUpdate) {
+    successMsg.value = t('updates.newVersionFound', { version: 'v' + result.latestVersion });
+  } else if (result && !result.hasUpdate && !result.error) {
+    successMsg.value = t('updates.upToDate', { version: 'v' + result.currentVersion });
+    setTimeout(() => {
+      if (successMsg.value.includes(result.currentVersion)) {
+        successMsg.value = '';
+      }
+    }, 3000);
+  } else if (result?.error) {
+    errorMsg.value = t('updates.checkFailed');
+    setTimeout(() => {
+      errorMsg.value = '';
+    }, 3000);
+  }
 };
 </script>
 

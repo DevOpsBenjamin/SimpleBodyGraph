@@ -28,6 +28,12 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', (event) => {
   // Only handle HTTP/HTTPS and GET requests
   if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) {

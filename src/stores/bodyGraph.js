@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { supabase, handleAuthCallbackUrl } from '../supabase';
+import { checkGitHubRelease, openApkDownload, CURRENT_APP_VERSION } from '../services/updateService';
 import { 
   getAllLogs, 
   saveLog, 
@@ -147,7 +148,12 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     language: null,
 
     // Display and visibility preferences (Cards & Charts & BIA Segments)
-    displayPreferences: JSON.parse(JSON.stringify(DEFAULT_DISPLAY_PREFERENCES))
+    displayPreferences: JSON.parse(JSON.stringify(DEFAULT_DISPLAY_PREFERENCES)),
+
+    // App updates & GitHub Releases
+    availableApkUpdate: null,
+    isCheckingForUpdates: false,
+    apkUpdateDismissed: false
   }),
 
   getters: {
@@ -548,6 +554,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       } finally {
         this.initialized = true;
         this.syncSingleGoalsFromActivePalier();
+        this.checkForApkUpdates();
       }
     },
 
@@ -1128,7 +1135,38 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
       this.isOnline = status;
       if (status) {
         this.triggerSync();
+        this.checkForApkUpdates();
       }
+    },
+
+    async checkForApkUpdates(options = {}) {
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        return null;
+      }
+      this.isCheckingForUpdates = true;
+      try {
+        const result = await checkGitHubRelease(options);
+        if (result && result.hasUpdate) {
+          this.availableApkUpdate = result;
+          this.apkUpdateDismissed = false;
+        } else {
+          this.availableApkUpdate = null;
+        }
+        return result;
+      } catch (err) {
+        console.debug('[Store] checkGitHubRelease error:', err);
+        return null;
+      } finally {
+        this.isCheckingForUpdates = false;
+      }
+    },
+
+    dismissApkUpdate() {
+      this.apkUpdateDismissed = true;
+    },
+
+    downloadApk(url) {
+      openApkDownload(url || this.availableApkUpdate?.apkUrl);
     }
   }
 });

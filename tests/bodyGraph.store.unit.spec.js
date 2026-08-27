@@ -785,5 +785,55 @@ describe('useBodyGraphStore', () => {
         expect(store.pairedDevices).toHaveLength(0);
       });
     });
+
+    describe('App Updates & GitHub Releases', () => {
+      it('handles APK update checks and stores result in availableApkUpdate', async () => {
+        const store = useBodyGraphStore();
+        expect(store.availableApkUpdate).toBeNull();
+        expect(store.isCheckingForUpdates).toBe(false);
+
+        const mockResult = {
+          hasUpdate: true,
+          latestVersion: '1.4.0',
+          currentVersion: '1.3.0',
+          apkUrl: 'https://github.com/DevOpsBenjamin/SimpleBodyGraph/releases/download/v1.4.0/SimpleBodyGraph.apk'
+        };
+
+        const result = await store.checkForApkUpdates({
+          fetchFn: vi.fn().mockResolvedValue({
+            ok: true,
+            json: vi.fn().mockResolvedValue({
+              tag_name: 'v1.4.0',
+              assets: [{ name: 'SimpleBodyGraph.apk', browser_download_url: mockResult.apkUrl }]
+            })
+          })
+        });
+
+        expect(result.hasUpdate).toBe(true);
+        expect(store.availableApkUpdate).not.toBeNull();
+        expect(store.availableApkUpdate.latestVersion).toBe('1.4.0');
+        expect(store.apkUpdateDismissed).toBe(false);
+
+        store.dismissApkUpdate();
+        expect(store.apkUpdateDismissed).toBe(true);
+      });
+
+      it('clears availableApkUpdate when app is already up to date', async () => {
+        const store = useBodyGraphStore();
+
+        const result = await store.checkForApkUpdates({
+          fetchFn: vi.fn().mockResolvedValue({
+            ok: true,
+            json: vi.fn().mockResolvedValue({
+              tag_name: 'v1.3.0',
+              assets: []
+            })
+          })
+        });
+
+        expect(result.hasUpdate).toBe(false);
+        expect(store.availableApkUpdate).toBeNull();
+      });
+    });
   });
 });
