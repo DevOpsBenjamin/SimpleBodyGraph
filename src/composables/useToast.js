@@ -36,6 +36,7 @@ export function useToast() {
     toasts: readonly(state.toasts),
     addToast,
     removeToast,
+    showToast: (msg, type = 'info', duration = 3500) => addToast(msg, type, duration),
     success: (msg, duration) => addToast(msg, 'success', duration),
     error: (msg, duration) => addToast(msg, 'error', duration),
     warning: (msg, duration) => addToast(msg, 'warning', duration),
