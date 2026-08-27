@@ -565,6 +565,15 @@ export default {
     available: 'Nouvelle mise à jour disponible !',
     updating: 'Mise à jour en cours...',
     ready: "L'application est à jour.",
-    refreshNow: 'Mettre à jour'
+    refreshNow: 'Mettre à jour',
+    checkUpdates: 'Vérifier les mises à jour',
+    checking: 'Vérification en cours...',
+    newVersionFound: 'Nouvelle version {version} disponible !',
+    upToDate: "L'application est à jour ({version}).",
+    downloadApk: "Télécharger l'APK ({version})",
+    downloadApkShort: "Télécharger l'APK",
+    latestRelease: 'Dernière version',
+    dismiss: 'Plus tard',
+    checkFailed: 'Impossible de vérifier les mises à jour.'
   }
 };

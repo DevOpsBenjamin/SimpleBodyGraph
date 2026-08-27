@@ -4,9 +4,41 @@
     <div class="absolute top-0 left-1/4 -translate-x-1/2 w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[120px] pointer-events-none animate-pulse-slow"></div>
     <div class="absolute bottom-10 right-1/4 translate-x-1/2 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none"></div>
 
+    <!-- New Release APK Update Notification Banner -->
+    <div
+      v-if="store.availableApkUpdate && !store.apkUpdateDismissed"
+      class="fixed top-0 left-0 right-0 z-50 flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-violet-950/95 via-gray-900/95 to-indigo-950/95 border-b border-violet-500/40 backdrop-blur-md shadow-2xl"
+    >
+      <div class="w-7 h-7 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center shrink-0">
+        <Sparkles class="w-3.5 h-3.5 text-violet-400" />
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-xs font-bold text-white leading-tight">
+          {{ $t('updates.newVersionFound', { version: 'v' + store.availableApkUpdate.latestVersion }) }}
+        </p>
+        <p class="text-[10px] text-gray-400 truncate">
+          {{ store.availableApkUpdate.releaseName || $t('updates.available') }}
+        </p>
+      </div>
+      <button
+        @click="store.downloadApk()"
+        class="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white transition-colors cursor-pointer flex items-center gap-1.5 shadow-lg shadow-violet-500/20"
+      >
+        <Download class="w-3.5 h-3.5" />
+        <span>{{ $t('updates.downloadApkShort') }}</span>
+      </button>
+      <button
+        @click="store.dismissApkUpdate()"
+        class="shrink-0 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+        :aria-label="$t('common.close')"
+      >
+        <X class="w-4 h-4" />
+      </button>
+    </div>
+
     <!-- Android APK Download Banner -->
     <div
-      v-if="isAndroid && !apkBannerDismissed"
+      v-else-if="isAndroid && !apkBannerDismissed"
       class="fixed top-0 left-0 right-0 z-50 flex items-center gap-3 px-4 py-3 bg-gray-900/95 border-b border-violet-500/30 backdrop-blur-md"
     >
       <span class="text-xl">📱</span>
@@ -335,7 +367,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { Plus, Scale, Bluetooth, TrendingUp, CalendarDays, History, Ruler, Settings } from 'lucide-vue-next';
+import { Plus, Scale, Bluetooth, TrendingUp, CalendarDays, History, Ruler, Settings, Sparkles, Download, X } from 'lucide-vue-next';
 import { useBodyGraphStore } from './stores/bodyGraph';
 
 // Import subcomponents

@@ -565,6 +565,15 @@ export default {
     available: 'New version available!',
     updating: 'Updating...',
     ready: 'Application is up to date.',
-    refreshNow: 'Update now'
+    refreshNow: 'Update now',
+    checkUpdates: 'Check for updates',
+    checking: 'Checking for updates...',
+    newVersionFound: 'New version {version} available!',
+    upToDate: 'Application is up to date ({version}).',
+    downloadApk: 'Download APK ({version})',
+    downloadApkShort: 'Download APK',
+    latestRelease: 'Latest version',
+    dismiss: 'Later',
+    checkFailed: 'Failed to check for updates.'
   }
 };
