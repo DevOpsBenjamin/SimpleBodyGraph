@@ -15,7 +15,8 @@ test.describe('IndexedDB Database Helpers', () => {
     if (await guestBtn.isVisible()) {
       await guestBtn.click();
     }
-    await page.waitForTimeout(300);
+    // Wait for database module to initialize on window
+    await page.waitForFunction(() => !!window.__db);
 
     // Seed IndexedDB with the global seed dataset to start with a unified, 3-month dataset
     await seedIndexedDB(page, MOCK_LOGS, MOCK_MEASUREMENTS);
