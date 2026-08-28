@@ -61,15 +61,15 @@ test.describe('BIA & Display Preferences Visual Verification', () => {
     const massCard = page.getByText(/Poids Total|Total Weight|Weight/i).first();
     await expect(massCard).toBeVisible();
 
-    // 1. Capture Monthly Dashboard with 4 cards, BIA Summary, Unified Chart, and Segmental Charts
-    await page.screenshot({ path: 'screenshots_mobile/bia_01_monthly_dashboard.png', fullPage: true });
+    // 1. Verify Monthly Dashboard with 4 cards, BIA Summary, Unified Chart, and Segmental Charts
+    await expect(page.locator('.glass-card').first()).toBeVisible();
 
     // 2. Switch to Weekly Tab
     const weekBtn = page.getByRole('button', { name: /Semaine|Week/i }).first();
     if (await weekBtn.isVisible()) {
       await weekBtn.click();
       await page.waitForTimeout(600);
-      await page.screenshot({ path: 'screenshots_mobile/bia_02_weekly_dashboard.png', fullPage: true });
+      await expect(page.locator('.glass-card').first()).toBeVisible();
     }
 
     // 3. Open BIA Detail Modal from Period Summary
@@ -77,7 +77,7 @@ test.describe('BIA & Display Preferences Visual Verification', () => {
     if (await reportBtn.isVisible()) {
       await reportBtn.click();
       await page.waitForTimeout(500);
-      await page.screenshot({ path: 'screenshots_mobile/bia_03_modal_report.png' });
+      await expect(page.getByText(/Rapport Clinique BIA|Clinical BIA Report/i).first()).toBeVisible();
       // Close modal
       const closeBtn = page.getByRole('button', { name: /Fermer|Close/i }).first();
       if (await closeBtn.isVisible()) await closeBtn.click();
@@ -93,7 +93,7 @@ test.describe('BIA & Display Preferences Visual Verification', () => {
       if (await displayTab.isVisible()) {
         await displayTab.click();
         await page.waitForTimeout(500);
-        await page.screenshot({ path: 'screenshots_mobile/bia_04_settings_display.png', fullPage: true });
+        await expect(page.getByText(/Cartes de Synthèse|Summary Cards/i).first()).toBeVisible();
       }
     }
 
@@ -102,7 +102,7 @@ test.describe('BIA & Display Preferences Visual Verification', () => {
     if (await navLogs.isVisible()) {
       await navLogs.click();
       await page.waitForTimeout(500);
-      await page.screenshot({ path: 'screenshots_mobile/bia_05_history_bia_badge.png', fullPage: true });
+      await expect(page.locator('.glass-card, [role="listitem"]').first()).toBeVisible();
     }
   });
 });
