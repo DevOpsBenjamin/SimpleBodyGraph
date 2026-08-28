@@ -30,7 +30,11 @@ async function syncUnsyncedLogs(userId) {
       date: log.date,
       mass: Number(log.mass),
       body_fat: Number(log.body_fat),
-      user_id: userId
+      user_id: userId,
+      measured_at: log.measured_at || null,
+      heart_rate: log.heart_rate !== null && log.heart_rate !== undefined && log.heart_rate !== '' ? Number(log.heart_rate) : null,
+      impedances: log.impedances ? JSON.parse(JSON.stringify(log.impedances)) : null,
+      scale_device_id: log.scale_device_id || null
     }));
 
     const { error: pushError } = await supabase

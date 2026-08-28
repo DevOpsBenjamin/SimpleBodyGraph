@@ -555,6 +555,40 @@ describe('useBodyGraphStore & Domain Stores', () => {
       expect(store.showAddModal).toBe(false);
     });
 
+    it('saveLogEntry preserves full BIA impedances and BLE metadata', async () => {
+      const store = useBodyGraphStore();
+      const authStore = useAuthStore();
+      authStore.user = { id: 'user-bia-1' };
+
+      const biaImpedances = {
+        feet: { r50: 450.2, x50: 42.1 },
+        hands: { r50: 460.1, x50: 43.5 }
+      };
+
+      await store.saveLogEntry({
+        id: 'log-bia-1',
+        mass: 102.5,
+        bodyFat: 28.5,
+        date: '2026-08-28',
+        measuredAt: '2026-08-28T06:30:00.000Z',
+        heartRate: 68,
+        impedances: biaImpedances,
+        scaleDeviceId: '50:FB:19:F8:0C:21'
+      });
+
+      expect(db.saveLog).toHaveBeenCalledWith(expect.objectContaining({
+        id: 'log-bia-1',
+        date: '2026-08-28',
+        mass: 102.5,
+        body_fat: 28.5,
+        measured_at: '2026-08-28T06:30:00.000Z',
+        heart_rate: 68,
+        impedances: biaImpedances,
+        scale_device_id: '50:FB:19:F8:0C:21',
+        synced: false
+      }), 'user-bia-1');
+    });
+
     it('deleteLogEntry removes log and reloads', async () => {
       const store = useBodyGraphStore();
       // Ensure 'l1' is in store.logs first to test deletion
