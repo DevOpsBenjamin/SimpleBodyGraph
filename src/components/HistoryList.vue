@@ -118,7 +118,7 @@ import { useBodyGraphStore } from '../stores/bodyGraph';
 import { useConfirm } from '../composables/useConfirm';
 import { useToast } from '../composables/useToast';
 import { useI18n } from '../i18n';
-import { defaultBiaEngine } from '../services/bia/biaCalculator';
+import { defaultBiaEngine, extractBiaResistances, hasBiaData } from '../services/bia/biaCalculator';
 import BiaDetailModal from './BiaDetailModal.vue';
 
 const store = useBodyGraphStore();
@@ -131,10 +131,13 @@ const selectedLogBia = ref(null);
 const selectedLogBiaTitle = ref('');
 
 const hasBia = (log) => {
-  return log?.impedances?.r_50k?.length >= 6 && log?.impedances?.r_250k?.length >= 6;
+  return hasBiaData(log);
 };
 
 const openBiaModal = (log) => {
+  const resistances = extractBiaResistances(log?.impedances);
+  if (!resistances) return;
+
   const sex = store.profile?.gender === 'female' ? 0 : 1;
   const age = store.userAge || 34;
   const height_cm = store.profile?.height ? Number(store.profile.height) : 175.0;
@@ -144,8 +147,8 @@ const openBiaModal = (log) => {
     age,
     height_cm,
     weight_kg: Number(log.mass),
-    resistances_50k: log.impedances.r_50k,
-    resistances_250k: log.impedances.r_250k,
+    resistances_50k: resistances.r_50k,
+    resistances_250k: resistances.r_250k,
     raw_fat_rate: Number(log.body_fat),
     heart_rate_bpm: log.heart_rate ? Number(log.heart_rate) : null
   });

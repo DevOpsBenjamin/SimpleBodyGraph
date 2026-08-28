@@ -63,7 +63,7 @@
 import { ref, computed } from 'vue';
 import { Zap, ChevronRight } from 'lucide-vue-next';
 import { useBodyGraphStore, calculateMedian } from '../stores/bodyGraph';
-import { defaultBiaEngine } from '../services/bia/biaCalculator';
+import { defaultBiaEngine, extractBiaResistances } from '../services/bia/biaCalculator';
 import BiaDetailModal from './BiaDetailModal.vue';
 
 const props = defineProps({
@@ -92,27 +92,32 @@ const periodLogs = computed(() => {
 });
 
 const biaLogs = computed(() => {
-  return periodLogs.value.filter(l => l.impedances?.r_50k?.length >= 6 && l.impedances?.r_250k?.length >= 6);
+  return periodLogs.value
+    .map(l => {
+      const res = extractBiaResistances(l.impedances);
+      return res ? { log: l, r_50k: res.r_50k, r_250k: res.r_250k } : null;
+    })
+    .filter(Boolean);
 });
 
 const biaLogsCount = computed(() => biaLogs.value.length);
 
 const computedPeriodBia = computed(() => {
-  const logs = biaLogs.value;
-  if (logs.length === 0) return null;
+  const items = biaLogs.value;
+  if (items.length === 0) return null;
 
   // Calculate median resistances across the period's BIA logs
   const lf_medians = [0, 1, 2, 3, 4, 5].map(idx => {
-    return calculateMedian(logs.map(l => Number(l.impedances.r_50k[idx])));
+    return calculateMedian(items.map(item => Number(item.r_50k[idx])));
   });
 
   const hf_medians = [0, 1, 2, 3, 4, 5].map(idx => {
-    return calculateMedian(logs.map(l => Number(l.impedances.r_250k[idx])));
+    return calculateMedian(items.map(item => Number(item.r_250k[idx])));
   });
 
-  const medianWeight = props.periodItem.medianMass || calculateMedian(logs.map(l => Number(l.mass)));
-  const medianFat = props.periodItem.medianFat || calculateMedian(logs.map(l => Number(l.body_fat)));
-  const medianHR = calculateMedian(logs.filter(l => l.heart_rate).map(l => Number(l.heart_rate))) || 80;
+  const medianWeight = props.periodItem.medianMass || calculateMedian(items.map(item => Number(item.log.mass)));
+  const medianFat = props.periodItem.medianFat || calculateMedian(items.map(item => Number(item.log.body_fat)));
+  const medianHR = calculateMedian(items.filter(item => item.log.heart_rate).map(item => Number(item.log.heart_rate))) || 80;
 
   const sex = store.profile?.gender === 'female' ? 0 : 1;
   const age = store.userAge || 34;

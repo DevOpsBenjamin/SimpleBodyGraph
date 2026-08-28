@@ -241,6 +241,8 @@ describe('HUAWEI Scale 3 Crypto & Framing Unit Tests', () => {
     expect(decoded.fatPercentage).toBe(22.4);
     expect(decoded.heartRateBpm).toBe(68);
     expect(decoded.timestamp).toBe('2026-06-20T08:15:30');
+    expect(decoded.impedances.r_50k).toEqual([500, 510, 520, 530, 540, 550]);
+    expect(decoded.impedances.r_250k).toEqual([600, 615, 630, 645, 660, 675]);
     expect(decoded.impedances.feet).toEqual([500, 510, 520, 530, 540, 550]);
     expect(decoded.impedances.hands).toEqual([600, 615, 630, 645, 660, 675]);
     expect(decoded.rawPayload).toBeDefined();
@@ -267,6 +269,8 @@ describe('HUAWEI Scale 3 Crypto & Framing Unit Tests', () => {
     expect(decoded.weightKg).toBe(72.30);
     expect(decoded.fatPercentage).toBeNull();
     expect(decoded.heartRateBpm).toBeNull();
+    expect(decoded.impedances.r_50k.length).toBe(6);
+    expect(decoded.impedances.r_250k.length).toBe(0);
     expect(decoded.impedances.feet.length).toBe(6);
     expect(decoded.impedances.hands.length).toBe(0);
   });

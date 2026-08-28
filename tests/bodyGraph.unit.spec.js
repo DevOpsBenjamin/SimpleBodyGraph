@@ -159,3 +159,41 @@ describe('getMondayOfDate', () => {
     expect(getMondayOfDate('2024-03-03')).toBe('2024-02-26');
   });
 });
+
+import { extractBiaResistances, hasBiaData } from '../src/services/bia/biaCalculator';
+
+describe('extractBiaResistances & hasBiaData', () => {
+  it('extracts resistances using standard r_50k and r_250k format', () => {
+    const impedances = {
+      r_50k: [500, 510, 520, 530, 540, 550],
+      r_250k: [600, 610, 620, 630, 640, 650]
+    };
+    const res = extractBiaResistances(impedances);
+    expect(res).toEqual({
+      r_50k: [500, 510, 520, 530, 540, 550],
+      r_250k: [600, 610, 620, 630, 640, 650]
+    });
+    expect(hasBiaData({ impedances })).toBe(true);
+  });
+
+  it('extracts resistances using legacy feet and hands format', () => {
+    const impedances = {
+      feet: [3642, 4674, 4480, 4415, 4352, 4280],
+      hands: [3282, 4009, 3985, 3915, 3844, 3772]
+    };
+    const res = extractBiaResistances(impedances);
+    expect(res).toEqual({
+      r_50k: [3642, 4674, 4480, 4415, 4352, 4280],
+      r_250k: [3282, 4009, 3985, 3915, 3844, 3772]
+    });
+    expect(hasBiaData({ impedances })).toBe(true);
+  });
+
+  it('returns null when impedances are missing or incomplete', () => {
+    expect(extractBiaResistances(null)).toBeNull();
+    expect(extractBiaResistances({})).toBeNull();
+    expect(extractBiaResistances({ r_50k: [1, 2, 3] })).toBeNull();
+    expect(hasBiaData({ impedances: null })).toBe(false);
+    expect(hasBiaData({})).toBe(false);
+  });
+});

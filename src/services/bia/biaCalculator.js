@@ -230,3 +230,30 @@ export class DualFrequencyBiaEngine {
 }
 
 export const defaultBiaEngine = new DualFrequencyBiaEngine();
+
+/**
+ * Extracts and normalizes dual-frequency resistances (50 kHz & 250 kHz) from any impedance object,
+ * supporting both r_50k/r_250k and legacy feet/hands keys.
+ *
+ * @param {Object} impedances
+ * @returns {{ r_50k: number[], r_250k: number[] } | null}
+ */
+export function extractBiaResistances(impedances) {
+  if (!impedances || typeof impedances !== 'object') return null;
+  const r_50k = impedances.r_50k || impedances.feet || null;
+  const r_250k = impedances.r_250k || impedances.hands || null;
+  if (Array.isArray(r_50k) && r_50k.length >= 6 && Array.isArray(r_250k) && r_250k.length >= 6) {
+    return { r_50k, r_250k };
+  }
+  return null;
+}
+
+/**
+ * Checks whether a given log contains valid dual-frequency BIA impedance data.
+ *
+ * @param {Object} log
+ * @returns {boolean}
+ */
+export function hasBiaData(log) {
+  return extractBiaResistances(log?.impedances) !== null;
+}

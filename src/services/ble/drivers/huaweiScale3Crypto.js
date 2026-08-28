@@ -444,21 +444,21 @@ export function decodeBiaTelemetry(dec) {
   const pad = (n) => String(n).padStart(2, '0');
   const timestamp = `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:${pad(second)}`;
 
-  // Offset 12..24 : 6 impédances pieds (6 x uint16_le)
-  const feetImpedances = [];
+  // Offset 12..24 : 6 resistances bio-impédance à 50 kHz (r_50k)
+  const r_50k = [];
   for (let i = 0; i < 6; i++) {
-    feetImpedances.push(view.getUint16(12 + i * 2, true));
+    r_50k.push(view.getUint16(12 + i * 2, true));
   }
 
   // Offset 24..26 : Fréquence cardiaque (uint16_le, BPM)
   const hrRaw = view.getUint16(24, true);
   const heartRateBpm = hrRaw > 0 ? hrRaw : null;
 
-  // Offset 26..38 : 6 impédances mains/poignée (6 x uint16_le) si trame 38 octets
-  const handsImpedances = [];
+  // Offset 26..38 : 6 resistances bio-impédance à 250 kHz (r_250k) si trame 38 octets
+  const r_250k = [];
   if (dec.length >= 38) {
     for (let i = 0; i < 6; i++) {
-      handsImpedances.push(view.getUint16(26 + i * 2, true));
+      r_250k.push(view.getUint16(26 + i * 2, true));
     }
   }
 
@@ -467,8 +467,11 @@ export function decodeBiaTelemetry(dec) {
     fatPercentage,
     heartRateBpm,
     impedances: {
-      feet: feetImpedances,
-      hands: handsImpedances
+      r_50k,
+      r_250k,
+      // Backward compatibility aliases
+      feet: r_50k,
+      hands: r_250k
     },
     timestamp,
     rawPayload: bytesToHex(dec)
