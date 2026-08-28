@@ -205,7 +205,7 @@ import MetricChartCard from './MetricChartCard.vue';
 import UnifiedCompositionChart from './UnifiedCompositionChart.vue';
 import BiaPeriodSummaryCard from './BiaPeriodSummaryCard.vue';
 import BiaSegmentalChart from './BiaSegmentalChart.vue';
-import { defaultBiaEngine } from '../services/bia/biaCalculator';
+import { defaultBiaEngine, extractBiaResistances } from '../services/bia/biaCalculator';
 import { 
   commonMonthlyTimeScaleOptions, 
   commonWeeklyTimeScaleOptions 
@@ -309,18 +309,20 @@ const monthlyBiaSegmentalData = computed(() => {
   const points = [];
 
   for (const m of sorted) {
-    const biaLogs = (m.logs || []).filter(l => {
-      return l.impedances?.r_50k?.length >= 6 &&
-        l.impedances?.r_250k?.length >= 6;
-    });
+    const biaItems = (m.logs || [])
+      .map(l => {
+        const res = extractBiaResistances(l.impedances);
+        return res ? { log: l, r_50k: res.r_50k, r_250k: res.r_250k } : null;
+      })
+      .filter(Boolean);
 
-    if (biaLogs.length === 0) continue;
+    if (biaItems.length === 0) continue;
 
-    const lf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaLogs.map(l => l.impedances.r_50k[idx])));
-    const hf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaLogs.map(l => l.impedances.r_250k[idx])));
-    const mass = m.medianMass || calculateMedian(biaLogs.map(l => Number(l.mass)));
-    const fat = m.medianFat || calculateMedian(biaLogs.map(l => Number(l.body_fat)));
-    const hrLogs = biaLogs.filter(l => l.heart_rate).map(l => Number(l.heart_rate));
+    const lf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaItems.map(item => Number(item.r_50k[idx]))));
+    const hf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaItems.map(item => Number(item.r_250k[idx]))));
+    const mass = m.medianMass || calculateMedian(biaItems.map(item => Number(item.log.mass)));
+    const fat = m.medianFat || calculateMedian(biaItems.map(item => Number(item.log.body_fat)));
+    const hrLogs = biaItems.filter(item => item.log.heart_rate).map(item => Number(item.log.heart_rate));
     const hr = hrLogs.length > 0 ? calculateMedian(hrLogs) : 80;
 
     const sex = store.profile?.gender === 'female' ? 0 : 1;
@@ -370,18 +372,20 @@ const weeklyBiaSegmentalData = computed(() => {
   const points = [];
 
   for (const w of sorted) {
-    const biaLogs = (w.logs || []).filter(l => {
-      return l.impedances?.r_50k?.length >= 6 &&
-        l.impedances?.r_250k?.length >= 6;
-    });
+    const biaItems = (w.logs || [])
+      .map(l => {
+        const res = extractBiaResistances(l.impedances);
+        return res ? { log: l, r_50k: res.r_50k, r_250k: res.r_250k } : null;
+      })
+      .filter(Boolean);
 
-    if (biaLogs.length === 0) continue;
+    if (biaItems.length === 0) continue;
 
-    const lf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaLogs.map(l => l.impedances.r_50k[idx])));
-    const hf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaLogs.map(l => l.impedances.r_250k[idx])));
-    const mass = w.medianMass || calculateMedian(biaLogs.map(l => Number(l.mass)));
-    const fat = w.medianFat || calculateMedian(biaLogs.map(l => Number(l.body_fat)));
-    const hrLogs = biaLogs.filter(l => l.heart_rate).map(l => Number(l.heart_rate));
+    const lf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaItems.map(item => Number(item.r_50k[idx]))));
+    const hf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaItems.map(item => Number(item.r_250k[idx]))));
+    const mass = w.medianMass || calculateMedian(biaItems.map(item => Number(item.log.mass)));
+    const fat = w.medianFat || calculateMedian(biaItems.map(item => Number(item.log.body_fat)));
+    const hrLogs = biaItems.filter(item => item.log.heart_rate).map(item => Number(item.log.heart_rate));
     const hr = hrLogs.length > 0 ? calculateMedian(hrLogs) : 80;
 
     const sex = store.profile?.gender === 'female' ? 0 : 1;
