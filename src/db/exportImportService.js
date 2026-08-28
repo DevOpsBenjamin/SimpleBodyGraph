@@ -18,8 +18,10 @@ export async function exportAllData(userId = 'guest', paliers = [], profile = nu
       date: l.date,
       mass: Number(l.mass),
       body_fat: Number(l.body_fat),
+      measured_at: l.measured_at || null,
       heart_rate: l.heart_rate ? Number(l.heart_rate) : null,
-      impedances: l.impedances || null
+      impedances: l.impedances || null,
+      scale_device_id: l.scale_device_id || null
     })),
     measurements: measurements.map(m => ({
       id: m.id,
@@ -53,8 +55,10 @@ export async function importAllData(data, userId = 'guest') {
         date: log.date,
         mass: Number(log.mass),
         body_fat: Number(log.body_fat),
+        measured_at: log.measured_at || null,
         heart_rate: log.heart_rate ? Number(log.heart_rate) : null,
         impedances: log.impedances || null,
+        scale_device_id: log.scale_device_id || null,
         user_id: userId,
         synced: false
       });
