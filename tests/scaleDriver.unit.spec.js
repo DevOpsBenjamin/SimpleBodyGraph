@@ -92,8 +92,11 @@ describe('Scale Driver Architecture & ScaleManager', () => {
     expect(measurement.weightKg).toBe(80.0);
     expect(measurement.fatPercentage).toBe(21.5);
     expect(measurement.heartRateBpm).toBe(70);
-    expect(measurement.impedances.feet.length).toBe(6);
-    expect(measurement.impedances.hands.length).toBe(6);
+    expect(measurement.impedances.r_50k.length).toBe(6);
+    expect(measurement.impedances.r_250k.length).toBe(6);
+    // the misleading feet/hands aliases are no longer written
+    expect(measurement.impedances.feet).toBeUndefined();
+    expect(measurement.impedances.hands).toBeUndefined();
     expect(measurement.timestamp).toBeDefined();
 
     expect(states).toContain('connecting');

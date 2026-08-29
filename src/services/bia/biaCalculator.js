@@ -233,7 +233,12 @@ export const defaultBiaEngine = new DualFrequencyBiaEngine();
 
 /**
  * Extracts and normalizes dual-frequency resistances (50 kHz & 250 kHz) from any impedance object,
- * supporting both r_50k/r_250k and legacy feet/hands keys.
+ * supporting both r_50k/r_250k and the legacy feet/hands keys.
+ *
+ * NOTE: "feet"/"hands" was a misnomer in earlier versions - those two arrays never
+ * held foot and hand impedances. They are the same 6 anatomical paths measured at
+ * 50 kHz and 250 kHz respectively. The keys are still read so historical logs keep
+ * working, but nothing writes them any more.
  *
  * @param {Object} impedances
  * @returns {{ r_50k: number[], r_250k: number[] } | null}

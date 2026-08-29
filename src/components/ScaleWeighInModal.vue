@@ -307,10 +307,13 @@ const displayWeight = computed(() => {
 });
 
 const totalImpedanceChannels = computed(() => {
-  if (!measurement.value?.impedances) return 0;
-  const feet = measurement.value.impedances.feet?.length || 0;
-  const hands = measurement.value.impedances.hands?.length || 0;
-  return feet + hands;
+  const imp = measurement.value?.impedances;
+  if (!imp) return 0;
+  // feet/hands are legacy misnomers for the 50 kHz / 250 kHz bands, still read
+  // so logs recorded by earlier versions keep displaying correctly.
+  const lowFreq = (imp.r_50k || imp.feet)?.length || 0;
+  const highFreq = (imp.r_250k || imp.hands)?.length || 0;
+  return lowFreq + highFreq;
 });
 
 const statusTitle = computed(() => {
