@@ -3,9 +3,12 @@
  * @property {number} weightKg - Poids mesuré en kg (ex: 104.50)
  * @property {number|null} [fatPercentage] - Taux de masse grasse en % (ex: 26.8)
  * @property {number|null} [heartRateBpm] - Fréquence cardiaque en BPM (ex: 72)
- * @property {Object} [impedances] - Impédances bioélectriques BIA (8 électrodes)
- * @property {number[]} [impedances.feet] - Impédances pieds (basses et hautes fréquences)
- * @property {number[]} [impedances.hands] - Impédances mains / bras
+ * @property {Object} [impedances] - Impédances bioélectriques BIA brutes (8 électrodes).
+ *   Les 6 mêmes trajets anatomiques sont mesurés successivement à deux fréquences.
+ *   Ordre des trajets : [LFRF, LHRH, LHLF, LHRF, RHLF, RHRF]
+ *   (pied G↔pied D, main G↔main D, main G↔pied G, main G↔pied D, main D↔pied G, main D↔pied D).
+ * @property {number[]} [impedances.r_50k] - 6 résistances à 50 kHz (basse fréquence)
+ * @property {number[]} [impedances.r_250k] - 6 résistances à 250 kHz (haute fréquence)
  * @property {number|null} [batteryLevel] - Niveau de batterie en % (ex: 85)
  * @property {string} timestamp - Horodatage ISO-8601 de la pesée
  * @property {any} [rawPayload] - Données brutes pour audit ou debug

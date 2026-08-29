@@ -212,7 +212,7 @@ describe('HUAWEI Scale 3 Crypto & Framing Unit Tests', () => {
     expect(view.getUint8(6)).toBe(45);
   });
 
-  it('decodeBiaTelemetry parses 38-byte stream (8 electrodes, feet + hands)', () => {
+  it('decodeBiaTelemetry parses 38-byte stream (8 electrodes, dual-frequency)', () => {
     const raw = new Uint8Array(38);
     const view = new DataView(raw.buffer);
 
@@ -228,11 +228,11 @@ describe('HUAWEI Scale 3 Crypto & Framing Unit Tests', () => {
     view.setUint8(9, 15);
     view.setUint8(10, 30);
     view.setUint8(11, 6);
-    // 6 feet impedances
+    // 6 low-frequency (50 kHz) resistances
     for (let i = 0; i < 6; i++) view.setUint16(12 + i * 2, 500 + i * 10, true);
     // Heart rate = 68 BPM
     view.setUint16(24, 68, true);
-    // 6 hands impedances
+    // the same 6 paths at high frequency (250 kHz)
     for (let i = 0; i < 6; i++) view.setUint16(26 + i * 2, 600 + i * 15, true);
 
     const decoded = decodeBiaTelemetry(raw);
@@ -243,12 +243,13 @@ describe('HUAWEI Scale 3 Crypto & Framing Unit Tests', () => {
     expect(decoded.timestamp).toBe('2026-06-20T08:15:30');
     expect(decoded.impedances.r_50k).toEqual([500, 510, 520, 530, 540, 550]);
     expect(decoded.impedances.r_250k).toEqual([600, 615, 630, 645, 660, 675]);
-    expect(decoded.impedances.feet).toEqual([500, 510, 520, 530, 540, 550]);
-    expect(decoded.impedances.hands).toEqual([600, 615, 630, 645, 660, 675]);
+    // the misleading feet/hands aliases are no longer written
+    expect(decoded.impedances.feet).toBeUndefined();
+    expect(decoded.impedances.hands).toBeUndefined();
     expect(decoded.rawPayload).toBeDefined();
   });
 
-  it('decodeBiaTelemetry parses 26-byte stream (feet-only model) and handles zero heart rate', () => {
+  it('decodeBiaTelemetry parses 26-byte stream (single-frequency model) and handles zero heart rate', () => {
     const raw = new Uint8Array(26);
     const view = new DataView(raw.buffer);
 
@@ -271,8 +272,8 @@ describe('HUAWEI Scale 3 Crypto & Framing Unit Tests', () => {
     expect(decoded.heartRateBpm).toBeNull();
     expect(decoded.impedances.r_50k.length).toBe(6);
     expect(decoded.impedances.r_250k.length).toBe(0);
-    expect(decoded.impedances.feet.length).toBe(6);
-    expect(decoded.impedances.hands.length).toBe(0);
+    expect(decoded.impedances.feet).toBeUndefined();
+    expect(decoded.impedances.hands).toBeUndefined();
   });
 
   it('decodeBiaTelemetry throws error when payload is too short (<26B)', () => {

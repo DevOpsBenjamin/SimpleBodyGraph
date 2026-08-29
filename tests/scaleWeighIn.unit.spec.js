@@ -67,8 +67,8 @@ describe('Live Weigh-In Workflow & State Management (Mode 2)', () => {
     expect(measurement.weightKg).toBe(82.5);
     expect(measurement.fatPercentage).toBe(21.5);
     expect(measurement.heartRateBpm).toBe(70);
-    expect(measurement.impedances.feet.length).toBe(6);
-    expect(measurement.impedances.hands.length).toBe(6);
+    expect(measurement.impedances.r_50k.length).toBe(6);
+    expect(measurement.impedances.r_250k.length).toBe(6);
     expect(onComplete).toHaveBeenCalledWith(measurement);
   });
 
@@ -82,7 +82,7 @@ describe('Live Weigh-In Workflow & State Management (Mode 2)', () => {
       bodyFat: 21.8,
       measuredAt: '2026-08-23T08:30:00',
       heartRate: 72,
-      impedances: { feet: [500, 510, 520, 530, 540, 550], hands: [600, 615, 630, 645, 660, 675] },
+      impedances: { r_50k: [500, 510, 520, 530, 540, 550], r_250k: [600, 615, 630, 645, 660, 675] },
       scaleDeviceId: '50:FB:19:F8:0C:21'
     });
 
@@ -92,6 +92,6 @@ describe('Live Weigh-In Workflow & State Management (Mode 2)', () => {
     expect(addedLog.measured_at).toBe('2026-08-23T08:30:00');
     expect(addedLog.heart_rate).toBe(72);
     expect(addedLog.scale_device_id).toBe('50:FB:19:F8:0C:21');
-    expect(addedLog.impedances.feet.length).toBe(6);
+    expect(addedLog.impedances.r_50k.length).toBe(6);
   });
 });

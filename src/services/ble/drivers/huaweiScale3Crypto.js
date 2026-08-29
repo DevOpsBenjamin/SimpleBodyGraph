@@ -468,10 +468,7 @@ export function decodeBiaTelemetry(dec) {
     heartRateBpm,
     impedances: {
       r_50k,
-      r_250k,
-      // Backward compatibility aliases
-      feet: r_50k,
-      hands: r_250k
+      r_250k
     },
     timestamp,
     rawPayload: bytesToHex(dec)
