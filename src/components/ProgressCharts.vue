@@ -506,6 +506,7 @@ const monthlyBiaRecalculatedData = computed(() => {
       points.push({
         date: m.startDate,
         mass,
+        rawFatPercent: fat,
         recalcFatPercent: res.body_composition.recalculated_body_fat_percent,
         rawFatMass: m.medianFatMass || Number((mass * (fat / 100)).toFixed(2)),
         recalcFatMass: res.body_composition.recalculated_fat_mass_kg,
