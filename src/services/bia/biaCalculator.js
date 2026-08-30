@@ -11,16 +11,24 @@ export class DualFrequencyBiaEngine {
    * to isolate discrete limb impedances and calculate global path loops.
    */
   solveKirchhoffNetwork(r_lfrf, r_lhrh, r_lhlf, r_lhrf, r_rhlf, r_rhrf) {
-    const diff_arm_r = 0.25 * ((r_rhlf + r_rhrf) - (r_lhlf + r_lhrf));
-    const diff_arm_l = 0.25 * ((r_lhlf + r_lhrf) - (r_rhlf + r_rhrf));
+    const scale = (r_lfrf > 1000 || r_lhrh > 1000) ? 0.1 : 1.0;
+    const lfrf = r_lfrf * scale;
+    const lhrh = r_lhrh * scale;
+    const lhlf = r_lhlf * scale;
+    const lhrf = r_lhrf * scale;
+    const rhlf = r_rhlf * scale;
+    const rhrf = r_rhrf * scale;
 
-    const diff_leg_r = 0.25 * ((r_lhrf + r_rhrf) - (r_lhlf + r_rhlf));
-    const diff_leg_l = 0.25 * ((r_lhlf + r_rhlf) - (r_lhrf + r_rhrf));
+    const diff_arm_r = 0.25 * ((rhlf + rhrf) - (lhlf + lhrf));
+    const diff_arm_l = 0.25 * ((lhlf + lhrf) - (rhlf + rhrf));
 
-    const z_rh = 0.5 * r_lhrh + diff_arm_r;
-    const z_lh = 0.5 * r_lhrh + diff_arm_l;
-    const z_rf = 0.5 * r_lfrf + diff_leg_r;
-    const z_lf = 0.5 * r_lfrf + diff_leg_l;
+    const diff_leg_r = 0.25 * ((lhrf + rhrf) - (lhlf + rhlf));
+    const diff_leg_l = 0.25 * ((lhlf + rhlf) - (lhrf + rhrf));
+
+    const z_rh = 0.5 * lhrh + diff_arm_r;
+    const z_lh = 0.5 * lhrh + diff_arm_l;
+    const z_rf = 0.5 * lfrf + diff_leg_r;
+    const z_lf = 0.5 * lfrf + diff_leg_l;
 
     const z_body_avg = 0.25 * (z_rh + z_lh + z_rf + z_lf);
     const z_body_loop = (z_rh + z_lh + z_rf + z_lf) * 0.521;
@@ -32,7 +40,7 @@ export class DualFrequencyBiaEngine {
       z_lf: Number(z_lf.toFixed(2)),
       z_body_avg: Number(z_body_avg.toFixed(2)),
       z_body_loop: Number(z_body_loop.toFixed(2)),
-      r_direct_rhrf: r_rhrf
+      r_direct_rhrf: rhrf
     };
   }
 
@@ -81,20 +89,45 @@ export class DualFrequencyBiaEngine {
     const height_m = height_cm / 100.0;
     const bmi = Number((weight_kg / (height_m * height_m)).toFixed(1));
 
+    // Pure Ohm-based DEXA FFM regression (ARM64 Model #00 & #01)
+    const bii_50 = (height_cm * height_cm) / v50.z_body_avg;
+    const bii_250 = (height_cm * height_cm) / v250.z_body_avg;
+
+    let dexa_ffm;
+    if (sex === 1) {
+      dexa_ffm = (
+        0.12631 * bii_50
+        + 0.16098 * bii_250
+        - 0.01195 * v50.z_body_avg
+        - 0.02027 * v250.z_body_avg
+        + 0.14923 * weight_kg
+        + 0.25154 * height_cm
+        - 0.000070 * (age * age)
+        - 0.03560 * age
+        - 20.79390
+      );
+    } else {
+      dexa_ffm = (
+        0.07182 * bii_50
+        + 0.07944 * bii_250
+        - 0.01169 * v50.z_body_avg
+        - 0.01661 * v250.z_body_avg
+        + 0.11944 * weight_kg
+        + 0.23935 * height_cm
+        + 0.000430 * (age * age)
+        - 0.08840 * age
+        - 14.71130
+      );
+    }
+
+    const recalculated_body_fat_percent = Number(Math.max(5.0, Math.min(50.0, ((weight_kg - dexa_ffm) / weight_kg) * 100.0)).toFixed(1));
+
     // 1. Fat Mass & Fat-Free Mass (FFM)
     let body_fat_percent;
     if (raw_fat_rate !== null && raw_fat_rate > 0.0) {
       body_fat_percent = raw_fat_rate;
     } else {
-      const bii_50 = (height_cm * height_cm) / v50.z_body_avg;
-      const bii_250 = (height_cm * height_cm) / v250.z_body_avg;
-      let ffm_est;
-      if (sex === 1) {
-        ffm_est = 0.28 * bii_50 + 0.18 * bii_250 + 0.16 * weight_kg + 0.10 * height_cm - 0.001 * (age * age) + 0.03 * age - 18.5;
-      } else {
-        ffm_est = 0.22 * bii_50 + 0.14 * bii_250 + 0.14 * weight_kg + 0.12 * height_cm - 0.001 * (age * age) + 0.04 * age - 15.0;
-      }
-      body_fat_percent = Number(Math.max(5.0, Math.min(50.0, (1.0 - ffm_est / weight_kg) * 100.0)).toFixed(1));
+      body_fat_percent = recalculated_body_fat_percent;
     }
 
     const fat_mass_kg = Number((weight_kg * (body_fat_percent / 100.0)).toFixed(2));
@@ -189,6 +222,9 @@ export class DualFrequencyBiaEngine {
         weight_kg,
         bmi,
         body_fat_percent,
+        recalculated_body_fat_percent,
+        recalculated_fat_mass_kg: Number((weight_kg * (recalculated_body_fat_percent / 100.0)).toFixed(2)),
+        recalculated_ffm_kg: Number((weight_kg - (weight_kg * (recalculated_body_fat_percent / 100.0))).toFixed(2)),
         fat_mass_kg,
         fat_free_mass_kg: ffm_kg,
         skeletal_muscle_mass_kg: smm_kg,
