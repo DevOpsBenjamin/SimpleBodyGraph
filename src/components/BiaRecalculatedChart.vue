@@ -148,11 +148,15 @@ const buildDatasets = () => {
       data: props.data.map(d => ({ x: d.date, y: d.rawFatPercent })),
       borderColor: '#f59e0b',
       backgroundColor: '#f59e0b',
-      borderWidth: 2,
-      borderDash: [5, 4],
+      borderWidth: 2.5,
+      borderDash: [6, 4],
       tension: 0.2,
-      pointRadius: 4,
-      pointHoverRadius: 6,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      pointBackgroundColor: '#f59e0b',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 1.5,
+      fill: false,
       yAxisID: 'y'
     });
 
@@ -161,10 +165,14 @@ const buildDatasets = () => {
       data: props.data.map(d => ({ x: d.date, y: d.recalcFatPercent })),
       borderColor: '#06b6d4',
       backgroundColor: '#06b6d4',
-      borderWidth: 2.5,
+      borderWidth: 3,
       tension: 0.2,
-      pointRadius: 4,
-      pointHoverRadius: 6,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      pointBackgroundColor: '#06b6d4',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 1.5,
+      fill: false,
       yAxisID: 'y'
     });
   }
@@ -177,9 +185,13 @@ const buildDatasets = () => {
       borderColor: '#f43f5e',
       backgroundColor: '#f43f5e',
       borderWidth: 2,
-      borderDash: [4, 4],
+      borderDash: [5, 4],
       tension: 0.2,
-      pointRadius: 3,
+      pointRadius: 4,
+      pointBackgroundColor: '#f43f5e',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 1,
+      fill: false,
       yAxisID: 'y'
     });
 
@@ -190,7 +202,11 @@ const buildDatasets = () => {
       backgroundColor: '#fb7185',
       borderWidth: 2.5,
       tension: 0.2,
-      pointRadius: 3,
+      pointRadius: 4,
+      pointBackgroundColor: '#fb7185',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 1,
+      fill: false,
       yAxisID: 'y'
     });
   }
@@ -204,7 +220,11 @@ const buildDatasets = () => {
       backgroundColor: '#10b981',
       borderWidth: 2.5,
       tension: 0.2,
-      pointRadius: 3,
+      pointRadius: 4,
+      pointBackgroundColor: '#10b981',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 1,
+      fill: false,
       yAxisID: 'y'
     });
   }
@@ -218,7 +238,11 @@ const buildDatasets = () => {
       backgroundColor: '#a855f7',
       borderWidth: 2,
       tension: 0.2,
-      pointRadius: 3,
+      pointRadius: 4,
+      pointBackgroundColor: '#a855f7',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 1,
+      fill: false,
       yAxisID: 'y'
     });
 
@@ -229,7 +253,11 @@ const buildDatasets = () => {
       backgroundColor: '#38bdf8',
       borderWidth: 2,
       tension: 0.2,
-      pointRadius: 3,
+      pointRadius: 4,
+      pointBackgroundColor: '#38bdf8',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 1,
+      fill: false,
       yAxisID: 'y'
     });
   }
@@ -243,7 +271,11 @@ const buildDatasets = () => {
       backgroundColor: '#60a5fa',
       borderWidth: 2,
       tension: 0.2,
-      pointRadius: 3,
+      pointRadius: 4,
+      pointBackgroundColor: '#60a5fa',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 1,
+      fill: false,
       yAxisID: activeMetrics.showFatPercent || activeMetrics.showFatMass || activeMetrics.showSmm || activeMetrics.showWater ? 'y1' : 'y'
     });
   }
