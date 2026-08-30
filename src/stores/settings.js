@@ -16,9 +16,10 @@ export const DEFAULT_DISPLAY_PREFERENCES = {
     showMass: true,
     showFatMass: true,
     showLeanMass: false,
-    showFatPercentChart: false,
+    showFatPercentChart: true,
     showBiaMuscleChart: true,
-    showBiaFatChart: false
+    showBiaFatChart: false,
+    showBiaRecalculatedChart: true
   },
   segmentalColors: {
     muscle: {

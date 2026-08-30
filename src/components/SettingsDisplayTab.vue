@@ -193,6 +193,20 @@
             class="w-4 h-4 rounded text-amber-600 accent-amber-500"
           />
         </label>
+
+        <!-- BIA Recalculated / Fat Comparison Chart -->
+        <label class="flex items-center justify-between p-3.5 rounded-2xl bg-gray-950/60 border border-gray-800/80 hover:border-cyan-500/30 transition-all cursor-pointer select-none">
+          <div>
+            <span class="text-xs font-bold text-white block">{{ $t('settingsDisplay.biaRecalculatedChartTitle') }}</span>
+            <span class="text-[10px] text-gray-400">{{ $t('settingsDisplay.biaRecalculatedChartDesc') }}</span>
+          </div>
+          <input 
+            type="checkbox" 
+            v-model="localPrefs.charts.showBiaRecalculatedChart" 
+            @change="savePreferences"
+            class="w-4 h-4 rounded text-cyan-600 accent-cyan-500"
+          />
+        </label>
       </div>
     </div>
 

@@ -80,17 +80,25 @@
         :time-scale-options="commonMonthlyTimeScaleOptions"
       />
 
-      <!-- OPTIONAL BODY FAT % CHART -->
+      <!-- BIA RECALCULATED & FAT COMPARISON CHART (MONTHLY) -->
+      <BiaRecalculatedChart
+        v-if="store.displayPreferences?.charts?.showBiaRecalculatedChart && monthlyBiaRecalculatedData.length > 0"
+        :title="$t('charts.biaRecalculatedMonthlyTitle')"
+        :data="monthlyBiaRecalculatedData"
+        :time-scale-options="commonMonthlyTimeScaleOptions"
+      />
+
+      <!-- BODY FAT % CHART (MEDIAN VS RECALCULATED BIA) -->
       <div v-if="store.displayPreferences?.charts?.showFatPercentChart" class="pt-2">
         <MetricChartCard
           :title="$t('charts.fatPercentMonthlyTitle')"
           metric-type="fat"
           color-type="emerald"
           unit="%"
-          :median-label="$t('charts.monthlyMedian')"
-          :average-label="$t('charts.monthlyAverage')"
+          :median-label="$t('charts.rawFatPercentMedian')"
+          :average-label="$t('charts.recalcFatPercentBia')"
           :median-data="monthlyChartData.fat.median"
-          :average-data="monthlyChartData.fat.avg"
+          :average-data="monthlyFatRecalculatedData"
           :paliers="store.paliersSorted"
           :active-palier="store.activePalier"
           :time-scale-options="commonMonthlyTimeScaleOptions"
@@ -166,17 +174,25 @@
         :time-scale-options="commonWeeklyTimeScaleOptions"
       />
 
-      <!-- OPTIONAL BODY FAT % CHART -->
+      <!-- BIA RECALCULATED & FAT COMPARISON CHART (WEEKLY) -->
+      <BiaRecalculatedChart
+        v-if="store.displayPreferences?.charts?.showBiaRecalculatedChart && weeklyBiaRecalculatedData.length > 0"
+        :title="$t('charts.biaRecalculatedWeeklyTitle')"
+        :data="weeklyBiaRecalculatedData"
+        :time-scale-options="commonWeeklyTimeScaleOptions"
+      />
+
+      <!-- BODY FAT % CHART (MEDIAN VS RECALCULATED BIA) -->
       <div v-if="store.displayPreferences?.charts?.showFatPercentChart" class="pt-2">
         <MetricChartCard
           :title="$t('charts.fatPercentWeeklyTitle')"
           metric-type="fat"
           color-type="emerald"
           unit="%"
-          :median-label="$t('charts.weeklyMedian')"
-          :average-label="$t('charts.weeklyAverage')"
+          :median-label="$t('charts.rawFatPercentMedian')"
+          :average-label="$t('charts.recalcFatPercentBia')"
           :median-data="weeklyChartData.fat.median"
-          :average-data="weeklyChartData.fat.avg"
+          :average-data="weeklyFatRecalculatedData"
           :paliers="store.paliersSorted"
           :active-palier="store.activePalier"
           :time-scale-options="commonWeeklyTimeScaleOptions"
@@ -205,6 +221,7 @@ import MetricChartCard from './MetricChartCard.vue';
 import UnifiedCompositionChart from './UnifiedCompositionChart.vue';
 import BiaPeriodSummaryCard from './BiaPeriodSummaryCard.vue';
 import BiaSegmentalChart from './BiaSegmentalChart.vue';
+import BiaRecalculatedChart from './BiaRecalculatedChart.vue';
 import { defaultBiaEngine, extractBiaResistances } from '../services/bia/biaCalculator';
 import { 
   commonMonthlyTimeScaleOptions, 
@@ -301,6 +318,25 @@ const weeklyChartData = computed(() => {
       avg: sorted.map(w => ({ x: w.monday, y: w.avgFatMass }))
     }
   };
+});
+
+// Computed Fat % Recalculated datasets for 2-line Fat% chart
+const monthlyFatRecalculatedData = computed(() => {
+  const recalcMap = new Map(monthlyBiaRecalculatedData.value.map(d => [d.date, d.recalcFatPercent]));
+  const sorted = [...store.groupedMonths].reverse();
+  return sorted.map(m => ({
+    x: m.startDate,
+    y: recalcMap.has(m.startDate) ? recalcMap.get(m.startDate) : m.medianFat
+  }));
+});
+
+const weeklyFatRecalculatedData = computed(() => {
+  const recalcMap = new Map(weeklyBiaRecalculatedData.value.map(d => [d.date, d.recalcFatPercent]));
+  const sorted = [...store.groupedWeeks].reverse();
+  return sorted.map(w => ({
+    x: w.monday,
+    y: recalcMap.has(w.monday) ? recalcMap.get(w.monday) : w.medianFat
+  }));
 });
 
 // Computed BIA Segmental datasets for Monthly view
@@ -422,6 +458,124 @@ const weeklyBiaSegmentalData = computed(() => {
           rightLeg: res.segmental_analysis.fat_mass.right_leg_kg,
           leftLeg: res.segmental_analysis.fat_mass.left_leg_kg
         }
+      });
+    }
+  }
+
+  return points;
+});
+
+// Computed BIA Recalculated datasets for Monthly view
+const monthlyBiaRecalculatedData = computed(() => {
+  const sorted = [...store.groupedMonths].reverse();
+  const points = [];
+
+  for (const m of sorted) {
+    const biaItems = (m.logs || [])
+      .map(l => {
+        const res = extractBiaResistances(l.impedances);
+        return res ? { log: l, r_50k: res.r_50k, r_250k: res.r_250k } : null;
+      })
+      .filter(Boolean);
+
+    if (biaItems.length === 0) continue;
+
+    const lf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaItems.map(item => Number(item.r_50k[idx]))));
+    const hf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaItems.map(item => Number(item.r_250k[idx]))));
+    const mass = m.medianMass || calculateMedian(biaItems.map(item => Number(item.log.mass)));
+    const fat = m.medianFat || calculateMedian(biaItems.map(item => Number(item.log.body_fat)));
+    const hrLogs = biaItems.filter(item => item.log.heart_rate).map(item => Number(item.log.heart_rate));
+    const hr = hrLogs.length > 0 ? calculateMedian(hrLogs) : 80;
+
+    const sex = store.profile?.gender === 'female' ? 0 : 1;
+    const age = store.userAge || 34;
+    const height = store.profile?.height ? Number(store.profile.height) : 175.0;
+
+    const res = defaultBiaEngine.analyze({
+      sex,
+      age,
+      height_cm: height,
+      weight_kg: mass,
+      resistances_50k: lf,
+      resistances_250k: hf,
+      raw_fat_rate: fat,
+      heart_rate_bpm: hr
+    });
+
+    if (res && res.body_composition) {
+      points.push({
+        date: m.startDate,
+        mass,
+        rawFatPercent: fat,
+        recalcFatPercent: res.body_composition.body_fat_percent,
+        rawFatMass: m.medianFatMass || Number((mass * (fat / 100)).toFixed(2)),
+        recalcFatMass: res.body_composition.fat_mass_kg,
+        recalcFfm: res.body_composition.fat_free_mass_kg,
+        recalcSmm: res.body_composition.skeletal_muscle_mass_kg,
+        recalcWater: res.body_composition.total_water_kg,
+        recalcIcw: res.body_composition.intracellular_water_kg,
+        recalcEcw: res.body_composition.extracellular_water_kg,
+        medianZ50: res.impedances_50k_ohms.z_body_avg,
+        medianZ250: res.impedances_250k_ohms.z_body_avg
+      });
+    }
+  }
+
+  return points;
+});
+
+// Computed BIA Recalculated datasets for Weekly view
+const weeklyBiaRecalculatedData = computed(() => {
+  const sorted = [...store.groupedWeeks].reverse();
+  const points = [];
+
+  for (const w of sorted) {
+    const biaItems = (w.logs || [])
+      .map(l => {
+        const res = extractBiaResistances(l.impedances);
+        return res ? { log: l, r_50k: res.r_50k, r_250k: res.r_250k } : null;
+      })
+      .filter(Boolean);
+
+    if (biaItems.length === 0) continue;
+
+    const lf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaItems.map(item => Number(item.r_50k[idx]))));
+    const hf = [0, 1, 2, 3, 4, 5].map(idx => calculateMedian(biaItems.map(item => Number(item.r_250k[idx]))));
+    const mass = w.medianMass || calculateMedian(biaItems.map(item => Number(item.log.mass)));
+    const fat = w.medianFat || calculateMedian(biaItems.map(item => Number(item.log.body_fat)));
+    const hrLogs = biaItems.filter(item => item.log.heart_rate).map(item => Number(item.log.heart_rate));
+    const hr = hrLogs.length > 0 ? calculateMedian(hrLogs) : 80;
+
+    const sex = store.profile?.gender === 'female' ? 0 : 1;
+    const age = store.userAge || 34;
+    const height = store.profile?.height ? Number(store.profile.height) : 175.0;
+
+    const res = defaultBiaEngine.analyze({
+      sex,
+      age,
+      height_cm: height,
+      weight_kg: mass,
+      resistances_50k: lf,
+      resistances_250k: hf,
+      raw_fat_rate: fat,
+      heart_rate_bpm: hr
+    });
+
+    if (res && res.body_composition) {
+      points.push({
+        date: w.monday,
+        mass,
+        rawFatPercent: fat,
+        recalcFatPercent: res.body_composition.body_fat_percent,
+        rawFatMass: w.medianFatMass || Number((mass * (fat / 100)).toFixed(2)),
+        recalcFatMass: res.body_composition.fat_mass_kg,
+        recalcFfm: res.body_composition.fat_free_mass_kg,
+        recalcSmm: res.body_composition.skeletal_muscle_mass_kg,
+        recalcWater: res.body_composition.total_water_kg,
+        recalcIcw: res.body_composition.intracellular_water_kg,
+        recalcEcw: res.body_composition.extracellular_water_kg,
+        medianZ50: res.impedances_50k_ohms.z_body_avg,
+        medianZ250: res.impedances_250k_ohms.z_body_avg
       });
     }
   }
