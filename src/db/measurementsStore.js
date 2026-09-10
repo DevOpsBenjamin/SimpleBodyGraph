@@ -1,4 +1,5 @@
 import { openDB, sanitizeForIndexedDB, bulkWrite, STORE_MEASUREMENTS, STORE_MEASUREMENTS_DELETIONS } from './core';
+import { compareLogsDescending } from '../utils/dateAndMath';
 
 export async function getAllMeasurements(userId = 'guest') {
   const db = await openDB();
@@ -10,7 +11,7 @@ export async function getAllMeasurements(userId = 'guest') {
 
     request.onsuccess = () => {
       const logs = request.result || [];
-      logs.sort((a, b) => b.date.localeCompare(a.date));
+      logs.sort(compareLogsDescending);
       resolve(logs);
     };
     request.onerror = () => reject(request.error);

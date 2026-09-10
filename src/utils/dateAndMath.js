@@ -74,3 +74,58 @@ export function getPreviousWindowEndDate(refDateStr, offsetDays = 7) {
   prevDate.setDate(prevDate.getDate() - offsetDays);
   return prevDate.toISOString().split('T')[0];
 }
+
+// Extract timestamp value in ms for log/measurement comparison
+function getLogTimestampMs(log) {
+  if (!log) return 0;
+  const rawTs = log.measured_at || log.measuredAt || log.created_at;
+  if (!rawTs) return 0;
+  const time = new Date(rawTs).getTime();
+  return isNaN(time) ? 0 : time;
+}
+
+// Compare logs or measurements descending (newest date and time first)
+export function compareLogsDescending(a, b) {
+  const dateA = (a && a.date) ? String(a.date) : '';
+  const dateB = (b && b.date) ? String(b.date) : '';
+
+  if (dateA !== dateB) {
+    return dateB.localeCompare(dateA);
+  }
+
+  // If dates are identical, use measured_at / timestamp as tie-breaker
+  const tsA = getLogTimestampMs(a);
+  const tsB = getLogTimestampMs(b);
+
+  if (tsA !== tsB) {
+    return tsB - tsA;
+  }
+
+  // Secondary fallback to id for deterministic sorting
+  const idA = (a && a.id) ? String(a.id) : '';
+  const idB = (b && b.id) ? String(b.id) : '';
+  return idB.localeCompare(idA);
+}
+
+// Compare logs or measurements ascending (oldest date and time first)
+export function compareLogsAscending(a, b) {
+  const dateA = (a && a.date) ? String(a.date) : '';
+  const dateB = (b && b.date) ? String(b.date) : '';
+
+  if (dateA !== dateB) {
+    return dateA.localeCompare(dateB);
+  }
+
+  // If dates are identical, use measured_at / timestamp as tie-breaker
+  const tsA = getLogTimestampMs(a);
+  const tsB = getLogTimestampMs(b);
+
+  if (tsA !== tsB) {
+    return tsA - tsB;
+  }
+
+  // Secondary fallback to id for deterministic sorting
+  const idA = (a && a.id) ? String(a.id) : '';
+  const idB = (b && b.id) ? String(b.id) : '';
+  return idA.localeCompare(idB);
+}
