@@ -610,7 +610,7 @@ describe('useBodyGraphStore & Domain Stores', () => {
         thighs: 60
       });
 
-      expect(db.saveMeasurement).toHaveBeenCalledWith({
+      expect(db.saveMeasurement).toHaveBeenCalledWith(expect.objectContaining({
         id: 'm1',
         date: '2026-06-15',
         waist: 90,
@@ -618,7 +618,7 @@ describe('useBodyGraphStore & Domain Stores', () => {
         arms: 35,
         thighs: 60,
         synced: false
-      }, 'guest');
+      }), 'guest');
 
       await store.deleteMeasurementEntry('m1');
       expect(db.deleteMeasurement).toHaveBeenCalledWith('m1', 'guest');

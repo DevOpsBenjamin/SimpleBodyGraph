@@ -22,9 +22,10 @@
       <!-- Details -->
       <div class="flex items-center gap-4">
         <!-- Date Circle -->
-        <div class="flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-gray-900 border border-gray-800 text-center">
+        <div class="flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-gray-900 border border-gray-800 text-center shrink-0">
           <span class="text-[10px] text-gray-400 uppercase leading-none font-semibold">{{ formatShortMonth(log.date) }}</span>
           <span class="text-lg font-bold text-white leading-none mt-0.5">{{ formatDay(log.date) }}</span>
+          <span v-if="log.measured_at" class="text-[9px] text-violet-400 font-mono leading-none mt-0.5">{{ formatTime(log.measured_at) }}</span>
         </div>
         
         <!-- Metrics Info -->
@@ -124,7 +125,7 @@ import BiaDetailModal from './BiaDetailModal.vue';
 const store = useBodyGraphStore();
 const { confirm } = useConfirm();
 const { showToast } = useToast();
-const { t, formatShortMonth, formatDay } = useI18n();
+const { t, formatShortMonth, formatDay, formatTime } = useI18n();
 
 const isBiaModalOpen = ref(false);
 const selectedLogBia = ref(null);

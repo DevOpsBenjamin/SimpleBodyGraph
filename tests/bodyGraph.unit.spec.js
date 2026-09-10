@@ -1,6 +1,38 @@
 import { describe, it, expect } from 'vitest';
-import { getMondayOfDate, calculateMedian, getRollingLogsForDate } from '../src/stores/bodyGraph';
+import { getMondayOfDate, calculateMedian, getRollingLogsForDate, compareLogsDescending, compareLogsAscending } from '../src/stores/bodyGraph';
 import { MOCK_LOGS } from './db-helper';
+
+describe('compareLogsDescending and compareLogsAscending', () => {
+  it('should sort logs by date first', () => {
+    const logA = { id: 'a', date: '2026-06-15' };
+    const logB = { id: 'b', date: '2026-06-16' };
+
+    expect(compareLogsDescending(logA, logB)).toBeGreaterThan(0);
+    expect(compareLogsAscending(logA, logB)).toBeLessThan(0);
+  });
+
+  it('should sort logs on the same date by measured_at timestamp as tie-breaker', () => {
+    const logEarlier = { id: 'earlier', date: '2026-06-15', measured_at: '2026-06-15T08:00:00.000Z' };
+    const logLater = { id: 'later', date: '2026-06-15', measured_at: '2026-06-15T18:30:00.000Z' };
+
+    const sortedDescending = [logEarlier, logLater].sort(compareLogsDescending);
+    expect(sortedDescending[0].id).toBe('later');
+    expect(sortedDescending[1].id).toBe('earlier');
+
+    const sortedAscending = [logEarlier, logLater].sort(compareLogsAscending);
+    expect(sortedAscending[0].id).toBe('earlier');
+    expect(sortedAscending[1].id).toBe('later');
+  });
+
+  it('should fallback to id if both date and measured_at are identical', () => {
+    const log1 = { id: '1', date: '2026-06-15', measured_at: '2026-06-15T08:00:00.000Z' };
+    const log2 = { id: '2', date: '2026-06-15', measured_at: '2026-06-15T08:00:00.000Z' };
+
+    const sorted = [log1, log2].sort(compareLogsDescending);
+    expect(sorted[0].id).toBe('2');
+    expect(sorted[1].id).toBe('1');
+  });
+});
 
 describe('getRollingLogsForDate', () => {
   it('should return an empty array if logs list is empty', () => {

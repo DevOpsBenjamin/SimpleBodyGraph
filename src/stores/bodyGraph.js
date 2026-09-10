@@ -20,11 +20,15 @@ export {
   getRollingLogsForDate,
   getRollingMedianForDate,
   calculateAge,
-  getPreviousWindowEndDate
+  getPreviousWindowEndDate,
+  compareLogsDescending,
+  compareLogsAscending
 } from '../utils/dateAndMath';
 
 import {
-  calculateAge
+  calculateAge,
+  compareLogsDescending,
+  compareLogsAscending
 } from '../utils/dateAndMath';
 
 import {
@@ -179,7 +183,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     },
 
     sortedMeasurements: (state) => {
-      return [...state.measurements].sort((a, b) => b.date.localeCompare(a.date));
+      return [...state.measurements].sort(compareLogsDescending);
     },
 
     // Gets currently selected active month
@@ -380,12 +384,22 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
     async saveLogEntry({ id, mass, bodyFat, date, measuredAt, heartRate, impedances, scaleDeviceId }) {
       const authStore = useAuthStore();
       const cleanImpedances = impedances ? JSON.parse(JSON.stringify(impedances)) : null;
+      // Preserve or set measured_at timestamp (ISO string)
+      let effectiveMeasuredAt = measuredAt || null;
+      if (!effectiveMeasuredAt) {
+        if (this.editingLog && this.editingLog.id === id && this.editingLog.measured_at) {
+          effectiveMeasuredAt = this.editingLog.measured_at;
+        } else {
+          effectiveMeasuredAt = new Date().toISOString();
+        }
+      }
+
       const log = {
         id: id || crypto.randomUUID(),
         date,
         mass: Number(mass),
         body_fat: bodyFat !== null && bodyFat !== undefined && bodyFat !== '' ? Number(bodyFat) : 0,
-        measured_at: measuredAt || null,
+        measured_at: effectiveMeasuredAt,
         heart_rate: heartRate ? Number(heartRate) : null,
         impedances: cleanImpedances,
         scale_device_id: scaleDeviceId || null,
@@ -403,7 +417,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           this.logs.push(logWithUserId);
         }
 
-        this.logs.sort((a, b) => b.date.localeCompare(a.date));
+        this.logs.sort(compareLogsDescending);
 
         this.updateYearsAndClamps();
         await this.checkAndAutoValidatePaliers();
@@ -434,6 +448,15 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
 
     async saveMeasurementEntry(measurementData) {
       const authStore = useAuthStore();
+      let effectiveMeasuredAt = measurementData.measuredAt || measurementData.measured_at || null;
+      if (!effectiveMeasuredAt) {
+        if (this.editingMeasurement && this.editingMeasurement.id === measurementData.id && this.editingMeasurement.measured_at) {
+          effectiveMeasuredAt = this.editingMeasurement.measured_at;
+        } else {
+          effectiveMeasuredAt = new Date().toISOString();
+        }
+      }
+
       const log = {
         id: measurementData.id || crypto.randomUUID(),
         date: measurementData.date,
@@ -441,6 +464,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
         chest: measurementData.chest ? Number(measurementData.chest) : null,
         arms: measurementData.arms ? Number(measurementData.arms) : null,
         thighs: measurementData.thighs ? Number(measurementData.thighs) : null,
+        measured_at: effectiveMeasuredAt,
         synced: false
       };
 
@@ -455,7 +479,7 @@ export const useBodyGraphStore = defineStore('bodyGraph', {
           this.measurements.push(logWithUserId);
         }
 
-        this.measurements.sort((a, b) => b.date.localeCompare(a.date));
+        this.measurements.sort(compareLogsDescending);
 
         this.updateYearsAndClamps();
 

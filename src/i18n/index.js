@@ -186,6 +186,21 @@ export function formatDay(dateString) {
 }
 
 /**
+ * Formats time in HH:mm format (e.g. "08:30" or "14:15") from a timestamp or Date object
+ */
+export function formatTime(timeInput) {
+  if (!timeInput) return '';
+  const date = typeof timeInput === 'string' || typeof timeInput === 'number'
+    ? new Date(timeInput)
+    : timeInput;
+
+  if (isNaN(date.getTime())) return '';
+
+  const locale = currentLanguage.value === 'en' ? 'en-US' : 'fr-FR';
+  return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+/**
  * Vue plugin for $t global property
  */
 export const i18nPlugin = {
@@ -212,6 +227,7 @@ export function useI18n() {
     formatShortMonth,
     formatWeekRange,
     formatDay,
+    formatTime,
     currentLanguage,
     setLanguage,
     detectBrowserLanguage,

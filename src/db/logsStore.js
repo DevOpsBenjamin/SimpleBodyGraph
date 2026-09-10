@@ -1,4 +1,5 @@
 import { openDB, sanitizeForIndexedDB, bulkWrite, STORE_LOGS, STORE_DELETIONS } from './core';
+import { compareLogsDescending } from '../utils/dateAndMath';
 
 export async function getAllLogs(userId = 'guest') {
   const db = await openDB();
@@ -9,9 +10,9 @@ export async function getAllLogs(userId = 'guest') {
     const request = index.getAll(userId);
 
     request.onsuccess = () => {
-      // Sort logs descending by date
+      // Sort logs descending by date and time
       const logs = request.result || [];
-      logs.sort((a, b) => b.date.localeCompare(a.date));
+      logs.sort(compareLogsDescending);
       resolve(logs);
     };
     request.onerror = () => reject(request.error);
